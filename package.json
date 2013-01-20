@@ -1,0 +1,9 @@
+{
+    "name": "gnotifier", 
+    "license": "MPL 2.0", 
+    "author": "Michal Kosciesza <mijkos@gmail.com>", 
+    "version": "0.1", 
+    "fullName": "GNotifier", 
+    "id": "jid1-OoNOA6XBjznvLQ", 
+    "description": "GNotifier integrates Firefox notifications with GNOME native notification system."
+}
