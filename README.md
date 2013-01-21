@@ -1,5 +1,5 @@
 GNotifier
 =========
 
-GNotifier integrates Firefox notifications with GNOME native notification system.
-
+Add-on for Firefox that enable integration with GNOME native
+notification system. 
