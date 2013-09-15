@@ -1,9 +1,9 @@
 {
     "name": "gnotifier", 
     "license": "GPL 3.0", 
-    "author": "Michal Kosciesza <mijkos@gmail.com>", 
-    "version": "1.1", 
+    "author": "Michal Kosciesza <michal@mkiol.net>", 
+    "version": "1.4", 
     "fullName": "GNotifier", 
     "id": "jid1-OoNOA6XBjznvLQ", 
-    "description": "GNotifier integrates Firefox notifications with GNOME native notification system."
+    "description": "GNotifier integrates Firefox notifications with the default notification system from Linux distribution."
 }
