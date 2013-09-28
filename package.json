@@ -1,9 +1,29 @@
 {
     "name": "gnotifier", 
     "license": "GPL 3.0", 
-    "author": "Michal Kosciesza <michal@mkiol.net>", 
-    "version": "1.4", 
+    "author": "Michal Kosciesza <michal@mkiol.net>",
+    "contributors": [
+		"Alexander Schlarb <alexander1066@xmine128.tk>"
+	],
+    "version": "1.5", 
     "fullName": "GNotifier", 
     "id": "jid1-OoNOA6XBjznvLQ", 
-    "description": "GNotifier integrates Firefox notifications with the default notification system from Linux distribution."
+    "description": "GNotifier integrates Firefox's notifications with the native notification system from Linux desktop, that is: GNOME, KDE, Xfce or Unity.",
+
+	"preferences": [
+		{
+			"name": "notifyIcon",
+			"title": "Notification Icon",
+			"description": "Defines Icon used in notifications. For example: 'firefox', 'web-browser' or 'iceweasel'. If value is set to 'default' then icon will be set based on system name.",
+			"type": "string",
+			"value": "default"
+		},
+		{
+			"name": "replaceAlerts",
+			"title": "Replace alerts service (needs restart)",
+			"description": "Replaces Firefox's built-in notification engine with libnotify. It has impact on Web Notifications API and notifications from Social Services.",
+			"type": "bool",
+			"value": true
+		}
+	]
 }
