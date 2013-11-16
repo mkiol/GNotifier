@@ -5,7 +5,7 @@
     "contributors": [
 		"Alexander Schlarb <alexander1066@xmine128.tk>"
 	],
-    "version": "1.5", 
+    "version": "1.6", 
     "fullName": "GNotifier", 
     "id": "jid1-OoNOA6XBjznvLQ", 
     "description": "GNotifier integrates Firefox's notifications with the native notification system from Linux desktop, that is: GNOME, KDE, Xfce or Unity.",

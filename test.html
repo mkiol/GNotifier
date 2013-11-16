@@ -3,17 +3,28 @@
 <title>Notifications test</title>
 <script>
 	function test1() {
-		var notification = navigator.mozNotification.createNotification(
-		"Test", "Non-standard API", "https://developer.cdn.mozilla.net/media/img/mdn-logo-sm.png");
+		var notification = navigator.mozNotification.createNotification("Test", "Mozilla API", "https://developer.cdn.mozilla.net/media/img/mdn-logo-sm.png");
         notification.show();
 	}
+	
 	function test2() {
-        var notification = new Notification("Test",{body: "Standard Web Notification API", icon: "https://www.w3.org/Icons/w3c_home"});
+        var notification = new Notification("Test",{body: "Standard API", icon: "https://www.w3.org/Icons/w3c_home"});
+	}
+	
+	function test3() {
+		console.log(window.webkitNotifications.checkPermission());
+		if (window.webkitNotifications.checkPermission() == 0) {
+			var notification = window.webkitNotifications.createNotification("http://www.google.pl/intl/pl/chrome/assets/common/images/chrome_logo_2x.png", "Test", "Webkit API");
+			notification.show();
+		} else {
+			window.webkitNotifications.requestPermission();
+		}
 	}
 </script>
 </head>
 <body>
 	<button onclick="test1()">navigator.mozNotification</button>
 	<button onclick="test2()">Notification</button>
+	<button onclick="test3()">window.webkitNotifications</button>
 </body>
 </html>
