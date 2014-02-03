@@ -5,10 +5,10 @@
     "contributors": [
 		"Alexander Schlarb <alexander1066@xmine128.tk>"
 	],
-    "version": "1.7.9", 
+    "version": "1.7.1", 
     "fullName": "GNotifier", 
     "id": "jid1-OoNOA6XBjznvLQ", 
-    "description": "GNotifier integrates Firefox's notifications with the native notification system from Linux desktop, that is: GNOME, KDE, Xfce, Unity, MATE or LXDE",
+    "description": "GNotifier integrates Firefox's notifications with the native notification system from Linux desktop, that is: GNOME, KDE, Xfce, Cinnamon, MATE, LXDE and Unity",
 
 	"preferences": [
 		{

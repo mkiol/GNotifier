@@ -3,12 +3,7 @@
 * Author: Michal Kosciesza <michal@mkiol.net>
 * Contributor: Alexander Schlarb <alexander1066@xmine128.tk>
 * 
-* version: 1.7.1
-* 
-* changelog:
-* [1.7.1]
-* - turkish translation
-* - fixes few translations
+* version: 1.8.0
 */
 
 // imports
@@ -33,7 +28,7 @@ var libc;
 
 var downloadProgressListener = {
   onDownloadStateChange: function(aState, aDownload) {
-    console.log("onDownloadStateChange");	
+    //console.log("onDownloadStateChange");	
     var dm = Cc["@mozilla.org/download-manager;1"].getService(Ci.nsIDownloadManager);
     var icon = getIcon();
     switch(aDownload.state) {
@@ -48,11 +43,11 @@ var downloadProgressListener = {
 }
 
 function newDownloadProgressListener(download) {
-  /*console.log("newDownloadProgressListener");
-  console.log("download.succeeded", download.succeeded);
-  console.log("download.progress", download.progress);
-  console.log("source.url", download.source.url);
-  console.log("target.path", download.target.path);*/
+  //console.log("newDownloadProgressListener");
+  //console.log("download.succeeded", download.succeeded);
+  //console.log("download.progress", download.progress);
+  //console.log("source.url", download.source.url);
+  //console.log("target.path", download.target.path);
   if(download.succeeded) {
     var icon = getIcon();
     var filename = download.target.path.replace(/^.*[\\\/]/, '');
@@ -60,17 +55,17 @@ function newDownloadProgressListener(download) {
   }
 }
 
+try {
 Task.spawn(function () {
-  try {
-    let list = yield Downloads.getList(Downloads.ALL);
-    let view = {
-      onDownloadChanged: download => newDownloadProgressListener(download)
-    };
-    yield list.addView(view);
-  } catch(e) {
-    console.log("exception",e);
-  }
+  let list = yield Downloads.getList(Downloads.ALL);
+  let view = {
+    onDownloadChanged: download => newDownloadProgressListener(download)
+  };
+  yield list.addView(view);
 }).then(null, Cu.reportError);
+}  catch(e) {
+      console.log("spawn exeption");
+    }
 
 function AlertsService()
 {}
@@ -78,24 +73,28 @@ AlertsService.prototype = {
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIAlertsService]),
 
   showAlertNotification: function GNotifier_AlertsService_showAlertNotification(
-    imageUrl, title, text, textClickable, cookie, alertListener, name) {
-    
-    /*console.log('showAlertNotification');
-    console.log('imageUrl='+imageUrl);
-    console.log('title='+title);
-    console.log('text='+text);
-    console.log('textClickable='+textClickable);
-    console.log('cookie='+cookie);
-    console.log('alertListener='+alertListener);
-    console.log('name='+name);*/
+    imageUrl, title, text, textClickable, cookie, alertListener, name
+    )
+  {
+    //console.log('showAlertNotification');
+    //console.log('imageUrl='+imageUrl);
+    //console.log('title='+title);
+    //console.log('text='+text);
+    //console.log('textClickable='+textClickable);
+    //console.log('cookie='+cookie);
+    //console.log('alertListener='+alertListener);
+    //console.log('name='+name);
 
     //TODO: Support textClickable (Yes its possible using a button...)
-    function GNotifier_AlertsService_showAlertNotification_cb(iconPath) {
+    function GNotifier_AlertsService_showAlertNotification_cb(iconPath)
+    {
+      // Display notification
       notify2(iconPath, title, text, name);
+
       //TODO: Call the callback once the alert is actually finished...
       if(typeof(alertListener) == "object") {
 	alertListener.observe(null, "alertfinished", cookie);
-      }
+	}
     }
 
     try {
@@ -110,40 +109,43 @@ AlertsService.prototype = {
   // Create temporary local file
   // (Required since I don't want to manually
   //  populate a GdkPixbuf...)
-	  var iconFile = FileUtils.getFile("TmpD", [".gnotifier.tmp"]);
-	  iconFile.createUnique(
-	    Ci.nsIFile.NORMAL_FILE_TYPE,
-	    FileUtils.PERMS_FILE
-	  );
-	  var iconStream = FileUtils.openSafeFileOutputStream(iconFile);
+  var iconFile = FileUtils.getFile("TmpD", [".gnotifier.tmp"]);
+  iconFile.createUnique(
+    Ci.nsIFile.NORMAL_FILE_TYPE,
+    FileUtils.PERMS_FILE
+    );
+  var iconStream = FileUtils.openSafeFileOutputStream(iconFile);
 
-	  // Copy data from original icon to local file
-	  var imageFile = NetUtil.newChannel(imageUrl);
-	  NetUtil.asyncFetch(imageFile, function(imageStream) {
-	    NetUtil.asyncCopy(imageStream, iconStream, function() {
-	      // Show notification with copied icon file
-	      GNotifier_AlertsService_showAlertNotification_cb(iconFile.path);
+  // Copy data from original icon to local file
+  var imageFile = NetUtil.newChannel(imageUrl);
+  NetUtil.asyncFetch(imageFile, function(imageStream)
+    {
+      NetUtil.asyncCopy(imageStream, iconStream, function()
+	{
+    // Show notification with copied icon file
+    GNotifier_AlertsService_showAlertNotification_cb(
+      iconFile.path
+      );
 
-	      // Close streams
-	      iconStream.close();
-	      imageStream.close();
+    // Close streams
+    iconStream.close();
+    imageStream.close();
 
-	      // Delete icon file
-	      iconFile.remove(false);
-	    });
-	  });
-	} catch(e) {
-	    GNotifier_AlertsService_showAlertNotification_cb(imageUrl);
-	}
-      }
+    // Delete icon file
+    iconFile.remove(false);
+  });
+    });
+  } catch(e) {
+    GNotifier_AlertsService_showAlertNotification_cb(imageUrl);
     }
+	}
+  }
 };
 
 function getIcon() {
-  console.log("system.name",system.name);
   var picon = sps['notifyIcon'];
   if (picon == "default") {
-     
+      
     if (system.name == "Iceweasel")
       picon = "iceweasel";
     if (system.name == "Thunderbird")
@@ -173,10 +175,10 @@ function importLibnotify() {
 }
 
 function notify1(iconURL, title, text) {
-  /*console.log('notify1');
-  console.log('iconURL='+iconURL);
-  console.log('title='+title);
-  console.log('text='+text);*/
+  //console.log('notify1');
+  //console.log('iconURL='+iconURL);
+  //console.log('title='+title);
+  //console.log('text='+text);
   var notifications = require("sdk/notifications");
   notifications.notify({
     title: title,
@@ -186,10 +188,10 @@ function notify1(iconURL, title, text) {
 }
 
 function notify2(iconURL, title, text, notifier) {
-  /*console.log('notify2');
-  console.log('iconURL='+iconURL);
-  console.log('title='+title);
-  console.log('text='+text);*/
+  //console.log('notify2');
+  //console.log('iconURL='+iconURL);
+  //console.log('title='+title);
+  //console.log('text='+text);
   const struct_gerror = new ctypes.StructType("GError",
     [ { "gerror_domain": ctypes.uint32_t },
       { "gerror_code": ctypes.int },
@@ -206,6 +208,9 @@ function notify2(iconURL, title, text, notifier) {
   var notify_notification_show = libc.declare(
     "notify_notification_show", ctypes.default_abi, ctypes.bool,
     struct_notification.ptr, struct_gerror_ptr);
+  //console.log(notifier);
+  //console.log(typeof(notifier));
+  //console.log(notifier == "");
   notify_init((typeof(notifier) == "string" && notifier != "") ? notifier : "gnotifier");
   var error = new struct_gerror_ptr;
   var ret = notify_notification_show(
@@ -215,6 +220,7 @@ function notify2(iconURL, title, text, notifier) {
     console.log('error!');
     notify1(iconURL, title, text);
   }
+
 }
 
 function setConfig() {
@@ -226,10 +232,10 @@ function restoreOrigConfig() {
 }
 
 exports.main = function(options, callbacks) {
-  /*console.log("exports.main, loadReason=" + options.loadReason);
-  console.log("system.platform=" + system.platform);
-  console.log("system.name=" + system.name);
-  console.log("system.vendor=" + system.vendor);*/
+  //console.log("exports.main, loadReason=" + options.loadReason);
+  //console.log("system.platform=" + system.platform);
+  //console.log("system.name=" + system.name);
+  //console.log("system.vendor=" + system.vendor);
   // check if libnofify.so.4 is present
   if(importLibnotify()) {
     // Register download manager hook
