@@ -3,7 +3,8 @@
     "license": "GPL 3.0", 
     "author": "Michal Kosciesza <michal@mkiol.net>",
     "contributors": [
-		"Alexander Schlarb <alexander1066@xmine128.tk>"
+		"Alexander Schlarb <alexander1066@xmine128.tk>",
+		"Joe Simpson <headbangerkenny@gmail.com>"
 	],
     "version": "1.7.1", 
     "fullName": "GNotifier", 
