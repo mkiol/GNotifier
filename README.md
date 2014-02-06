@@ -2,7 +2,7 @@ GNotifier
 =========
 
 Add-on for Firefox. Integrates Firefox's notifications with the native 
-notification system from Linux desktop. It supports: GNOME, KDE, Xfce, 
+notification system from Linux or OSX desktop. It supports: GNOME, KDE, Xfce, 
 Cinnamon, MATE, LXDE and Unity.
 
 Everytime when Firefox is finished downloading, it opens up the 

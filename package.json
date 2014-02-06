@@ -6,10 +6,10 @@
 		"Alexander Schlarb <alexander1066@xmine128.tk>",
 		"Joe Simpson <headbangerkenny@gmail.com>"
 	],
-    "version": "1.7.1", 
+    "version": "1.7.2", 
     "fullName": "GNotifier", 
     "id": "jid1-OoNOA6XBjznvLQ", 
-    "description": "GNotifier integrates Firefox's notifications with the native notification system from Linux desktop, that is: GNOME, KDE, Xfce, Cinnamon, MATE, LXDE and Unity",
+    "description": "GNotifier integrates Firefox's notifications with the native notification system from Linux/OSX desktop. It supports: GNOME, KDE, Xfce, Cinnamon, MATE, LXDE and Unity",
 
 	"preferences": [
 		{
@@ -22,7 +22,7 @@
 		{
 			"name": "replaceAlerts",
 			"title": "Replace alerts service (needs restart)",
-			"description": "Replaces Firefox's built-in notification engine with libnotify. It has impact on Web Notifications API and notifications from Social Services.",
+			"description": "Replaces Firefox's built-in notification engine. It has impact on Web Notifications API and notifications from Social Services.",
 			"type": "bool",
 			"value": true
 		}
