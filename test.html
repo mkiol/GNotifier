@@ -3,12 +3,16 @@
 <title>Notifications test</title>
 <script>
 	function test1() {
-		var notification = navigator.mozNotification.createNotification("Test", "Mozilla API", "https://developer.cdn.mozilla.net/media/img/mdn-logo-sm.png");
+		var notification = navigator.mozNotification.createNotification("Test", "Mozilla deprecated API", "https://developer.cdn.mozilla.net/media/img/mdn-logo-sm.png");
         notification.show();
 	}
 	
 	function test2() {
         var notification = new Notification("Test",{body: "Standard API", icon: "https://www.w3.org/Icons/w3c_home"});
+	}
+	
+	function test4() {
+        var notification = new Notification("Test",{body: "Standard API", icon: "http://svn.plone.org/svn/collective/Plango/icons/plango/100x100/emblems/user.png"});
 	}
 	
 	function test3() {
@@ -23,8 +27,9 @@
 </script>
 </head>
 <body>
-	<button onclick="test1()">navigator.mozNotification</button>
-	<button onclick="test2()">Notification</button>
-	<button onclick="test3()">window.webkitNotifications</button>
+	<button onclick="test1()">Mozilla deprecated API</button>
+	<button onclick="test2()">Standard W3C API</button>
+	<button onclick="test4()">Standard W3C API</button>
+	<button onclick="test3()">Webkit API</button>
 </body>
 </html>
