@@ -14,10 +14,17 @@
 	"preferences": [
 		{
 			"name": "downloadCompleteAlert",
-			"title": "Download Complete Alert",
+			"title": "Download Complete notification",
 			"description": "'Downloads Complete' notification will be shown everytime when Firefox is finished downloading.",
 			"type": "bool",
 			"value": true
+		},
+		{
+			"name": "clickableDownloadCompleteAlert",
+			"title": "Clickable notifications",
+			"description": "Makes Download Complete noticication clickable. (Be careful it doesn't work on every desktop!)",
+			"type": "bool",
+			"value": false
 		},
 		{
 			"name": "notifyIcon",
