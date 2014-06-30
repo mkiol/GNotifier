@@ -6,7 +6,7 @@
 		"Alexander Schlarb <alexander1066@xmine128.tk>",
 		"Joe Simpson <headbangerkenny@gmail.com>"
 	],
-    "version": "1.8.0", 
+    "version": "1.8.1", 
     "fullName": "GNotifier", 
     "id": "jid1-OoNOA6XBjznvLQ", 
     "description": "GNotifier integrates Firefox's notifications with the native notification system from Linux/OSX desktop. It supports: GNOME, KDE, Xfce, Cinnamon, MATE, LXDE and Unity",
@@ -20,11 +20,22 @@
 			"value": true
 		},
 		{
-			"name": "clickableDownloadCompleteAlert",
-			"title": "Clickable notifications",
-			"description": "Makes Download Complete noticication clickable. (Be careful it doesn't work on every desktop!)",
-			"type": "bool",
-			"value": false
+			"name": "clickOption",
+			"title": "Click action",
+			"description": "Defines action on click.",
+			"type": "menulist",
+			"value": 0,
+			"options": [
+			  {
+			    "value": "0",
+			    "label": "Open folder"
+			  },
+			  {
+			    "value": "1",
+			    "label": "Open file"
+			  }
+			]
+			
 		},
 		{
 			"name": "notifyIcon",

@@ -2,6 +2,14 @@
 <head>
 <title>Notifications test</title>
 <script>
+	function clickHandler(){
+	  alert("Click!");
+	}
+	
+	function closeHandler(){
+	  alert("Close!");
+	}
+	
 	function test1() {
 		var notification = navigator.mozNotification.createNotification("Test", "Mozilla deprecated API", "https://developer.cdn.mozilla.net/media/img/mdn-logo-sm.png");
         notification.show();
@@ -12,7 +20,17 @@
 	}
 	
 	function test4() {
-        var notification = new Notification("Test",{body: "Standard API", icon: "http://svn.plone.org/svn/collective/Plango/icons/plango/100x100/emblems/user.png"});
+        var notification = new Notification("Test",{body: "<html><body><b>Standard</b> <span style='color:red'>API</span></body></html>", icon: "https://www.w3.org/Icons/w3c_home"});
+	}
+	
+	function test5() {
+        var notification = new Notification("Test",{body: "Standard API <img src='https://www.w3.org/Icons/w3c_home' alt='test image'/>", icon: "https://www.w3.org/Icons/w3c_home"});
+	}
+	
+	function test6() {
+        var notification = new Notification("Test",{body: "Standard API <input text='Test button' type='submit'/>", icon: "https://www.w3.org/Icons/w3c_home"});
+	notification.addEventListener("click",function(){alert("Click!");},false);
+	notification.addEventListener("close",function(){alert("Close!");},false);
 	}
 	
 	function test3() {
@@ -24,12 +42,17 @@
 			window.webkitNotifications.requestPermission();
 		}
 	}
+	
+	
 </script>
 </head>
 <body>
-	<button onclick="test1()">Mozilla deprecated API</button>
-	<button onclick="test2()">Standard W3C API</button>
-	<button onclick="test4()">Standard W3C API</button>
-	<button onclick="test3()">Webkit API</button>
+	<button onclick="test1()">Mozilla deprecated API</button><br/>
+	<button onclick="test3()">Webkit API</button><br/>
+	<br/>
+	<button onclick="test2()">Standard W3C API</button><br/>
+	<button onclick="test4()">Standard W3C API (simple html tags)</button><br/>
+	<button onclick="test5()">Standard W3C API (img tags)</button><br/>
+	<button onclick="test6()">Standard W3C API (button)</button><br/>
 </body>
 </html>
