@@ -6,16 +6,16 @@
 		"Alexander Schlarb <alexander1066@xmine128.tk>",
 		"Joe Simpson <headbangerkenny@gmail.com>"
 	],
-    "version": "1.8.2", 
+    "version": "1.8.6", 
     "fullName": "GNotifier", 
     "id": "jid1-OoNOA6XBjznvLQ", 
-    "description": "GNotifier integrates Firefox's notifications with the native notification system from Linux desktop. It supports: GNOME, KDE, Xfce, Cinnamon, MATE, LXDE and Unity",
+    "description": "GNotifier integrates Firefox/Thunderbird's notifications with the native notification system from Linux desktop. It supports: GNOME, KDE, Xfce, Cinnamon, MATE, LXDE and Unity",
 
 	"preferences": [
 		{
 			"name": "downloadCompleteAlert",
 			"title": "Download Complete notification",
-			"description": "'Downloads Complete' notification will be shown everytime when Firefox is finished downloading.",
+			"description": "'Downloads Complete' notification will be shown everytime when downloading is finished.",
 			"type": "bool",
 			"value": true
 		},
@@ -46,7 +46,7 @@
 		{
 			"name": "replaceAlerts",
 			"title": "Replace alerts service (needs restart)",
-			"description": "Replaces Firefox's built-in notification engine. It has impact on Web Notifications API and notifications from Social Services.",
+			"description": "Replaces built-in notification engine. It has impact on Web Notifications API and notifications from Social Services.",
 			"type": "bool",
 			"value": true
 		}

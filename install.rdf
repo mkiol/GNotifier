@@ -37,7 +37,7 @@
 
     <!-- Front End MetaData -->
     <em:name>GNotifier</em:name>
-    <em:description>GNotifier integrates Firefox's notifications with the native notification system from Linux desktop. It supports: GNOME, KDE, Xfce, Cinnamon, MATE, LXDE and Unity</em:description>
+    <em:description>GNotifier integrates Firefox/Thunderbird's notifications with the native notification system from Linux desktop. It supports: GNOME, KDE, Xfce, Cinnamon, MATE, LXDE and Unity</em:description>
     <em:creator>Michal Kosciesza &lt;michal@mkiol.net&gt;</em:creator>
     
     <em:optionsType>2</em:optionsType>
