@@ -42,13 +42,6 @@
 			"description": "Defines Icon used in notifications. For example: 'firefox', 'web-browser' or 'iceweasel'. If value is set to 'default' then icon will be set based on system name.",
 			"type": "string",
 			"value": "default"
-		},
-		{
-			"name": "replaceAlerts",
-			"title": "Replace alerts service (needs restart)",
-			"description": "Replaces built-in notification engine. It has impact on Web Notifications API and notifications from Social Services.",
-			"type": "bool",
-			"value": true
 		}
 	]
 }
