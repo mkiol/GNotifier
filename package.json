@@ -6,7 +6,7 @@
 		"Alexander Schlarb <alexander1066@xmine128.tk>",
 		"Joe Simpson <headbangerkenny@gmail.com>"
 	],
-    "version": "1.8.6", 
+    "version": "1.8.7", 
     "fullName": "GNotifier", 
     "id": "jid1-OoNOA6XBjznvLQ", 
     "description": "GNotifier integrates Firefox/Thunderbird's notifications with the native notification system from Linux desktop. It supports: GNOME, KDE, Xfce, Cinnamon, MATE, LXDE and Unity",
@@ -35,6 +35,13 @@
 			    "label": "Open file"
 			  }
 			]
+		},
+		{
+			"name": "simpleNewMail",
+			"title": "Simple New mail notification",
+			"description": "New mail notification will not contain details like subject or sender address.",
+			"type": "bool",
+			"value": false
 		},
 		{
 			"name": "notifyIcon",
