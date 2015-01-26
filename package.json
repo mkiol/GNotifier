@@ -4,13 +4,15 @@
     "author": "Michal Kosciesza <michal@mkiol.net>",
     "contributors": [
 		"Alexander Schlarb <alexander1066@xmine128.tk>",
-		"Joe Simpson <headbangerkenny@gmail.com>"
+		"Joe Simpson <headbangerkenny@gmail.com>",
+		"Andrew Nagle <kabili@zyrenth.com>"
 	],
     "version": "1.8.7", 
     "fullName": "GNotifier", 
     "id": "jid1-OoNOA6XBjznvLQ", 
     "description": "GNotifier integrates Firefox/Thunderbird's notifications with the native notification system from Linux desktop. It supports: GNOME, KDE, Xfce, Cinnamon, MATE, LXDE and Unity",
-
+	"unpack": true,
+	
 	"preferences": [
 		{
 			"name": "downloadCompleteAlert",
