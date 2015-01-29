@@ -11,6 +11,8 @@
 #pragma comment(lib, "delayimp")
 #pragma comment(lib, "runtimeobject")
 
+#define DllExport extern "C" __declspec(dllexport)
+
 using namespace ABI::Windows::Data::Xml::Dom;
 using namespace ABI::Windows::Foundation;
 using namespace ABI::Windows::UI::Notifications;
@@ -320,8 +322,8 @@ ToastNotificationHandler::OnDismiss(IToastNotification* aNotification, IToastDis
 	return S_OK;
 }
 
-extern "C"
-bool WINAPI
+DllExport
+bool
 SetAppId()
 {
 	if (!sAppId) {
@@ -348,8 +350,8 @@ SetAppId()
 }
 
 // external API to show toast notification via JS-CTYPES
-extern "C"
-bool WINAPI
+DllExport
+bool
 DisplayToastNotification(const wchar_t* aImage, const wchar_t* aTitle, const wchar_t* aMessage, const wchar_t* aName, void* aCallbackActive, void* aCallbackDismiss)
 {
 	if (!sAppId) {
@@ -373,8 +375,8 @@ DisplayToastNotification(const wchar_t* aImage, const wchar_t* aTitle, const wch
 	return true;
 }
 
-extern "C"
-bool WINAPI
+DllExport
+bool
 CloseToastNotification(const wchar_t* aName)
 {
 	if (!aName) {
