@@ -3,7 +3,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. --><RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
   <Description about="urn:mozilla:install-manifest">
     <em:id>jid1-OoNOA6XBjznvLQ@jetpack</em:id>
-    <em:version>1.8.7</em:version>
+    <em:version>1.8.8</em:version>
     <em:type>2</em:type>
     <em:bootstrap>true</em:bootstrap>
     <em:unpack>true</em:unpack>
@@ -37,7 +37,7 @@
 
     <!-- Front End MetaData -->
     <em:name>GNotifier</em:name>
-    <em:description>GNotifier integrates Firefox/Thunderbird's notifications with the native notification system from Linux desktop. It supports: GNOME, KDE, Xfce, Cinnamon, MATE, LXDE and Unity</em:description>
+    <em:description>GNotifier integrates Firefox/Thunderbird's notifications with the native notification system. It supports most Linux desktops and Windows 8.</em:description>
     <em:creator>Michal Kosciesza &lt;michal@mkiol.net&gt;</em:creator>
     
     <em:optionsType>2</em:optionsType>
