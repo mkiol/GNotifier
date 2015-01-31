@@ -1,13 +1,11 @@
 GNotifier
 =========
 
-Add-on for Firefox. Integrates Firefox's notifications with the native 
-notification system from Linux. It supports: GNOME, KDE, Xfce, 
-Cinnamon, MATE, LXDE and Unity.
-
-Everytime when Firefox is finished downloading, it opens up the 
-‘Download Complete’ pop-up window. GNotifier replaces these window 
-with the native notification, depending on your Linux distribution. 
+Add-on for Firefox and Thunderbird. Integrates Firefox's notifications with the 
+OS's native notification system. from Linux. It supports most 
+Linux desktops and Windows 8.
 
 ![gnotifier](https://raw.github.com/mkiol/GNotifier/master/screenshot3.png)
+
+![gnotifier](https://raw.github.com/mkiol/GNotifier/master/screenshot-win8.png)
 
