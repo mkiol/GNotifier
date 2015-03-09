@@ -250,15 +250,15 @@ exports.main = function(options, callbacks) {
     if(sps['replaceAlerts']) {
       // Replace alert-service
       var contract = "@mozilla.org/alerts-service;1";
-
+      let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
       // Unregister built-in alerts-service class factory
-      Cm.nsIComponentRegistrar.unregisterFactory(
+      registrar.unregisterFactory(
 	Cc[contract],
 	Cm.getClassObject(Cc[contract], Ci.nsIFactory)
       );
 
       // Register new factory
-      Cm.nsIComponentRegistrar.registerFactory(
+      registrar.registerFactory(
 	Cc[contract],
 	"GNotifier Alerts Service",
 	contract,
