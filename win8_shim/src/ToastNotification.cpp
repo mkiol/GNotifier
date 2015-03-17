@@ -24,7 +24,7 @@ class ToastNotificationHandler;
 static wchar_t* sAppId = nullptr;
 static std::vector<ToastNotificationHandler*> sNotifications;
 
-typedef bool (STDAPICALLTYPE *EventCallback)();
+typedef void (STDAPICALLTYPE *EventCallback)();
 
 class ToastNotificationHandler {
 	typedef ABI::Windows::UI::Notifications::IToastNotification IToastNotification;
