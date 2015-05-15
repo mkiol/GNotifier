@@ -7,6 +7,7 @@
 #include <wrl.h>
 #include <wchar.h>
 #include <vector>
+#include <Shobjidl.h>
 
 #pragma comment(lib, "delayimp")
 #pragma comment(lib, "runtimeobject")
@@ -327,23 +328,7 @@ bool
 SetAppId()
 {
 	if (!sAppId) {
-		WCHAR wszFilename[MAX_PATH];
-		GetModuleFileNameW(NULL, wszFilename, MAX_PATH);
-		wchar_t* slash = wcsrchr(wszFilename, '\\');
-		if (slash) {
-			*slash = '\0';
-		}
-
-		HKEY key;
-		if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Mozilla\\Firefox\\TaskBarIDs", 0, KEY_QUERY_VALUE, &key) == ERROR_SUCCESS) {
-			WCHAR value[MAX_PATH];
-			DWORD type = REG_SZ;
-			DWORD len = sizeof(value);
-			if (RegQueryValueExW(key, wszFilename, NULL, &type, (LPBYTE)value, &len) == ERROR_SUCCESS) {
-				sAppId = _wcsdup(value);
-			}
-			RegCloseKey(key);
-		}
+		GetCurrentProcessExplicitAppUserModelID(&sAppId);
 	}
 
 	return !!sAppId;
