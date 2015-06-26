@@ -1,56 +1,56 @@
 {
-    "name": "gnotifier", 
-    "license": "GPL 3.0", 
+    "name": "gnotifier",
+    "license": "GPL 3.0",
     "author": "Michal Kosciesza <michal@mkiol.net>",
     "contributors": [
-		"Alexander Schlarb <alexander1066@xmine128.tk>",
-		"Joe Simpson <headbangerkenny@gmail.com>",
-		"Andrew Nagle <kabili@zyrenth.com>"
-	],
-    "version": "1.9.0", 
-    "fullName": "GNotifier", 
-    "id": "jid1-OoNOA6XBjznvLQ", 
+        "Alexander Schlarb <alexander1066@xmine128.tk>",
+        "Joe Simpson <headbangerkenny@gmail.com>",
+        "Andrew Nagle <kabili@zyrenth.com>"
+    ],
+    "version": "1.9.0",
+    "fullName": "GNotifier",
+    "id": "jid1-OoNOA6XBjznvLQ",
     "description": "GNotifier integrates Firefox/Thunderbird's notifications with the native notification system. It supports most Linux desktops and Windows 8.",
-	"unpack": true,
-	
-	"preferences": [
-		{
-			"name": "downloadCompleteAlert",
-			"title": "Download Complete notification",
-			"description": "'Downloads Complete' notification will be shown everytime when downloading is finished.",
-			"type": "bool",
-			"value": true
-		},
-		{
-			"name": "clickOption",
-			"title": "Click action",
-			"description": "Defines action on click.",
-			"type": "menulist",
-			"value": 0,
-			"options": [
-			  {
-			    "value": "0",
-			    "label": "Open folder"
-			  },
-			  {
-			    "value": "1",
-			    "label": "Open file"
-			  }
-			]
-		},
-		{
-			"name": "simpleNewMail",
-			"title": "Simple New mail notification",
-			"description": "New mail notification will not contain details like subject or sender address.",
-			"type": "bool",
-			"value": false
-		},
-		{
-			"name": "notifyIcon",
-			"title": "Notification Icon",
-			"description": "Defines Icon used in notifications. For example: 'firefox', 'web-browser' or 'iceweasel'. If value is set to 'default' then icon will be set based on system name.",
-			"type": "string",
-			"value": "default"
-		}
-	]
+    "unpack": true,
+
+    "preferences": [
+        {
+            "name": "downloadCompleteAlert",
+            "title": "Download Complete notification",
+            "description": "'Downloads Complete' notification will be shown everytime when downloading is finished.",
+            "type": "bool",
+            "value": true
+        },
+        {
+            "name": "clickOption",
+            "title": "Click action",
+            "description": "Defines action on click.",
+            "type": "menulist",
+            "value": 0,
+            "options": [
+                {
+                    "value": "0",
+                    "label": "Open folder"
+                },
+                {
+                    "value": "1",
+                    "label": "Open file"
+                }
+            ]
+        },
+        {
+            "name": "simpleNewMail",
+            "title": "Simple New mail notification",
+            "description": "New mail notification will not contain details like subject or sender address.",
+            "type": "bool",
+            "value": false
+        },
+        {
+            "name": "notifyIcon",
+            "title": "Notification Icon",
+            "description": "Defines Icon used in notifications. For example: 'firefox', 'web-browser' or 'iceweasel'. If value is set to 'default' then icon will be set based on system name.",
+            "type": "string",
+            "value": "default"
+        }
+    ]
 }
