@@ -1,7 +1,9 @@
 ## 1.9.0
   - Win8+: Thunderbird support
-  - Added Serbian translation
+  - Linux: Download complete notification with 'Open file' & 'Open folder' buttons
   - Thunderbird: Change notification title to include author
+  - Thunderbird: Better handling notifications when filtering is enabled for folder
+  - Added Serbian translation
 
 ## 1.8.9
   - Win8+: Fixed issue with Firefox freezing when displaying notifications

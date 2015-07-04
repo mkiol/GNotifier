@@ -16,15 +16,15 @@
     "preferences": [
         {
             "name": "downloadCompleteAlert",
-            "title": "Download Complete notification",
+            "title": "Download complete notification",
             "description": "'Downloads Complete' notification will be shown everytime when downloading is finished.",
             "type": "bool",
             "value": true
         },
         {
             "name": "clickOption",
-            "title": "Click action",
-            "description": "Defines action on click.",
+            "title": "Default click action",
+            "description": "Defines action on click for download complete notification. If your notification system supports buttons, this parameter defines which button is first.",
             "type": "menulist",
             "value": 0,
             "options": [
