@@ -26,7 +26,7 @@
             "title": "Default click action",
             "description": "Defines action on click for download complete notification. If your notification system supports buttons, this parameter defines which button is first.",
             "type": "menulist",
-            "value": 0,
+            "value": 1,
             "options": [
                 {
                     "value": "0",

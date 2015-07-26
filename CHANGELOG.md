@@ -2,8 +2,11 @@
   - Win8+: Thunderbird support
   - Linux: Download complete notification with 'Open file' & 'Open folder' buttons
   - Thunderbird: Change notification title to include author
-  - Thunderbird: Better handling notifications when filtering is enabled for folder
+  - Thunderbird: Better handling notifications when filtering on folders is enabled
   - Added Serbian translation
+  - Download complete notification default action is 'Open file'
+  - BUG FIX: Some temporary files not cleaned properly
+  - BUG FIX: Double download complete notification is shown when downloaded file is deleted
 
 ## 1.8.9
   - Win8+: Fixed issue with Firefox freezing when displaying notifications
