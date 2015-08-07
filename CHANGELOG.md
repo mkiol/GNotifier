@@ -1,5 +1,6 @@
 ## 1.9.1
   - Czech translation
+
 ## 1.9.0
   - Win8+: Thunderbird support
   - Linux: Download complete notification with 'Open file' & 'Open folder' buttons
