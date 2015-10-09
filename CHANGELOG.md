@@ -1,5 +1,6 @@
 ## 1.9.1
   - Czech translation
+  - BUG FIX: When server spec version is 1.2, app_icon parameter is normalized be an file URI
 
 ## 1.9.0
   - Win8+: Thunderbird support
