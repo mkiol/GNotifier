@@ -1,6 +1,7 @@
 ## 1.9.1
   - Czech translation
   - Linux: Provide both image and icon to servers when possible
+  - Support for Icedove 
 
 ## 1.9.0
   - Win8+: Thunderbird support
