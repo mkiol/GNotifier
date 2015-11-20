@@ -1,7 +1,8 @@
 ## 1.9.1
-  - Czech translation
+  - Czech & Russian translation
   - Linux: Provide both image and icon to servers when possible
-  - Support for Icedove 
+  - Linux: Better sanitization of notification body
+  - Support for Icedove
 
 ## 1.9.0
   - Win8+: Thunderbird support
