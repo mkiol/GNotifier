@@ -1,3 +1,6 @@
+## 1.9.2
+  - Spanish translation
+
 ## 1.9.1
   - Czech & Russian translation
   - Linux: Provide both image and icon to servers when possible
