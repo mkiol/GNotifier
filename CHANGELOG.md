@@ -1,5 +1,6 @@
 ## 1.9.2
   - Spanish translation
+  - Option to disable notifications for RSS feeds
 
 ## 1.9.1
   - Czech & Russian translation
