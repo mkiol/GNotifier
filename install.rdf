@@ -3,7 +3,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. --><RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
   <Description about="urn:mozilla:install-manifest">
     <em:id>jid1-OoNOA6XBjznvLQ@jetpack</em:id>
-    <em:version>1.9.1</em:version>
+    <em:version>1.9.2</em:version>
     <em:type>2</em:type>
     <em:bootstrap>true</em:bootstrap>
     <em:unpack>true</em:unpack>
@@ -13,7 +13,7 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
         <em:minVersion>21.0</em:minVersion>
-        <em:maxVersion>42.*</em:maxVersion>
+        <em:maxVersion>44.*</em:maxVersion>
       </Description>
     </em:targetApplication>
     
@@ -31,7 +31,7 @@
       <Description>
 	<em:id>{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}</em:id>
 	<em:minVersion>1.0</em:minVersion>
-	<em:maxVersion>2.33.*</em:maxVersion>
+	<em:maxVersion>2.40.*</em:maxVersion>
       </Description>
     </em:targetApplication>
     
@@ -40,7 +40,7 @@
       <Description>
 	<em:id>{8de7fcbb-c55c-4fbe-bfc5-fc555c87dbc4}</em:id>
 	<em:minVersion>25.0</em:minVersion>
-	<em:maxVersion>40.*</em:maxVersion>
+	<em:maxVersion>44.*</em:maxVersion>
       </Description>
     </em:targetApplication>
 
