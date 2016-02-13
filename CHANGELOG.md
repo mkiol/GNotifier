@@ -2,6 +2,7 @@
   - Spanish translation
   - Option to disable notifications for RSS feeds
   - Compatibility with SOGo Integrator extension
+  - Linux: Notification timeout option
 
 ## 1.9.1
   - Czech & Russian translation
