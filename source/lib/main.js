@@ -33,16 +33,16 @@ var loaded = false;
 
 // Determine Linux / OSX based on 'system.platform'
 if(system.platform == "darwin"){
-    var notifApi = require('./osx');
+    var notifApi = require('./osx.js');
 } else if(system.platform == "winnt") {
-    var notifApi = require('./windows');
+    var notifApi = require('./windows.js');
 } else {
-    var notifApi = require('./linux');
+    var notifApi = require('./linux.js');
 }
 
 function showDownloadCompleteNotification(path, dir, filename) {
 
-    var utils = require('./utils');
+    var utils = require('./utils.js');
     var title = _("download_finished");
     var text = filename;
 
@@ -89,7 +89,7 @@ function showDownloadCompleteNotification(path, dir, filename) {
         iconURL: utils.getIcon(),
         onClick: function() {
                     if (sps['clickOption'] == 0) {
-                    utils.openFile("file://" + dir);
+                        utils.openFile("file://" + dir);
                     } else {
                         utils.openFile("file://" + path);
                     };
@@ -138,7 +138,7 @@ AlertsService.prototype = {
 
     showAlertNotification: function GNotifier_AlertsService_showAlertNotification(
         imageUrl, title, text, textClickable, cookie, alertListener, name) {
-      
+    
         //console.log("showAlertNotification:",imageUrl, title, text, textClickable, cookie, alertListener, name);
 
         function GNotifier_AlertsService_showAlertNotification_cb(iconPath) {
@@ -336,7 +336,7 @@ exports.main = function(options, callbacks) {
 
     // Thunderbird init
     if (loaded && (system.name == "Thunderbird" || system.name == "SeaMonkey" || system.name == "Icedove")) {
-        var thunderbird = require('./thunderbird');
+        var thunderbird = require('./thunderbird.js');
         thunderbird.init();
     }
 
@@ -372,7 +372,7 @@ exports.onUnload = function (reason) {
 
     // Thunderbird deinit
     if (system.name == "Thunderbird" || system.name == "SeaMonkey" || system.name == "Icedove") {
-        var thunderbird = require('./thunderbird');
+        var thunderbird = require('./thunderbird.js');
         thunderbird.deInit();
     }
 }

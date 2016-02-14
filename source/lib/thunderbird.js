@@ -13,12 +13,12 @@ function showSimpleNewMessageNotification(isRSS) {
     var title = isRSS ? _("New_article") : _("New_message");
     var text = _("Number_of_unread_messages") + " " + count;
 
-    var utils = require('./utils');
+    var utils = require('./utils.js');
 
     // if linux => doing unclickable notification, so without actionList
     var system = require("sdk/system");
     if (system.platform === "linux") {
-        var notifApi = require('./linux');
+        var notifApi = require('./linux.js');
         if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, null, null))
           return;
     }

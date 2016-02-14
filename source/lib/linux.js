@@ -284,9 +284,11 @@ linux.notify = function(iconURL, title, text, notifier, closeHandler, clickHandl
 }
 
 linux.notifyWithActions = function(iconURL, title, text, notifier, closeHandler, actionsList) {
-
+  
+    //console.log("notifyWithActions:",iconURL, title, text, notifier, closeHandler, actionsList);
+  
     // Sanitization
-    var utils = require("utils.js");
+    var utils = require("./utils.js");
     text = utils.sanitize(text);
 
     // Initing libnotify
@@ -304,7 +306,6 @@ linux.notifyWithActions = function(iconURL, title, text, notifier, closeHandler,
         // We pass it both
         switch (serverSpecVersion) {
         case "1.2":
-            var utils = require('./utils');
             // From the specification (1.1 and 1.2):
             // "image-data hint should be either an URI (file://) or a name in a
             // freedesktop.org-compliant icon theme"
@@ -342,10 +343,12 @@ linux.notifyWithActions = function(iconURL, title, text, notifier, closeHandler,
     }
 
     // Adding actions
+    //console.log("actionsList1:",actionsList.length, actionsList);
     if (actionsList) {
         for (var i in actionsList) {
             var label = actionsList[i]["label"];
             var handler = actionsList[i]["handler"];
+            //console.log("actionsList2:",handler,typeof(handler));
             if (handler && typeof(handler) === "function") {
                 // Defing callback function for action
                 var user_data_ptr = ctypes.int(i).address();
@@ -359,7 +362,7 @@ linux.notifyWithActions = function(iconURL, title, text, notifier, closeHandler,
             }
         }
     }
-
+    
     // Showing notification
     var error = new struct_gerror_ptr;
     if (!notify_notification_show(notification, error)) {
