@@ -334,8 +334,12 @@ linux.notifyWithActions = function(iconURL, title, text, notifier, closeHandler,
     }
     
     var sps = require("sdk/simple-prefs").prefs;
-    if (sps['timeout'] >= 1)
-      notify_notification_set_timeout(notification, sps['timeout'] * 1000);
+    if (sps['timeoutExpire']) {
+        if (sps['timeout'] >= 1)
+          notify_notification_set_timeout(notification, sps['timeout'] * 1000);
+    } else {
+        notify_notification_set_timeout(notification, 0);
+    }
 
     // Adding actions
     if (actionsList) {

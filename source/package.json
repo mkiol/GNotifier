@@ -9,6 +9,7 @@
     ],
     "version": "1.9.2",
     "title": "GNotifier",
+    "fullName": "GNotifier",
     "id": "jid1-OoNOA6XBjznvLQ@jetpack",
     "description": "GNotifier integrates Firefox/Thunderbird's notifications with the native notification system. It supports most Linux desktops and Windows 8.",
     "unpack": true,
@@ -63,9 +64,16 @@
         {
             "name": "timeout",
             "title": "Notification timeout (Linux)",
-            "description": "Sets the timeout of the notification in seconds. To set the default time, pass \"0\" value. Note that the timeout may be ignored by the server.",
+            "description": "Sets the timeout of the notification in seconds. To set the default time, pass \"0\" value. Note that the timeout may be ignored by some servers.",
             "type": "integer",
             "value": 0
+        },
+        {
+            "name": "timeoutExpire",
+            "title": "Notification expiration (Linux)",
+            "description": "Set the notification to expire after defined timeout (true) or to never expire (false). Note that it may be ignored by some servers.",
+            "type": "bool",
+            "value": true
         }
     ]
 }

@@ -9,7 +9,6 @@
           <em:name>GNotifier</em:name>
           <em:description>GNotifier integrates Firefox/Thunderbird&apos;s notifications with the native notification system. It supports most Linux desktops and Windows 8.</em:description>
           <em:creator>Michal Kosciesza &lt;michal@mkiol.net&gt;</em:creator>
-          <em:optionsURL>data:text/xml,&lt;placeholder/&gt;</em:optionsURL>
           <em:optionsType>2</em:optionsType>
 
           <!-- Firefox -->
