@@ -1,4 +1,4 @@
-## 1.9.2
+## 1.9.3
   - Spanish translation
   - Option to disable notifications for RSS feeds
   - Compatibility with SOGo Integrator extension
