@@ -1,3 +1,7 @@
+## 1.9.4
+  - Taiwanese Mandarin translation (zh-TW)
+  - BUG FIX: DLL missing in XPI for Windows
+
 ## 1.9.3
   - Spanish translation
   - Option to disable notifications for RSS feeds
