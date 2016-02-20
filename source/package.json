@@ -1,0 +1,79 @@
+{
+    "name": "gnotifier",
+    "license": "GPL 3.0",
+    "author": "Michal Kosciesza <michal@mkiol.net>",
+    "contributors": [
+        "Alexander Schlarb <alexander1066@xmine128.tk>",
+        "Joe Simpson <headbangerkenny@gmail.com>",
+        "Andrew Nagle <kabili@zyrenth.com>"
+    ],
+    "version": "1.9.4",
+    "title": "GNotifier",
+    "fullName": "GNotifier",
+    "id": "jid1-OoNOA6XBjznvLQ@jetpack",
+    "description": "GNotifier integrates Firefox/Thunderbird's notifications with the native notification system. It supports most Linux desktops and Windows 8.",
+    "unpack": true,
+    "main": "lib/main.js",
+    
+    "preferences": [
+        {
+            "name": "downloadCompleteAlert",
+            "title": "Download complete notification",
+            "description": "'Downloads Complete' notification will be shown everytime when downloading is finished.",
+            "type": "bool",
+            "value": true
+        },
+        {
+            "name": "clickOption",
+            "title": "Default click action",
+            "description": "Defines action on click for download complete notification. If your notification system supports buttons, this parameter defines which button is first.",
+            "type": "menulist",
+            "value": 1,
+            "options": [
+                {
+                    "value": "0",
+                    "label": "Open folder"
+                },
+                {
+                    "value": "1",
+                    "label": "Open file"
+                }
+            ]
+        },
+        {
+            "name": "simpleNewMail",
+            "title": "Simple New mail notification",
+            "description": "New mail notification will not contain details like subject or sender address.",
+            "type": "bool",
+            "value": false
+        },
+        {
+            "name": "enableRSS",
+            "title": "Notifications for RSS feeds",
+            "description": "Notifications for new RSS feed items will be displayed.",
+            "type": "bool",
+            "value": false
+        },
+        {
+            "name": "notifyIcon",
+            "title": "Notification Icon",
+            "description": "Defines Icon used in notifications. For example: 'firefox', 'web-browser' or 'iceweasel'. If value is set to 'default' then icon will be set based on system name.",
+            "type": "string",
+            "value": "default"
+        },
+        {
+            "name": "timeout",
+            "title": "Notification timeout (Linux)",
+            "description": "Sets the timeout of the notification in seconds. To set the default time, pass \"0\" value. Note that the timeout may be ignored by some servers.",
+            "type": "integer",
+            "value": 0
+        },
+        {
+            "name": "timeoutExpire",
+            "title": "Notification expiration (Linux)",
+            "description": "Set the notification to expire after defined timeout (true) or to never expire (false). Note that it may be ignored by some servers.",
+            "type": "bool",
+            "value": true
+        }
+    ]
+}

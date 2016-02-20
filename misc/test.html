@@ -1,0 +1,89 @@
+<html>
+<head>
+<title>HTML5 Web Notifications Tester</title>
+<style type="text/css">
+body {
+  font-family: sans-serif;
+  font-size: 100%;
+}
+input, textarea {
+  width: 80%;
+}
+#console {
+  height: 300px;
+}
+</style>
+<script>
+window.onload = function() {
+
+  window.notify = {
+    list: [],
+    id: 0,
+    log: function(msg) {
+      var console = document.getElementById('console');
+      console.innerHTML += ("\n"+msg);
+      console.scrollTop = console.scrollHeight;
+    },
+    compatible: function() {
+      if (typeof Notification === 'undefined') {
+        notify.log("Notifications are not available for your browser.");
+        return false;
+      }
+      return true;
+    },
+    authorize: function() {
+      if (notify.compatible()) {
+        Notification.requestPermission(function(permission) {
+          notify.log("Permission to display: "+permission);
+        });
+      }
+    },
+    show: function() {
+      if (typeof Notification === 'undefined') { notify.log("Notifications are not available for you browser."); return; }
+      if (notify.compatible()) {
+      
+        var title = document.getElementById('title').value;
+        var body = document.getElementById('body').value;
+        var icon = document.getElementById('icon').value;
+      
+        notify.id++;
+        var id = notify.id;
+        notify.list[id] = new Notification(title, {
+          body: body,
+          tag: id,
+          icon: icon,
+          lang: "",
+          dir: "auto"
+        });
+        notify.log("Notification #"+id+" queued for display");
+        notify.list[id].onclick = function() { notify.logEvent(id, "clicked"); };
+        notify.list[id].onshow  = function() { notify.logEvent(id, "showed");  };
+        notify.list[id].onerror = function() { notify.logEvent(id, "errored"); };
+        notify.list[id].onclose = function() { notify.logEvent(id, "closed");  };
+
+        console.log("Created a new notification ...");
+        console.log(notify.list[id]);
+      }
+    },
+    logEvent: function(id, event) {notify.log("Notification #"+id+" "+event);}
+  };
+  
+}
+</script>
+</head>
+<body>
+<h1>HTML5 Web Notifications Tester</h1>
+<p>Title: <input id="title" type="text" placeholder="Title" value="Web noitification test!"/></p>
+<p>Body: <input id="body" type="text" placeholder="Body"/ value="Sample notification body..."></p>
+<p>Icon: <input id="icon" type="text" placeholder="Icon" value="https://mozorg.cdn.mozilla.net/media/img/firefox/favicon-196.223e1bcaf067.png"/></p>
+<p></p>
+
+<p><button onclick="notify.authorize()">Authorize</button> <button onclick="notify.show()">Show</button></p>
+<p></p>
+<p><textarea id="console" readonly=""></textarea></p>
+
+<h2>Source</h2>
+<p>Original tester app can be found here: <a href="http://www.bennish.net/web-notifications.html">http://www.bennish.net/web-notifications.html</a></p>
+
+</body>
+</html>

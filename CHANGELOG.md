@@ -1,5 +1,18 @@
+## 1.9.4
+  - Taiwanese Mandarin translation (zh-TW)
+  - BUG FIX: DLL missing in XPI for Windows
+
+## 1.9.3
+  - Spanish translation
+  - Option to disable notifications for RSS feeds
+  - Compatibility with SOGo Integrator extension
+  - Linux: Notification timeout option
+
 ## 1.9.1
-  - Czech translation
+  - Czech & Russian translation
+  - Linux: Provide both image and icon to servers when possible
+  - Linux: Better sanitization of notification body
+  - Support for Icedove
 
 ## 1.9.0
   - Win8+: Thunderbird support
