@@ -252,7 +252,7 @@ linux.checkAvailable = function() {
           ctypes.voidptr_t);
 
         checkServerInfo();
-        console.log("Notify server name: " + checkServerInfo());
+        //console.log("Notify server name: " + checkServerInfo());
         retValue = checkServerCapabilities();
 	
         // Debug...

@@ -135,16 +135,17 @@ function AlertsService()
 {}
 AlertsService.prototype = {
     QueryInterface: XPCOMUtils.generateQI([Ci.nsIAlertsService]),
-
-    showAlertNotification: function GNotifier_AlertsService_showAlertNotification(
-        imageUrl, title, text, textClickable, cookie, alertListener, name) {
     
-        //console.log("showAlertNotification:",imageUrl, title, text, textClickable, cookie, alertListener, name);
+    // New nsIAlertsService API (FF 46)
+    showAlert: function(alert, alertListener) {
+      //console.log("showAlert", alert, alertListener);
+      this.showAlertNotification(alert.imageURL, alert.title, alert.text, alert.textClickable, alert.cookie, alertListener, alert.name, alert.dir, alert.lang);
+    },
 
+    showAlertNotification: function GNotifier_AlertsService_showAlertNotification(imageUrl, title, text, textClickable, cookie, alertListener, name, dir, lang) {
+        //console.log("showAlertNotification:",imageUrl, title, text, textClickable, cookie, alertListener, name, dir, lang);
         function GNotifier_AlertsService_showAlertNotification_cb(iconPath) {
           
-          //console.log("GNotifier_AlertsService_showAlertNotification_cb:",iconPath, title, text, textClickable, cookie, alertListener, name);
-
             // Defing close handler
             var closeHandler = function(){
                 // Generating "alertfinished"
@@ -302,6 +303,10 @@ exports.main = function(options, callbacks) {
             // Replace alert-service
             var contract = "@mozilla.org/alerts-service;1";
             let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
+            
+            //var as1 = Cc["@mozilla.org/system-alerts-service;1"].getService(Ci.nsIAlertsService);
+            //console.log(as1);
+            //as1.showAlertNotification("chrome://mozapps/skin/downloads/downloadIcon.png","as1", "As1", false, "", null, "");
 
             // Unregister built-in alerts-service class factory
             registrar.unregisterFactory(
@@ -316,7 +321,7 @@ exports.main = function(options, callbacks) {
                 contract,
                 XPCOMUtils.generateSingletonFactory(AlertsService)
             );
-
+            
             loaded = true;
         }
     }

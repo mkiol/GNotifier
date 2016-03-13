@@ -1,5 +1,10 @@
+## 1.9.5
+  - Chinese translation (zh-CN)
+  - Russian translation (ru-RU)
+  - Support for FF 46.0b1
+
 ## 1.9.4
-  - Taiwanese Mandarin translation (zh-TW)
+  - Chinese translation (zh-TW)
   - BUG FIX: DLL missing in XPI for Windows
 
 ## 1.9.3
