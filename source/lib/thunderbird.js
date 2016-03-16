@@ -1,3 +1,4 @@
+ 
 // Thunderbird stuff
 module.exports = thunderbird = {};
 
@@ -113,20 +114,33 @@ thunderbird.mailListener = {
             return folderList;
         }
         
+        function isFolderExcluded(folder) {
+          // Junk
+          if (folder.getFlag(0x40000000))
+            return true;
+          // Trash
+          if (folder.getFlag(0x00000100))
+            return true;
+          return false;
+        }
+        
         var sps = require("sdk/simple-prefs").prefs;
         
+        //console.log("OnItemIntPropertyChanged: aItem.URI="+aItem.URI+" aProperty="+aProperty+" aOldValue="+aOldValue+" aNewValue="+aNewValue);
+
         // Check if root folder is RSS folder (mailbox://nobody@Feeds)
         var rootURIarr = aItem.rootFolder.URI.split("@");
         var isRSS = rootURIarr[rootURIarr.length-1] == "Feeds";
         if (isRSS && !sps['enableRSS'])
           return;
         
-        // New mail if BiffState == nsMsgBiffState_NewMail
-        if (aProperty == "BiffState" &&
-            aNewValue == Ci.nsIMsgFolder.nsMsgBiffState_NewMail &&
-            ( aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_NoMail || aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_Unknown )
+        // New mail if BiffState == nsMsgBiffState_NewMail or NewMailReceived = 1
+        if (
+          (aProperty == "BiffState" && aNewValue == Ci.nsIMsgFolder.nsMsgBiffState_NewMail && 
+            (aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_NoMail || aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_Unknown)) ||
+          (aProperty == "NewMailReceived")
         ) {
-
+          
           if (sps['simpleNewMail']) {
               showSimpleNewMessageNotification(isRSS);
               return;
@@ -141,14 +155,26 @@ thunderbird.mailListener = {
 
           for (var i in folderList) {
               if (folderList[i]) {
-                // Looking for messages with flag == Ci.nsMsgMessageFlags.New
-                var messages = folderList[i].messages;
-                while (messages.hasMoreElements()) {
-                    var message = messages.getNext().QueryInterface(Ci.nsIMsgDBHdr);
-                    if (message.flags & Ci.nsMsgMessageFlags.New) {
-                        //console.log("message: ",message.subject);
-                        showNewMessageNotification(message,isRSS);
-                    }
+                var folder = folderList[i];
+                if (!isFolderExcluded(folder)) {
+                  // Looking for messages with flag == Ci.nsMsgMessageFlags.New
+                  var messages = folder.messages;
+                  while (messages.hasMoreElements()) {
+                      var message = messages.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+                      if (message.flags & Ci.nsMsgMessageFlags.New) {
+                        
+                          //console.log("Message: id="+message.messageId + " gnd="+message.getUint32Property("gnotifier-done"));
+                          /*var property = message.propertyEnumerator;
+                          while (property.hasMore()) {
+                            console.log(property.getNext());
+                          }*/
+                          
+                          if (message.getUint32Property("gnotifier-done") != 1) {
+                            showNewMessageNotification(message,isRSS);
+                            message.setUint32Property("gnotifier-done",1);
+                          }
+                      }
+                  }
                 }
               }
           }

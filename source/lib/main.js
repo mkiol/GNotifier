@@ -304,10 +304,6 @@ exports.main = function(options, callbacks) {
             var contract = "@mozilla.org/alerts-service;1";
             let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
             
-            //var as1 = Cc["@mozilla.org/system-alerts-service;1"].getService(Ci.nsIAlertsService);
-            //console.log(as1);
-            //as1.showAlertNotification("chrome://mozapps/skin/downloads/downloadIcon.png","as1", "As1", false, "", null, "");
-
             // Unregister built-in alerts-service class factory
             registrar.unregisterFactory(
                 Cc[contract],
@@ -340,6 +336,7 @@ exports.main = function(options, callbacks) {
     } catch(e) {}
 
     // Thunderbird init
+    //console.log("system.name:",system.name);
     if (loaded && (system.name == "Thunderbird" || system.name == "SeaMonkey" || system.name == "Icedove")) {
         var thunderbird = require('./thunderbird.js');
         thunderbird.init();
@@ -381,3 +378,27 @@ exports.onUnload = function (reason) {
         thunderbird.deInit();
     }
 }
+
+/*let testObserver = {
+  observe : function(aSubject, aTopic, aData) {
+    
+      if (aTopic == "console-storage-cache-event" || aTopic == "console-api-log-event"
+	|| aTopic == "cycle-collector-forget-skippable" || aTopic == "cycle-collector-begin"
+	|| aTopic == "user-interaction-inactive" || aTopic == "user-interaction-active"
+	|| aTopic == "sessionstore-state-write" || aTopic == "sessionstore-state-write-complete"
+	|| aTopic == "promise-finalization-witness" || aTopic == "xul-window-visible"
+	|| aTopic == "document-shown" || aTopic == "PopupNotifications-updateNotShowing"
+	|| aTopic == "http-on-opening-request" || aTopic == "http-on-modify-request"
+	|| aTopic == "http-on-examine-response" || aTopic == "third-party-cookie-accepted"
+	|| aTopic == "cookie-changed perm-changed")
+	return;
+      
+      console.log("-= Data received =-");
+      console.log("aSubject:"+aSubject);
+      console.log("aTopic:"+aTopic);
+      console.log("aData:"+aData);
+  }
+}
+let observerService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
+observerService.addObserver(testObserver, "*", false);*/
+

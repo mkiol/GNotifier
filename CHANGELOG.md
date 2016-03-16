@@ -1,7 +1,8 @@
 ## 1.9.5
   - Chinese translation (zh-CN)
   - Russian translation (ru-RU)
-  - Support for FF 46.0b1
+  - Support for FF >= 46.0b1
+  - Thunderbird: Improved new email detection
 
 ## 1.9.4
   - Chinese translation (zh-TW)
