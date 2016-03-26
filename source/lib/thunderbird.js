@@ -114,6 +114,7 @@ thunderbird.mailListener = {
             return folderList;
         }
         
+        // Reference: https://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgFolderFlags.idl
         function isFolderExcluded(folder) {
           // Junk
           if (folder.getFlag(0x40000000))
@@ -121,20 +122,30 @@ thunderbird.mailListener = {
           // Trash
           if (folder.getFlag(0x00000100))
             return true;
+          // SentMail
+          if (folder.getFlag(0x00000200))
+            return true;
+          // Drafts
+          if (folder.getFlag(0x00000400))
+            return true;
+          // Archive
+          if (folder.getFlag(0x00004000))
+            return true;
+          // Templates
+          if (folder.getFlag(0x00400000))
+            return true;
           return false;
         }
         
         var sps = require("sdk/simple-prefs").prefs;
         
-        //console.log("OnItemIntPropertyChanged: aItem.URI="+aItem.URI+" aProperty="+aProperty+" aOldValue="+aOldValue+" aNewValue="+aNewValue);
-
         // Check if root folder is RSS folder (mailbox://nobody@Feeds)
         var rootURIarr = aItem.rootFolder.URI.split("@");
         var isRSS = rootURIarr[rootURIarr.length-1] == "Feeds";
         if (isRSS && !sps['enableRSS'])
           return;
         
-        // New mail if BiffState == nsMsgBiffState_NewMail or NewMailReceived = 1
+        // New mail if BiffState == nsMsgBiffState_NewMail or NewMailReceived
         if (
           (aProperty == "BiffState" && aNewValue == Ci.nsIMsgFolder.nsMsgBiffState_NewMail && 
             (aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_NoMail || aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_Unknown)) ||
