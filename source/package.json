@@ -19,7 +19,7 @@
         {
             "name": "engine",
             "title": "Notification engine",
-            "description": "Defines how notification will be displayed. Possible options are: Firefox's built-in engine (Standard), OS native engine (GNotifier) or Custom shell command (Command).",
+            "description": "Defines how notification will be displayed. Possible options are: Firefox's built-in engine (Standard), OS native engine (GNotifier) or Custom shell command (Custom command).",
             "type": "menulist",
             "value": 1,
             "options": [
@@ -33,7 +33,7 @@
                 },
                 {
                     "value": "2",
-                    "label": "Custom"
+                    "label": "Custom command"
                 }
             ]
         },

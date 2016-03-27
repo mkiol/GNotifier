@@ -82,7 +82,7 @@ utils.execute = function(command) {
   var child_process = require("sdk/system/child_process");
   var { env } = require('sdk/system/environment');
 
-  var c_env = {env: {'USER':env.USER,'HOME':env.HOME,'ALSA_CONFIG_PATH':env.ALSA_CONFIG_PATH,'AUDIODRIVER':env.AUDIODRIVER,'DBUS_SESSION_BUS_ADDRESS':env.DBUS_SESSION_BUS_ADDRESS,'DISPLAY':env.DISPLAY}}; 
+  var c_env = {env: {'USER':env.USER,'HOME':env.HOME,'ALSA_CONFIG_PATH':env.ALSA_CONFIG_PATH,'AUDIODRIVER':env.AUDIODRIVER,'DBUS_SESSION_BUS_ADDRESS':env.DBUS_SESSION_BUS_ADDRESS,'DISPLAY':env.DISPLAY,'PATH':env.PATH,'JAVA_BINDIR':env.JAVA_BINDIR,'JAVA_HOME':env.JAVA_HOME,'JAVA_ROOT':env.JAVA_ROOT,'JRE_HOME':env.JRE_HOME,'DESKTOP_SESSION':env.DESKTOP_SESSION}}; 
   var c = child_process.exec(command, c_env);
 
   c.stdout.on('data', function (data) {
