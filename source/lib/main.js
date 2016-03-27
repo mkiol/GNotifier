@@ -28,6 +28,7 @@ var sps = require("sdk/simple-prefs").prefs;
 var system = require("sdk/system");
 
 var origAlertsServiceFactory = Cm.getClassObject(Cc["@mozilla.org/alerts-service;1"], Ci.nsIFactory);
+var origAlertsService = Cc["@mozilla.org/alerts-service;1"].getService(Ci.nsIAlertsService);
 
 var loaded = false;
 
@@ -46,8 +47,8 @@ function showDownloadCompleteNotification(path, dir, filename) {
     var title = _("download_finished");
     var text = filename;
 
-    // if linux & supports action buttons -> adding 2 actions: open file & open folder
-    if (system.platform === "linux" && notifApi.checkButtonsSupported()) {
+    // if engine = 1 & linux & supports action buttons -> adding 2 actions: open file & open folder
+    if (sps['engine'] === 1 && system.platform === "linux" && notifApi.checkButtonsSupported()) {
 
         // Fix for Plasma4: Space on buttons is small so using short labels
         var plasma = notifApi.checkPlasma();
@@ -79,7 +80,7 @@ function showDownloadCompleteNotification(path, dir, filename) {
     
     // if linux and libnotify is inited, adding "Open" button
     // it only makes sense for some linux distros e.g. KDE, Gnome Shell
-    if (system.platform === "linux" && loaded)
+    if (sps['engine'] === 1 && system.platform === "linux" && loaded)
         text = text+"<input text='"+_("open")+"' type='submit'/>";
 
     var notifications = require("sdk/notifications");
@@ -144,6 +145,25 @@ AlertsService.prototype = {
 
     showAlertNotification: function GNotifier_AlertsService_showAlertNotification(imageUrl, title, text, textClickable, cookie, alertListener, name, dir, lang) {
         //console.log("showAlertNotification:",imageUrl, title, text, textClickable, cookie, alertListener, name, dir, lang);
+        
+        // Choosing engine: 0 - FF built-in, 1 - native, 2 - custom command
+        if (sps['engine'] === 0) {
+          origAlertsService.showAlertNotification(imageUrl, title, text, textClickable, cookie, alertListener, name, dir, lang);
+          return;
+        }
+        
+        if (sps['engine'] === 2) {
+          if (sps['command'] !== "") {
+            var utils = require('./utils.js');
+            var command = sps['command'];
+            command = command.replace("%image",imageUrl);
+            command = command.replace("%title",title);
+            command = command.replace("%text",text);
+            utils.execute(command);
+          }
+          return;
+        }
+      
         function GNotifier_AlertsService_showAlertNotification_cb(iconPath) {
           
             // Defing close handler
@@ -268,7 +288,7 @@ function notifyFF(iconURL, title, text) {
 
 // Native notification
 function notifyNative(iconURL, title, text, notifier, closeHandler, clickHandler) {
-  
+
     var ret = notifApi.notify(iconURL, title, text, system.name, closeHandler, clickHandler);
     if(!ret) {
         console.log('Native notification fails! :-(');

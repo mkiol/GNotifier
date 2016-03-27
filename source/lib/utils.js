@@ -76,3 +76,25 @@ utils.sanitize = function(s) {
     return match[1];
   
 }
+
+utils.execute = function(command) {
+
+  var child_process = require("sdk/system/child_process");
+  var { env } = require('sdk/system/environment');
+
+  var c_env = {env: {'USER':env.USER,'HOME':env.HOME,'ALSA_CONFIG_PATH':env.ALSA_CONFIG_PATH,'AUDIODRIVER':env.AUDIODRIVER,'DBUS_SESSION_BUS_ADDRESS':env.DBUS_SESSION_BUS_ADDRESS,'DISPLAY':env.DISPLAY}}; 
+  var c = child_process.exec(command, c_env);
+
+  c.stdout.on('data', function (data) {
+    console.log('command stdout: ' + data);
+  });
+
+  c.stderr.on('data', function (data) {
+    console.log('command stderr: ' + data);
+  });
+
+  /*c.on('close', function (code) {
+    console.log('child process exited with code ' + code);
+  });*/
+  
+}

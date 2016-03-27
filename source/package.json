@@ -7,26 +7,47 @@
         "Joe Simpson <headbangerkenny@gmail.com>",
         "Andrew Nagle <kabili@zyrenth.com>"
     ],
-    "version": "1.9.5",
+    "version": "1.9.6",
     "title": "GNotifier",
     "fullName": "GNotifier",
     "id": "jid1-OoNOA6XBjznvLQ@jetpack",
-    "description": "GNotifier integrates Firefox/Thunderbird's notifications with the native notification system. It supports most Linux desktops and Windows 8.",
+    "description": "GNotifier integrates Firefox/Thunderbird's notifications with the native notification system. It supports most Linux desktops, Windows 8.1 and 10",
     "unpack": true,
     "main": "lib/main.js",
     
     "preferences": [
         {
+            "name": "engine",
+            "title": "Notification engine",
+            "description": "Defines how notification will be displayed. Possible options are: Firefox's built-in engine (Standard), OS native engine (GNotifier) or Custom shell command (Command).",
+            "type": "menulist",
+            "value": 1,
+            "options": [
+                {
+                    "value": "0",
+                    "label": "Standard"
+                },
+                {
+                    "value": "1",
+                    "label": "GNotifier"
+                },
+                {
+                    "value": "2",
+                    "label": "Custom"
+                }
+            ]
+        },
+        {
             "name": "downloadCompleteAlert",
             "title": "Download complete notification",
-            "description": "'Downloads Complete' notification will be shown everytime when downloading is finished.",
+            "description": "Defines if downloads complete notification should be shown everytime when downloading is finished.",
             "type": "bool",
             "value": true
         },
         {
             "name": "clickOption",
             "title": "Default click action",
-            "description": "Defines action on click for download complete notification. If your notification system supports buttons, this parameter defines which button is first.",
+            "description": "Defines default click action for download complete notification. If your notification system supports buttons, this parameter defines which button is first.",
             "type": "menulist",
             "value": 1,
             "options": [
@@ -50,14 +71,14 @@
         {
             "name": "enableRSS",
             "title": "Notifications for RSS feeds",
-            "description": "Notifications for new RSS feed items will be displayed.",
+            "description": "Defines wheter notifications for new RSS items should be displayed.",
             "type": "bool",
             "value": false
         },
         {
             "name": "notifyIcon",
             "title": "Notification Icon",
-            "description": "Defines Icon used in notifications. For example: 'firefox', 'web-browser' or 'iceweasel'. If value is set to 'default' then icon will be set based on system name.",
+            "description": "Defines icon used in the notifications. For example: 'firefox', 'web-browser' or 'iceweasel'. If value is set to 'default' then icon will be set based on system name.",
             "type": "string",
             "value": "default"
         },
@@ -71,9 +92,16 @@
         {
             "name": "timeoutExpire",
             "title": "Notification expiration (Linux)",
-            "description": "Set the notification to expire after defined timeout (true) or to never expire (false). Note that it may be ignored by some servers.",
+            "description": "Sets the notification to expire after defined timeout (true) or to never expire (false). Note that it may be ignored by some servers.",
             "type": "bool",
             "value": true
+        },
+        {
+            "name": "command",
+            "title": "Custom command (Experimental)",
+            "description": "Defines custom shell command that will be executed. This option is applicable only if engine option is set to 'Custom' value. Note that notification title, text or image you can pass to command with following variables: %title, %text, %image.",
+            "type": "string",
+            "value": ""
         }
     ]
 }

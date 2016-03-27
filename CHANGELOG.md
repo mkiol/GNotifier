@@ -1,3 +1,7 @@
+## 1.9.6
+  - Linux: Option to execute custom shell command
+  - Thunderbird: Disable notifications from SentMail, Drafts, Archive and Templates folders
+  
 ## 1.9.5
   - Chinese translation (zh-CN)
   - Russian translation (ru-RU)

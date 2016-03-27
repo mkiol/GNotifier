@@ -18,7 +18,8 @@ function showSimpleNewMessageNotification(isRSS) {
 
     // if linux => doing unclickable notification, so without actionList
     var system = require("sdk/system");
-    if (system.platform === "linux") {
+    var sps = require("sdk/simple-prefs").prefs;
+    if (sps['engine'] == 1 && system.platform === "linux") {
         var notifApi = require('./linux.js');
         if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, null, null))
           return;
@@ -50,7 +51,8 @@ function showNewMessageNotification(message, isRSS) {
 
     // if linux => doing unclickable notification, so without actionList
     var system = require("sdk/system");
-    if (system.platform === "linux") {
+    var sps = require("sdk/simple-prefs").prefs;
+    if (sps['engine'] == 1 && system.platform === "linux") {
         var notifApi = require('./linux');
         if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, null, null))
           return;
