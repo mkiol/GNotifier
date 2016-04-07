@@ -38,13 +38,6 @@
             ]
         },
         {
-            "name": "downloadCompleteAlert",
-            "title": "Download complete notification",
-            "description": "Defines if downloads complete notification should be shown everytime when downloading is finished.",
-            "type": "bool",
-            "value": true
-        },
-        {
             "name": "clickOption",
             "title": "Default click action",
             "description": "Defines default click action for download complete notification. If your notification system supports buttons, this parameter defines which button is first.",
@@ -62,20 +55,6 @@
             ]
         },
         {
-            "name": "simpleNewMail",
-            "title": "Simple New mail notification",
-            "description": "New mail notification will not contain details like subject or sender address.",
-            "type": "bool",
-            "value": false
-        },
-        {
-            "name": "enableRSS",
-            "title": "Notifications for RSS feeds",
-            "description": "Defines wheter notifications for new RSS items should be displayed.",
-            "type": "bool",
-            "value": false
-        },
-        {
             "name": "notifyIcon",
             "title": "Notification Icon",
             "description": "Defines icon used in the notifications. For example: 'firefox', 'web-browser' or 'iceweasel'. If value is set to 'default' then icon will be set based on system name.",
@@ -83,25 +62,46 @@
             "value": "default"
         },
         {
+            "name": "downloadCompleteAlert",
+            "title": "Download complete notification",
+            "description": "Defines if downloads complete notification should be shown everytime when downloading is finished.",
+            "type": "bool",
+            "value": true
+        },
+        {
             "name": "timeout",
-            "title": "Notification timeout (Linux)",
+            "title": "Notification timeout (Linux only)",
             "description": "Sets the timeout of the notification in seconds. To set the default time, pass \"0\" value. Note that the timeout may be ignored by some servers.",
             "type": "integer",
             "value": 0
         },
         {
             "name": "timeoutExpire",
-            "title": "Notification expiration (Linux)",
+            "title": "Notification expiration (Linux only)",
             "description": "Sets the notification to expire after defined timeout (true) or to never expire (false). Note that it may be ignored by some servers.",
             "type": "bool",
             "value": true
         },
         {
             "name": "command",
-            "title": "Custom command (Experimental)",
+            "title": "Custom command (Linux only)",
             "description": "Defines custom shell command that will be executed. This option is applicable only if engine option is set to 'Custom' value. Note that notification title, text or image you can pass to command with following variables: %title, %text, %image.",
             "type": "string",
             "value": ""
+        },
+        {
+            "name": "enableRSS",
+            "title": "Notifications for RSS feeds (Thunderbird only)",
+            "description": "Defines wheter notifications for new RSS items should be displayed.",
+            "type": "bool",
+            "value": false
+        },
+        {
+            "name": "simpleNewMail",
+            "title": "Simple New mail notification (Thunderbird only)",
+            "description": "New mail notification will not contain details like subject or sender address.",
+            "type": "bool",
+            "value": false
         },
         {
             "name": "emailTitleFormat",

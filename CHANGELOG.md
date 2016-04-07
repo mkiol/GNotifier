@@ -1,35 +1,39 @@
 ## 1.9.6
   - Linux: Option to execute custom shell command
-  - Thunderbird: Disable notifications from SentMail, Drafts, Archive and Templates folders
-  
+  - Thunderbird: Customizable new e-mail notification (thanks to [gabrielfin](https://github.com/gabrielfin))
+  - Portuguese-Brazilian (pt-BR) translation (thanks to [david721](https://github.com/david721))
+  - BUG FIX: Notifications from SentMail, Drafts, Archive and Templates folders should be disabled
+
 ## 1.9.5
-  - Chinese translation (zh-CN)
-  - Russian translation (ru-RU)
+  - Chinese (zh-CN) translation (thanks to [wsxy162](https://github.com/wsxy162))
+  - Russian (ru-RU) translation (thanks to [Vladimir Isaev](https://github.com/VVIsaev))
   - Support for FF >= 46.0b1
   - Thunderbird: Improved new email detection
 
 ## 1.9.4
-  - Chinese translation (zh-TW)
+  - Chinese (zh-TW) translation (thanks to [Jeff Huang](https://github.com/s8321414))
   - BUG FIX: DLL missing in XPI for Windows
 
 ## 1.9.3
-  - Spanish translation
+  - Spanish (es) translation (thanks to [Menti](https://github.com/Menti))
   - Option to disable notifications for RSS feeds
   - Compatibility with SOGo Integrator extension
   - Linux: Notification timeout option
 
 ## 1.9.1
-  - Czech & Russian translation
-  - Linux: Provide both image and icon to servers when possible
+  - Czech translation
+  - Russian (ru-RU) translation (thanks to [Vladimir Isaev](https://github.com/VVIsaev))
+  - Turkish (tr) translation (thanks to [Çağdaş Tatar](https://github.com/echelonx))
+  - Linux: Provide both image and icon to servers when possible (thanks to [Quentin Glidic](https://github.com/sardemff7))
   - Linux: Better sanitization of notification body
   - Support for Icedove
 
 ## 1.9.0
-  - Win8+: Thunderbird support
+  - Win8+: Thunderbird support (thanks to [Andrew Nagle](https://github.com/kabili207))
   - Linux: Download complete notification with 'Open file' & 'Open folder' buttons
-  - Thunderbird: Change notification title to include author
+  - Thunderbird: Change notification title to include author (thanks to [Alex Mayer](https://github.com/amayer5125))
   - Thunderbird: Better handling notifications when filtering on folders is enabled
-  - Added Serbian translation
+  - Serbian (sr) translation (thanks to [kostich](https://github.com/kostich))
   - Download complete notification default action is 'Open file'
   - BUG FIX: Some temporary files not cleaned properly
   - BUG FIX: Double download complete notification is shown when downloaded file is deleted
@@ -38,17 +42,18 @@
   - Win8+: Fixed issue with Firefox freezing when displaying notifications
 
 ## 1.8.8
-  - Win8+ support
-  - Dutch and Estonian translation fixes
+  - Win8+ support (thanks to [Andrew Nagle](https://github.com/kabili207))
+  - Dutch translation (thanks to Nathan Follens)
+  - Estonian (et) translation update (thanks to [Sander Lepik](https://github.com/sander85))
   - BUG FIX: Sender sometimes are not included in a new email notification
 
 ## 1.8.7
-  - 'Show simple New mail notification' option in settings
+  - Thunderbird: 'Show simple New mail notification' option in settings
   - BUG FIX: Notification fails to display
 
 ## 1.8.6
   - SeaMonkey support
-  - Author/Subject information in new mail notification
+  - Thunderbird: Author/Subject information in new mail notification
   - BUG FIX: Temp files are not deleted if size is zero
 
 ## 1.8.5
@@ -60,14 +65,14 @@
 
 ## 1.7.9
   - 'Show Download Complete alert' option in settings
-  - Estonian translation
+  - Estonian (et) translation (thanks to [Merike Sell](https://github.com/merike))
   - BUG FIX: system.name as libnotify app name
 
 ## 1.7.8
   - Thunderbird support
 
 ## 1.7.7
-  - Hungarian translation
+  - Hungarian (hu-HU) translation (thanks to [Gyaraki László](https://github.com/gyarakilaszlo))
   - BUG FIX: add-on unload better handling
 
 ## 1.7.6
@@ -77,8 +82,8 @@
   - BUG FIX: icons in notifications
 
 ## 1.7.2
-  - OSX support (thanks to Joe Simpson)
+  - OSX support (thanks to [Joe Simpson](https://github.com/kennydude))
 
 ## 1.7.1
-  - Turkish translation
+  - Turkish (tr) translation
   - Fixes few translations
