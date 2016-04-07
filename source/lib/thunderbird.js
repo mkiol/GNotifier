@@ -1,9 +1,15 @@
- 
+
 // Thunderbird stuff
 module.exports = thunderbird = {};
 
 var { Cc, Ci, Cu, Cm, Cr } = require('chrome');
 var _ = require('sdk/l10n').get;
+
+Cu.import("resource://app/modules/gloda/mimemsg.js");
+
+var gHeaderParser = Cc["@mozilla.org/messenger/headerparser;1"].getService(Ci.nsIMsgHeaderParser);
+var gMessenger = Cc["@mozilla.org/messenger;1"].getService(Ci.nsIMessenger);
+var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
 
 function showSimpleNewMessageNotification(isRSS) {
 
@@ -14,26 +20,10 @@ function showSimpleNewMessageNotification(isRSS) {
     var title = isRSS ? _("New_article") : _("New_message");
     var text = _("Number_of_unread_messages") + " " + count;
 
-    var utils = require('./utils.js');
-
-    // if linux => doing unclickable notification, so without actionList
-    var system = require("sdk/system");
-    var sps = require("sdk/simple-prefs").prefs;
-    if (sps['engine'] == 1 && system.platform === "linux") {
-        var notifApi = require('./linux.js');
-        if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, null, null))
-          return;
-    }
-
-    var notifications = require("sdk/notifications");
-    notifications.notify({
-        title: title,
-        text: text,
-        iconURL: utils.getIcon(),
-    });
+    showNotification(title, text);
 }
 
-function showNewMessageNotification(message, isRSS) {
+function showNewRSSNotification(message) {
 
     var author = message.mime2DecodedAuthor;
     // unicode character ranges taken from:
@@ -44,8 +34,28 @@ function showNewMessageNotification(message, isRSS) {
       // retrieve only name portion of author string
       author = author.match(author_regex)[1];
     }
-    var title = isRSS ? _("New_article_from") + " " + author : _("New_message_from") + " " + author;
+    var title = _("New_article_from") + " " + author;
     var text = message.mime2DecodedSubject;
+
+    showNotification(title, text);
+}
+
+function showNewEmailNotification(message) {
+
+  var sps = require("sdk/simple-prefs").prefs;
+  var textFormat = sps.emailTextFormat.replace(/\\n/, "\n");
+
+  format(message, sps.emailTitleFormat, function(string){
+    var title = string;
+    format(message, textFormat, function(string){
+      var text = string;
+      showNotification(title, text);
+    });
+  });
+
+}
+
+function showNotification(title, text){
 
     var utils = require('./utils');
 
@@ -64,6 +74,71 @@ function showNewMessageNotification(message, isRSS) {
         text: text,
         iconURL: utils.getIcon(),
     });
+
+}
+
+function format(message, format, callback){
+
+  var author = gHeaderParser.parseDecodedHeader(message.mime2DecodedAuthor);
+
+  if(format.match(/%b/)){
+    MsgHdrToMimeMessage(message, null, function (aMsgHdr, aMimeMsg){
+        var body = aMimeMsg.coerceBodyToPlaintext(aMsgHdr.folder);
+        doReplace(body);
+    });
+  } else {
+    doReplace();
+  }
+
+  function doReplace(body){
+    var string = format.replace(new RegExp("(%[samnfvkub%])", 'g'), function(match, p1){
+      switch(p1){
+        // Subject, with "Re:" when appropriate
+        case "%s":
+          var hasRe = message.flags & Ci.nsMsgMessageFlags.HasRe;
+          return hasRe ? 'Re: ' + message.mime2DecodedSubject : message.mime2DecodedSubject;
+        // Full Author
+        case "%a":
+          return message.mime2DecodedAuthor;
+        // Author e-mail address only
+        case "%m":
+          return author[0].email;
+        // Author name only
+        case "%n":
+          return author[0].name;
+        // Folder
+        case "%f":
+          return message.folder.prettiestName;
+        // Server
+        case "%v":
+          return message.folder.server.hostName;
+        // Size
+        case "%k":
+          return gMessenger.formatFileSize(message.messageSize);
+        // Account name
+        case "%u":
+          return message.folder.server.prettyName;
+        // Body excerpt
+        case "%b":
+          body = body.replace(/\n/g, ' ').trim().substr(0, 80).trim();
+          body += body.length > 80 ? "..." : "";
+          return body;
+        // Percent
+        case "%%":
+          return "%";
+      }
+    });
+
+    callback(string);
+  }
+}
+
+function testNotification(){
+  if(win.gFolderDisplay.selectedMessage){
+    showNewEmailNotification(win.gFolderDisplay.selectedMessage);
+  } else {
+    showNotification("GNotifier test", "You need to select a message to test this feature");
+  }
 }
 
 thunderbird.init = function() {
@@ -75,6 +150,11 @@ thunderbird.init = function() {
     // Folder listeners registration for OnItemIntPropertyChanged
     var folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
     folderListenerManager.AddFolderListener(thunderbird.mailListener, 0x8);
+
+    var sp = require("sdk/simple-prefs");
+    sp.on("test", function() {
+      testNotification();
+    });
 
 }
 
@@ -92,7 +172,7 @@ thunderbird.deInit = function() {
 thunderbird.mailListener = {
 
     OnItemIntPropertyChanged: function (aItem,aProperty,aOldValue,aNewValue) {
-      
+
         function getFoldersWithNewMail(aFolder) {
             var folderList = [];
             if (aFolder) {
@@ -115,7 +195,7 @@ thunderbird.mailListener = {
 
             return folderList;
         }
-        
+
         // Reference: https://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgFolderFlags.idl
         function isFolderExcluded(folder) {
           // Junk
@@ -138,27 +218,27 @@ thunderbird.mailListener = {
             return true;
           return false;
         }
-        
+
         var sps = require("sdk/simple-prefs").prefs;
-        
+
         // Check if root folder is RSS folder (mailbox://nobody@Feeds)
         var rootURIarr = aItem.rootFolder.URI.split("@");
         var isRSS = rootURIarr[rootURIarr.length-1] == "Feeds";
         if (isRSS && !sps['enableRSS'])
           return;
-        
+
         // New mail if BiffState == nsMsgBiffState_NewMail or NewMailReceived
         if (
-          (aProperty == "BiffState" && aNewValue == Ci.nsIMsgFolder.nsMsgBiffState_NewMail && 
+          (aProperty == "BiffState" && aNewValue == Ci.nsIMsgFolder.nsMsgBiffState_NewMail &&
             (aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_NoMail || aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_Unknown)) ||
           (aProperty == "NewMailReceived")
         ) {
-          
+
           if (sps['simpleNewMail']) {
               showSimpleNewMessageNotification(isRSS);
               return;
           }
-          
+
           var folderList = getFoldersWithNewMail(aItem);
           if (folderList.length == 0) {
               // Can't find folder with BiffState == nsMsgBiffState_NewMail
@@ -175,15 +255,18 @@ thunderbird.mailListener = {
                   while (messages.hasMoreElements()) {
                       var message = messages.getNext().QueryInterface(Ci.nsIMsgDBHdr);
                       if (message.flags & Ci.nsMsgMessageFlags.New) {
-                        
+
                           //console.log("Message: id="+message.messageId + " gnd="+message.getUint32Property("gnotifier-done"));
                           /*var property = message.propertyEnumerator;
                           while (property.hasMore()) {
                             console.log(property.getNext());
                           }*/
-                          
+
                           if (message.getUint32Property("gnotifier-done") != 1) {
-                            showNewMessageNotification(message,isRSS);
+                            if(isRSS)
+                              showNewRSSNotification(message);
+                            else
+                              showNewEmailNotification(message);
                             message.setUint32Property("gnotifier-done",1);
                           }
                       }

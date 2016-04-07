@@ -14,7 +14,7 @@
     "description": "GNotifier integrates Firefox/Thunderbird's notifications with the native notification system. It supports most Linux desktops, Windows 8.1 and 10",
     "unpack": true,
     "main": "lib/main.js",
-    
+
     "preferences": [
         {
             "name": "engine",
@@ -101,6 +101,28 @@
             "title": "Custom command (Experimental)",
             "description": "Defines custom shell command that will be executed. This option is applicable only if engine option is set to 'Custom' value. Note that notification title, text or image you can pass to command with following variables: %title, %text, %image.",
             "type": "string",
+            "value": ""
+        },
+        {
+            "name": "emailTitleFormat",
+            "title": "Title for E-mail notifications (Thunderbird only)",
+            "description": "%s: Subject, %a: Sender (Name <E-mail>), %m: Sender E-mail, %n: Sender Name, %f: Folder, %v: Server, %k: Size, %u: Account, %b: Body excerpt, %%: %",
+            "type": "string",
+            "value": "%a"
+        },
+        {
+            "name": "emailTextFormat",
+            "title": "Text for E-mail notifications (Thunderbird only)",
+            "description": "%s: Subject, %a: Sender (Name <E-mail>), %m: Sender E-mail, %n: Sender Name, %f: Folder, %v: Server, %k: Size, %u: Account, %b: Body excerpt, %%: %, \\n: Newline",
+            "type": "string",
+            "value": "%s"
+        },
+        {
+            "name": "test",
+            "title": "Test Notification (Thunderbird only)",
+            "label": "Test notification",
+            "description": "Select a message from any folder, then come back and click on 'Test notification'",
+            "type": "control",
             "value": ""
         }
     ]
