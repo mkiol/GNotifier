@@ -59,13 +59,18 @@ function showNotification(title, text, message){
 
     var utils = require('./utils');
 
-    // if linux => doing unclickable notification, so without actionList
     var system = require("sdk/system");
     var sps = require("sdk/simple-prefs").prefs;
-    if (sps['engine'] == 1 && system.platform === "linux") {
+    if (sps['engine'] == 1 && system.platform === "linux" && notifApi.checkButtonsSupported()) {
         var notifApi = require('./linux');
-        if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, null, null))
-          return;
+        if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, null,
+                    message ? [{
+                        label: _("open"),
+                        handler: function() {
+                            display(message);
+                        }
+                    }] : null))
+            return;
     }
 
     var notifications = require("sdk/notifications");
@@ -75,6 +80,15 @@ function showNotification(title, text, message){
         iconURL: utils.getIcon(),
     });
 
+}
+
+// Display a given message.
+function display(message) {
+    Cc['@mozilla.org/appshell/window-mediator;1']
+        .getService(Ci.nsIWindowMediator)
+        .getMostRecentWindow("mail:3pane")
+        .document.getElementById("tabmail")
+        .openTab("message", {msgHdr: message});
 }
 
 function format(message, format, callback){
