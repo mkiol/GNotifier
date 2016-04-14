@@ -69,6 +69,11 @@ function showNotification(title, text, message){
                         handler: function() {
                             display(message);
                         }
+                    }, {
+                        label: _("Mark_as_read"),
+                        handler: function() {
+                            message.markRead(true);
+                        }
                     }] : null))
             return;
     }
