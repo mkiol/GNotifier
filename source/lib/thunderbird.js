@@ -20,7 +20,7 @@ function showSimpleNewMessageNotification(isRSS) {
     var title = isRSS ? _("New_article") : _("New_message");
     var text = _("Number_of_unread_messages") + " " + count;
 
-    showNotification(title, text);
+    showNotification(title, text, null);
 }
 
 function showNewRSSNotification(message) {
@@ -37,7 +37,7 @@ function showNewRSSNotification(message) {
     var title = _("New_article_from") + " " + author;
     var text = message.mime2DecodedSubject;
 
-    showNotification(title, text);
+    showNotification(title, text, message);
 }
 
 function showNewEmailNotification(message) {
@@ -49,13 +49,13 @@ function showNewEmailNotification(message) {
     var title = string;
     format(message, textFormat, function(string){
       var text = string;
-      showNotification(title, text);
+      showNotification(title, text, message);
     });
   });
 
 }
 
-function showNotification(title, text){
+function showNotification(title, text, message){
 
     var utils = require('./utils');
 
@@ -137,7 +137,7 @@ function testNotification(){
   if(win.gFolderDisplay.selectedMessage){
     showNewEmailNotification(win.gFolderDisplay.selectedMessage);
   } else {
-    showNotification("GNotifier test", "You need to select a message to test this feature");
+    showNotification("GNotifier test", "You need to select a message to test this feature", null);
   }
 }
 
