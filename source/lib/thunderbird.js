@@ -20,7 +20,7 @@ function showSimpleNewMessageNotification(isRSS) {
     var title = isRSS ? _("New_article") : _("New_message");
     var text = _("Number_of_unread_messages") + " " + count;
 
-    showNotification(title, text);
+    showNotification(title, text, null);
 }
 
 function showNewRSSNotification(message) {
@@ -37,7 +37,7 @@ function showNewRSSNotification(message) {
     var title = _("New_article_from") + " " + author;
     var text = message.mime2DecodedSubject;
 
-    showNotification(title, text);
+    showNotification(title, text, message);
 }
 
 function showNewEmailNotification(message) {
@@ -49,23 +49,33 @@ function showNewEmailNotification(message) {
     var title = string;
     format(message, textFormat, function(string){
       var text = string;
-      showNotification(title, text);
+      showNotification(title, text, message);
     });
   });
 
 }
 
-function showNotification(title, text){
+function showNotification(title, text, message){
 
     var utils = require('./utils');
 
-    // if linux => doing unclickable notification, so without actionList
     var system = require("sdk/system");
     var sps = require("sdk/simple-prefs").prefs;
-    if (sps['engine'] == 1 && system.platform === "linux") {
+    if (sps['engine'] == 1 && system.platform === "linux" && notifApi.checkButtonsSupported()) {
         var notifApi = require('./linux');
-        if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, null, null))
-          return;
+        if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, null,
+                    message ? [{
+                        label: _("open"),
+                        handler: function() {
+                            display(message);
+                        }
+                    }, {
+                        label: _("Mark_as_read"),
+                        handler: function() {
+                            message.markRead(true);
+                        }
+                    }] : null))
+            return;
     }
 
     var notifications = require("sdk/notifications");
@@ -75,6 +85,27 @@ function showNotification(title, text){
         iconURL: utils.getIcon(),
     });
 
+}
+
+// Display a given message. Heavily inspired by
+// https://developer.mozilla.org/docs/Mozilla/Thunderbird/Content_Tabs
+function display(message) {
+    // Try opening new tabs in an existing 3pane window
+    let mail3PaneWindow = Cc["@mozilla.org/appshell/window-mediator;1"]
+        .getService(Ci.nsIWindowMediator)
+        .getMostRecentWindow("mail:3pane");
+    if (mail3PaneWindow) {
+        var tabmail = mail3PaneWindow.document.getElementById("tabmail");
+        if (tabmail) {
+            tabmail.openTab("message", {msgHdr: message});
+            mail3PaneWindow.focus();
+            return
+        }
+    }
+
+    // If no window to open in can be found, fall back
+    // to any window and spwan a new one from there.
+    require("sdk/window/utils").windows()[0].openDialog("chrome://messenger/content/messageWindow.xul", "_blank", "all,chrome,dialog=no,status,toolbar", message);
 }
 
 function format(message, format, callback){
@@ -137,7 +168,7 @@ function testNotification(){
   if(win.gFolderDisplay.selectedMessage){
     showNewEmailNotification(win.gFolderDisplay.selectedMessage);
   } else {
-    showNotification("GNotifier test", "You need to select a message to test this feature");
+    showNotification("GNotifier test", "You need to select a message to test this feature", null);
   }
 }
 
