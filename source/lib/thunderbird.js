@@ -61,8 +61,8 @@ function showNotification(title, text, message){
 
     var system = require("sdk/system");
     var sps = require("sdk/simple-prefs").prefs;
+    var notifApi = require('./linux');
     if (sps['engine'] == 1 && system.platform === "linux" && notifApi.checkButtonsSupported()) {
-        var notifApi = require('./linux');
         if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, null,
                     message ? [{
                         label: _("open"),
@@ -83,6 +83,9 @@ function showNotification(title, text, message){
         title: title,
         text: text,
         iconURL: utils.getIcon(),
+        onClick: message ? function (data) {
+          display(message);
+        } : null
     });
 
 }
