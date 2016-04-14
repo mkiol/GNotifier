@@ -1,3 +1,6 @@
+## 1.9.7
+  - Thunderbird: Clickable new e-mail notification (thanks to [dffischer](https://github.com/dffischer))
+
 ## 1.9.6
   - Linux: Option to execute custom shell command
   - Thunderbird: Customizable new e-mail notification (thanks to [gabrielfin](https://github.com/gabrielfin))
