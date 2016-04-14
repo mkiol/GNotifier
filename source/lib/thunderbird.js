@@ -82,13 +82,25 @@ function showNotification(title, text, message){
 
 }
 
-// Display a given message.
+// Display a given message. Heavily inspired by
+// https://developer.mozilla.org/docs/Mozilla/Thunderbird/Content_Tabs
 function display(message) {
-    Cc['@mozilla.org/appshell/window-mediator;1']
+    // Try opening new tabs in an existing 3pane window
+    let mail3PaneWindow = Cc["@mozilla.org/appshell/window-mediator;1"]
         .getService(Ci.nsIWindowMediator)
-        .getMostRecentWindow("mail:3pane")
-        .document.getElementById("tabmail")
-        .openTab("message", {msgHdr: message});
+        .getMostRecentWindow("mail:3pane");
+    if (mail3PaneWindow) {
+        var tabmail = mail3PaneWindow.document.getElementById("tabmail");
+        if (tabmail) {
+            tabmail.openTab("message", {msgHdr: message});
+            mail3PaneWindow.focus();
+            return
+        }
+    }
+
+    // If no window to open in can be found, fall back
+    // to any window and spwan a new one from there.
+    require("sdk/window/utils").windows()[0].openDialog("chrome://messenger/content/messageWindow.xul", "_blank", "all,chrome,dialog=no,status,toolbar", message);
 }
 
 function format(message, format, callback){
