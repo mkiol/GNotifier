@@ -147,8 +147,8 @@ AlertsService.prototype = {
     },
 
     showAlertNotification: function GNotifier_AlertsService_showAlertNotification(imageUrl, title, text, textClickable, cookie, alertListener, name, dir, lang) {
-        //console.log("showAlertNotification:",imageUrl, title, text, textClickable, cookie, alertListener, name, dir, lang);
-        
+        //console.log("textClickable:",textClickable);
+        //console.log("alertListener:",alertListener);
         // Choosing engine: 0 - FF built-in, 1 - native, 2 - custom command
         if (sps['engine'] === 0) {
           origAlertsService.showAlertNotification(imageUrl, title, text, textClickable, cookie, alertListener, name, dir, lang);
@@ -168,36 +168,32 @@ AlertsService.prototype = {
         }
       
         function GNotifier_AlertsService_showAlertNotification_cb(iconPath) {
-          
             // Defing close handler
             var closeHandler = function(reason){
-                console.log(reason);
+                //console.log(reason);
                 // Generating "alertfinished"
-                //console.log("Generating alertfinished");
                 if(alertListener && typeof(alertListener) == "object") {
                     alertListener.observe(null, "alertfinished", cookie);
                 }
             };
 
             // Defing click handler
-            var clickHandler = function(){
+            var clickHandler = textClickable ? function(){
                 // Generating "alertclickcallback"
                 if(alertListener && typeof(alertListener) == "object") {
                     alertListener.observe(null, "alertclickcallback", cookie);
                 }
-            };
+            } : null;
 
             // Sending notification
             if (notifyNative(iconPath, title, text, name, closeHandler, clickHandler)) {
                 // Generating "alertshow"
-                //console.log("Generating alertshow");
                 if(alertListener && typeof(alertListener) == "object") {
                     alertListener.observe(null, "alertshow", cookie);
                 }
             } else {
                 console.log("notifyNative fails!");
             }
-
         }
 
         // Needed for generating temp icon file
@@ -222,9 +218,6 @@ AlertsService.prototype = {
             // Success!
             GNotifier_AlertsService_showAlertNotification_cb(iconFile.path);
         } catch(e) {
-
-            //console.log("showAlertNotification catch 1",e);
-
             var tempIconFile;
             try {
                 // Create temporary local file
