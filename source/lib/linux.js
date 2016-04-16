@@ -54,6 +54,7 @@ var g_signal_connect_data;
 var notify_get_server_info;
 var notify_get_server_caps;
 var notify_notification_add_action;
+var notify_notification_get_closed_reason;
 
 var c_close_handler = callbackFunType(handleClose);
 var c_action_handle = actionFunType(handleAction);
@@ -155,7 +156,8 @@ function handleClose(notification, data) {
     while (i > 0 && closedCallbackFunArray.length > 0) {
       i--;
       if (closedCallbackFunArray[i]["notification_id"] === notification_id) {
-        closedCallbackFunArray[i]["handler"]();
+        closedCallbackFunArray[i]["handler"](
+            notify_notification_get_closed_reason(notification));
         closedCallbackFunArray.splice(i, 1);
         break;
       }
@@ -250,6 +252,9 @@ linux.checkAvailable = function() {
           ctypes.default_abi, ctypes.void_t, struct_notification.ptr,
           ctypes.char.ptr, ctypes.char.ptr, ctypes.voidptr_t, ctypes.voidptr_t,
           ctypes.voidptr_t);
+        notify_notification_get_closed_reason = libc.declare(
+          "notify_notification_get_closed_reason",
+          ctypes.default_abi, ctypes.int, struct_notification.ptr);
 
         checkServerInfo();
         //console.log("Notify server name: " + checkServerInfo());

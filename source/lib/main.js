@@ -73,7 +73,10 @@ function showDownloadCompleteNotification(path, dir, filename) {
         }
 
         // if success, return, if not trying standard notification
-        if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, null, actions)) {
+        if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name,
+                    function(reason) {
+                        console.log(reason);
+                    }, actions)) {
             return;
         }
     }
@@ -167,7 +170,8 @@ AlertsService.prototype = {
         function GNotifier_AlertsService_showAlertNotification_cb(iconPath) {
           
             // Defing close handler
-            var closeHandler = function(){
+            var closeHandler = function(reason){
+                console.log(reason);
                 // Generating "alertfinished"
                 //console.log("Generating alertfinished");
                 if(alertListener && typeof(alertListener) == "object") {
