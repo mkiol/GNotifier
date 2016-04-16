@@ -1,11 +1,6 @@
 GNotifier
 =========
 
-Add-on for Firefox and Thunderbird. Integrates Firefox's notifications with the 
-OS's native notification system. It supports most 
-Linux desktops and Windows 8.
+Add-on for Firefox and Thunderbird. Replaces built-in notifications with the OS native notifications. It supports most Linux Desktop Environments, Windows 8.1 & 10.
 
-![gnotifier](https://raw.github.com/mkiol/GNotifier/master/misc/gnome2.png)
-
-![gnotifier](https://raw.github.com/mkiol/GNotifier/master/misc/win8.png)
-
+<img src="https://raw.github.com/mkiol/GNotifier/master/misc/gnome2.png" width="50%"/><img src="https://raw.github.com/mkiol/GNotifier/master/misc/win8.png" width="50%"/>
