@@ -339,7 +339,7 @@ DllExport
 bool
 DisplayToastNotification(const wchar_t* aImage, const wchar_t* aTitle, const wchar_t* aMessage, const wchar_t* aName, void* aCallbackActive, void* aCallbackDismiss)
 {
-	if (!sAppId) {
+	if (!sAppId || aImage == NULL || aTitle == NULL || aMessage == NULL) {
 		return false;
 	}
 
