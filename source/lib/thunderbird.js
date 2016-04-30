@@ -97,18 +97,21 @@ function showNotification(title, text, message){
 // https://developer.mozilla.org/docs/Mozilla/Thunderbird/Content_Tabs
 function display(message) {
     // Try opening new tabs in an existing 3pane window
-    let mail3PaneWindow = Cc["@mozilla.org/appshell/window-mediator;1"]
-        .getService(Ci.nsIWindowMediator)
-        .getMostRecentWindow("mail:3pane");
-    if (mail3PaneWindow) {
-        var tabmail = mail3PaneWindow.document.getElementById("tabmail");
+    if (win) {
+        var tabmail = win.document.getElementById("tabmail");
         if (tabmail) {
+          var sps = require("sdk/simple-prefs").prefs;
+          if (sps['newMailOpen'] == 0) {
             tabmail.openTab("message", {msgHdr: message});
-            mail3PaneWindow.focus();
-            return
+          } else {
+            tabmail.switchToTab(0);
+            win.gFolderDisplay.show(message.folder);
+            win.gFolderDisplay.selectMessage(message);
+          }
+          win.focus();
+          return;
         }
     }
-
     // If no window to open in can be found, fall back
     // to any window and spwan a new one from there.
     require("sdk/window/utils").windows()[0].openDialog("chrome://messenger/content/messageWindow.xul", "_blank", "all,chrome,dialog=no,status,toolbar", message);

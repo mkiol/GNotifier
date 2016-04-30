@@ -55,18 +55,18 @@
             ]
         },
         {
-            "name": "notifyIcon",
-            "title": "Notification Icon",
-            "description": "Defines icon used in the notifications. For example: 'firefox', 'web-browser' or 'iceweasel'. If value is set to 'default' then icon will be set based on system name.",
-            "type": "string",
-            "value": "default"
-        },
-        {
             "name": "downloadCompleteAlert",
             "title": "Download complete notification",
             "description": "Defines if downloads complete notification should be shown everytime when downloading is finished.",
             "type": "bool",
             "value": true
+        },
+        {
+            "name": "notifyIcon",
+            "title": "Notification Icon (Linux only)",
+            "description": "Defines icon used in the Download Complete and New E-mail notifications. For example: 'firefox', 'web-browser' or 'iceweasel'. If value is set to 'default' then icon will be set based on system name.",
+            "type": "string",
+            "value": "default"
         },
         {
             "name": "timeout",
@@ -98,10 +98,27 @@
         },
         {
             "name": "simpleNewMail",
-            "title": "Simple New mail notification (Thunderbird only)",
+            "title": "Simple New E-mail notification (Thunderbird only)",
             "description": "New mail notification will not contain details like subject or sender address.",
             "type": "bool",
             "value": false
+        },
+        {
+            "name": "newMailOpen",
+            "title": "Open new message action (Thunderbird only)",
+            "description": "Defines how new messages should be opened when you click on notification.",
+            "type": "menulist",
+            "value": 0,
+            "options": [
+                {
+                    "value": "0",
+                    "label": "New tab"
+                },
+                {
+                    "value": "1",
+                    "label": "Selecting on list"
+                }
+            ]
         },
         {
             "name": "emailTitleFormat",
