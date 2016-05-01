@@ -1,6 +1,6 @@
 /**
- * GNotifier - Add-on for Firefox and Thunderbird. Integrates
- * notifications with the OS's native notification system.
+ * GNotifier - Firefox/Thunderbird add-on that replaces 
+ * built-in notifications with the OS native notifications
  *
  * Copyright 2014 by Michal Kosciesza <michal@mkiol.net>
  * Copyright 2014 by Alexander Schlarb <alexander1066@xmine128.tk>
@@ -54,31 +54,29 @@ function showDownloadCompleteNotification(path, dir, filename) {
         var plasma = notifApi.checkPlasma();
 
         var actions;
+        //console.log("showDownloadCompleteNotification path: "+path+", dir="+dir+", filename="+filename);
         if (sps['clickOption'] == 0) {
             actions = [{
                 label: plasma ? _("Folder") : _("Open_folder"),
-                handler: function() {utils.openFile("file://"+dir);}
+                handler: function() {utils.openFile("file://"+dir)}
             }, {
                 label: plasma ? _("File") : _("Open_file"),
-                handler: function() {utils.openFile("file://"+path);}
+                handler: function() {utils.openFile("file://"+path)}
             }];
         } else {
             actions = [{
                 label: plasma ? _("File") : _("Open_file"),
-                handler: function() {utils.openFile("file://"+path);}
+                handler: function() {utils.openFile("file://"+path)}
             }, {
                 label: plasma ? _("Folder") : _("Open_folder"),
-                handler: function() {utils.openFile("file://"+dir);}
+                handler: function() {utils.openFile("file://"+dir)}
             }];
         }
 
         // if success, return, if not trying standard notification
-        if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name,
-                    function(reason) {
-                        console.log(reason);
-                    }, actions)) {
-            return;
-        }
+        if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, function(reason) {}, actions))
+          return;
+
     }
     
     // if linux and libnotify is inited, adding "Open" button
@@ -395,27 +393,3 @@ exports.onUnload = function (reason) {
         thunderbird.deInit();
     }
 }
-
-/*let testObserver = {
-  observe : function(aSubject, aTopic, aData) {
-    
-      if (aTopic == "console-storage-cache-event" || aTopic == "console-api-log-event"
-	|| aTopic == "cycle-collector-forget-skippable" || aTopic == "cycle-collector-begin"
-	|| aTopic == "user-interaction-inactive" || aTopic == "user-interaction-active"
-	|| aTopic == "sessionstore-state-write" || aTopic == "sessionstore-state-write-complete"
-	|| aTopic == "promise-finalization-witness" || aTopic == "xul-window-visible"
-	|| aTopic == "document-shown" || aTopic == "PopupNotifications-updateNotShowing"
-	|| aTopic == "http-on-opening-request" || aTopic == "http-on-modify-request"
-	|| aTopic == "http-on-examine-response" || aTopic == "third-party-cookie-accepted"
-	|| aTopic == "cookie-changed perm-changed")
-	return;
-      
-      console.log("-= Data received =-");
-      console.log("aSubject:"+aSubject);
-      console.log("aTopic:"+aTopic);
-      console.log("aData:"+aData);
-  }
-}
-let observerService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
-observerService.addObserver(testObserver, "*", false);*/
-

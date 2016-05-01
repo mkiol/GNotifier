@@ -9,7 +9,7 @@ Cu.import("resource://app/modules/gloda/mimemsg.js");
 
 var gHeaderParser = Cc["@mozilla.org/messenger/headerparser;1"].getService(Ci.nsIMsgHeaderParser);
 var gMessenger = Cc["@mozilla.org/messenger;1"].getService(Ci.nsIMessenger);
-var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
+var system = require("sdk/system");
 
 function showSimpleNewMessageNotification(isRSS) {
 
@@ -58,45 +58,54 @@ function showNewEmailNotification(message) {
 function showNotification(title, text, message){
 
     var utils = require('./utils');
-
-    var system = require("sdk/system");
     var sps = require("sdk/simple-prefs").prefs;
     var notifApi = require('./linux');
-    if (sps['engine'] == 1 && system.platform === "linux" && notifApi.checkButtonsSupported()) {
-        if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name,
-                    function(reason) {
-                        console.log(reason);
-                    },
-                    message ? [{
-                        label: _("open"),
-                        handler: function() {
-                            display(message);
-                        }
-                    }, {
-                        label: _("Mark_as_read"),
-                        handler: function() {
-                            message.markRead(true);
-                        }
-                    }] : null))
-            return;
+
+    if (system.name == "SeaMonkey") {
+      //TODO Click action handling for SeaMonkey
+      var notifications = require("sdk/notifications");
+      notifications.notify({
+          title: title,
+          text: text,
+          iconURL: utils.getIcon()
+      });
+    } else {
+      if (sps['engine'] == 1 && system.platform === "linux" && notifApi.checkButtonsSupported()) {
+          if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name,
+                      function(reason) {
+                          console.log(reason);
+                      },
+                      message ? [{
+                          label: _("open"),
+                          handler: function() {
+                              display(message);
+                          }
+                      }, {
+                          label: _("Mark_as_read"),
+                          handler: function() {
+                              message.markRead(true);
+                          }
+                      }] : null))
+              return;
+      }
+
+      var notifications = require("sdk/notifications");
+      notifications.notify({
+          title: title,
+          text: text,
+          iconURL: utils.getIcon(),
+          onClick: message ? function (data) {
+            display(message);
+          } : null
+      });
     }
-
-    var notifications = require("sdk/notifications");
-    notifications.notify({
-        title: title,
-        text: text,
-        iconURL: utils.getIcon(),
-        onClick: message ? function (data) {
-          display(message);
-        } : null
-    });
-
 }
 
 // Display a given message. Heavily inspired by
 // https://developer.mozilla.org/docs/Mozilla/Thunderbird/Content_Tabs
 function display(message) {
     // Try opening new tabs in an existing 3pane window
+    var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
     if (win) {
         var tabmail = win.document.getElementById("tabmail");
         if (tabmail) {
@@ -111,6 +120,7 @@ function display(message) {
           win.focus();
           return;
         }
+        win.focus();
     }
     // If no window to open in can be found, fall back
     // to any window and spwan a new one from there.
@@ -174,11 +184,15 @@ function format(message, format, callback){
 }
 
 function testNotification(){
-  if(win.gFolderDisplay.selectedMessage){
-    showNewEmailNotification(win.gFolderDisplay.selectedMessage);
+  if (system.name == "SeaMonkey") {
+    var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
   } else {
-    showNotification("GNotifier test", "You need to select a message to test this feature", null);
+    var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("navigator:browser");
   }
+  if (win && win.gFolderDisplay.selectedMessage)
+    showNewEmailNotification(win.gFolderDisplay.selectedMessage);
+  else
+    showNotification("GNotifier test", "You need to select a message to test this feature", null);
 }
 
 thunderbird.init = function() {
