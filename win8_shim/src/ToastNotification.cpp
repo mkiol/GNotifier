@@ -100,18 +100,37 @@ bool
 ToastNotificationHandler::Init(const wchar_t* aImage, const wchar_t* aTitle, const wchar_t* aMessage, const wchar_t* aName)
 {
 	HRESULT hr;
-	hr = WindowsCreateString(aImage, (UINT32)wcslen(aImage), &mImage);
-	if (FAILED(hr)) {
-		return false;
+
+	if (aImage) {
+		hr = WindowsCreateString(aImage, (UINT32)wcslen(aImage), &mImage);
+		if (FAILED(hr)) {
+			return false;
+		}
 	}
-	hr = WindowsCreateString(aTitle, (UINT32)wcslen(aTitle), &mTitle);
-	if (FAILED(hr)) {
-		return false;
+	else {
+		mImage = nullptr;
 	}
-	hr = WindowsCreateString(aMessage, (UINT32)wcslen(aMessage), &mMessage);
-	if (FAILED(hr)) {
-		return false;
+
+	if (aTitle) {
+		hr = WindowsCreateString(aTitle, (UINT32)wcslen(aTitle), &mTitle);
+		if (FAILED(hr)) {
+			return false;
+		}
 	}
+	else {
+		aTitle = nullptr;
+	}
+
+	if (aMessage) {
+		hr = WindowsCreateString(aMessage, (UINT32)wcslen(aMessage), &mMessage);
+		if (FAILED(hr)) {
+			return false;
+		}
+	}
+	else {
+		aMessage = nullptr;
+	}
+
 	if (aName) {
 		mName = _wcsdup(aName);
 		if (!mName) {
@@ -209,9 +228,15 @@ ToastNotificationHandler::InitializeXmlForTemplate(ToastTemplateType templateTyp
 bool
 ToastNotificationHandler::CreateWindowsNotificationFromXml(IXmlDocument* aXml)
 {
-	ComPtr<IToastNotificationFactory> factory;
 	HRESULT hr;
-	hr = GetActivationFactory(HStringReference(RuntimeClass_Windows_UI_Notifications_ToastNotification).Get(), factory.GetAddressOf());
+
+	hr = mToastNotificationManagerStatics->CreateToastNotifierWithId(HStringReference(sAppId).Get(), &mNotifier);
+	if (FAILED(hr)) {
+		return false;
+	}
+
+	ComPtr<IToastNotificationFactory> factory;
+	hr = GetActivationFactory(HStringReference(RuntimeClass_Windows_UI_Notifications_ToastNotification).Get(), &factory);
 	if (FAILED(hr)) {
 		return false;
 	}
@@ -235,10 +260,6 @@ ToastNotificationHandler::CreateWindowsNotificationFromXml(IXmlDocument* aXml)
 		return false;
 	}
 
-	hr = mToastNotificationManagerStatics->CreateToastNotifierWithId(HStringReference(sAppId).Get(), mNotifier.GetAddressOf());
-	if (FAILED(hr)) {
-		return false;
-	}
 	hr = mNotifier->Show(mNotification.Get());
 	if (FAILED(hr)) {
 		return false;
@@ -252,12 +273,33 @@ ToastNotificationHandler::DisplayNotification(EventCallback aActivate, EventCall
 {
 	ComPtr<IXmlDocument> toastXml;
 
+	ToastTemplateType templateType;
+
 	if (mImage) {
-		toastXml = InitializeXmlForTemplate(ToastTemplateType::ToastTemplateType_ToastImageAndText02);
+		if (!mTitle) {
+			templateType = ToastTemplateType_ToastImageAndText01;
+		}
+		else if (!mMessage) {
+			templateType = ToastTemplateType_ToastImageAndText03;
+		}
+		else {
+			templateType = ToastTemplateType_ToastImageAndText02;
+		}
 	}
 	else {
-		toastXml = InitializeXmlForTemplate(ToastTemplateType::ToastTemplateType_ToastText02);
+		if (!mTitle) {
+			templateType = ToastTemplateType_ToastText01;
+		}
+		else if (!mMessage) {
+			templateType = ToastTemplateType_ToastText03;
+		}
+		else {
+			templateType = ToastTemplateType_ToastText02;
+		}
 	}
+
+	toastXml = InitializeXmlForTemplate(templateType);
+
 	HRESULT hr;
 
 	ComPtr<IXmlNodeList> toastTextElements;
@@ -266,22 +308,33 @@ ToastNotificationHandler::DisplayNotification(EventCallback aActivate, EventCall
 		return false;
 	}
 
-	ComPtr<IXmlNode> titleTextNodeRoot;
-	hr = toastTextElements->Item(0, &titleTextNodeRoot);
+	ComPtr<IXmlNode> textNodeRoot1;
+	hr = toastTextElements->Item(0, &textNodeRoot1);
 	if (FAILED(hr)) {
 		return false;
 	}
-	ComPtr<IXmlNode> msgTextNodeRoot;
-	hr = toastTextElements->Item(1, &msgTextNodeRoot);
-	if (FAILED(hr)) {
-		return false;
+
+	ComPtr<IXmlNode> textNodeRoot2;
+	if (mTitle && mMessage) {
+		hr = toastTextElements->Item(1, &textNodeRoot2);
+		if (FAILED(hr)) {
+			return false;
+		}
 	}
+
 	if (mImage) {
 		SetImageSrc(&mImage, toastXml.Get());
 	}
 
-	SetNodeValueString(mTitle, titleTextNodeRoot.Get(), toastXml.Get());
-	SetNodeValueString(mMessage, msgTextNodeRoot.Get(), toastXml.Get());
+	if (mTitle) {
+		SetNodeValueString(mTitle, textNodeRoot1.Get(), toastXml.Get());
+		if (mMessage) {
+			SetNodeValueString(mMessage, textNodeRoot2.Get(), toastXml.Get());
+		}
+	}
+	else {
+		SetNodeValueString(mMessage, textNodeRoot1.Get(), toastXml.Get());
+	}
 
 	mActivateCallback = aActivate;
 	mDismissCallback = aDismiss;
@@ -339,7 +392,7 @@ DllExport
 bool
 DisplayToastNotification(const wchar_t* aImage, const wchar_t* aTitle, const wchar_t* aMessage, const wchar_t* aName, void* aCallbackActive, void* aCallbackDismiss)
 {
-	if (!sAppId || aImage == NULL || aTitle == NULL || aMessage == NULL) {
+	if (!sAppId || (!aTitle && !aMessage)) {
 		return false;
 	}
 
