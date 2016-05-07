@@ -1,8 +1,6 @@
 /**
- * GNotifier - Add-on for Firefox and Thunderbird. Integrates
- * notifications with the OS's native notification system.
- *
- * Copyright 2014 by Michal Kosciesza <michal@mkiol.net>
+ * GNotifier - Firefox/Thunderbird add-on that replaces
+ * built-in notifications with the OS native notifications
  *
  * Licensed under GNU General Public License 3.0 or later.
  * Some rights reserved. See COPYING, AUTHORS.
@@ -19,8 +17,6 @@
 //
 // In the code, checking for "1.2" or other server versions
 // refers to the version implemented server-side.
-
-module.exports = linux = {};
 
 var { Cc, Ci, Cu, Cm, Cr } = require('chrome');
 Cu.import("resource://gre/modules/ctypes.jsm", this);
@@ -59,8 +55,7 @@ var notify_notification_get_closed_reason;
 var c_close_handler = callbackFunType(handleClose);
 var c_action_handle = actionFunType(handleAction);
 
-function showServerInfo() {
-
+function showServerInfo () {
     var ret_name = new ctypes.char.ptr;
     var ret_vendor = new ctypes.char.ptr;
     var ret_version = new ctypes.char.ptr;
@@ -75,8 +70,7 @@ function showServerInfo() {
     console.log("spec_version: " + ret_spec_version.readString());
 }
 
-function showServerCapabilities() {
-
+function showServerCapabilities () {
     var server_caps = ctypes.cast(notify_get_server_caps(),struct_glist.ptr);
     console.log("libnotify server capabilities:");
     while (!server_caps.isNull()) {
@@ -86,8 +80,7 @@ function showServerCapabilities() {
     }
 }
 
-function checkServerInfo() {
-
+function checkServerInfo () {
     var ret_name = new ctypes.char.ptr;
     var ret_vendor = new ctypes.char.ptr;
     var ret_version = new ctypes.char.ptr;
@@ -103,8 +96,7 @@ function checkServerInfo() {
     return serverName;
 }
 
-function checkServerCapabilities() {
-
+function checkServerCapabilities () {
     var server_caps = ctypes.cast(notify_get_server_caps(),struct_glist.ptr);
 
     var retValue = false;
@@ -119,9 +111,7 @@ function checkServerCapabilities() {
     return retValue;
 }
 
-function handleAction(notification, action, data) {
-
-  //console.log("handleAction");
+function handleAction (notification, action, data) {
   if (!data.isNull() && !action.isNull()) {
     // Getting handler from actionsCallbackFunArray by action_id
     // action_id is pointer value of 'data' arg
@@ -142,12 +132,9 @@ function handleAction(notification, action, data) {
   } else {
       console.log("Action or data is null!");
   }
-
 }
 
-function handleClose(notification, data) {
-
-  //console.log("handleClose");
+function handleClose (notification, data) {
   if (!data.isNull()) {
     // Getting handler from closedCallbackFunArray by notification_id
     // notification_id is pointer value of 'data' arg
@@ -175,35 +162,28 @@ function handleClose(notification, data) {
   } else {
     console.log("Data is null!");
   }
-
 }
 
-linux.checkButtonsSupported = function() {
-
+exports.checkButtonsSupported = function () {
   if (serverCapabilities.indexOf("actions")==-1)
     return false;
   return true;
-
 }
 
-linux.checkOverlayIconSupported = function() {
-
+exports.checkOverlayIconSupported = function () {
   if (serverCapabilities.indexOf("x-eventd-overlay-icon")==-1)
     return false;
   return true;
-
 }
 
-linux.checkPlasma = function() {
-
+exports.checkPlasma = function () {
   if (serverName === "Plasma")
     return true;
   return false;
 
 }
 
-linux.checkAvailable = function() {
-
+exports.checkAvailable = function () {
     var retValue = false;
     try {
         libc = ctypes.open("libnotify.so.4");
@@ -218,7 +198,6 @@ linux.checkAvailable = function() {
     }
 
     if (retValue) {
-
         // Initing data types
         g_variant_new_string = libc.declare("g_variant_new_string",
           ctypes.default_abi, struct_gvariant.ptr, ctypes.char.ptr);
@@ -259,11 +238,10 @@ linux.checkAvailable = function() {
         checkServerInfo();
         //console.log("Notify server name: " + checkServerInfo());
         retValue = checkServerCapabilities();
-	
+
         // Debug...
         //showServerInfo();
         //showServerCapabilities();
-	
     } else {
         console.log("Libnotify library not found :-(");
     }
@@ -271,27 +249,23 @@ linux.checkAvailable = function() {
     return retValue;
 }
 
-linux.notify = function(iconURL, title, text, notifier, closeHandler, clickHandler) {
-
+exports.notify = function (iconURL, title, text, notifier, closeHandler, clickHandler) {
     // Getting input tag from text; by default is "open"
     var input = _("open");
     var _text = text.replace(/<[\/]{0,1}(input|INPUT)[^><]*>/g,function(match){
       input = / text='([^']*)'/g.exec(match)[1]; return "";
     });
-    
-    // Creating array with "open" action if actions supported
-    if (serverCapabilities.indexOf("actions") != -1) {
+
+    // Creating array with "open" action if clickHandler and actions supported
+    if (clickHandler && typeof(clickHandler)==="function" && serverCapabilities.indexOf("actions") != -1) {
         var actions = [{ label: input, handler: clickHandler }];
-        return linux.notifyWithActions(iconURL, title, _text, notifier, closeHandler, actions);
+        return exports.notifyWithActions(iconURL, title, _text, notifier, closeHandler, actions);
     }
 
-    return linux.notifyWithActions(iconURL, title, _text, notifier, closeHandler, null);
+    return exports.notifyWithActions(iconURL, title, _text, notifier, closeHandler, null);
 }
 
-linux.notifyWithActions = function(iconURL, title, text, notifier, closeHandler, actionsList) {
-  
-    //console.log("notifyWithActions:",iconURL, title, text, notifier, closeHandler, actionsList);
-  
+exports.notifyWithActions = function (iconURL, title, text, notifier, closeHandler, actionsList) {
     // Sanitization
     var utils = require("./utils.js");
     text = utils.sanitize(text);
@@ -306,7 +280,7 @@ linux.notifyWithActions = function(iconURL, title, text, notifier, closeHandler,
     var image_path_hint_name = "image-path";
     var image_path_hint = null;
 
-    if (linux.checkOverlayIconSupported()) {
+    if (exports.checkOverlayIconSupported()) {
         // This server can dispaly both an icon and an image
         // We pass it both
         switch (serverSpecVersion) {
@@ -338,7 +312,7 @@ linux.notifyWithActions = function(iconURL, title, text, notifier, closeHandler,
     if (image_path_hint) {
         notify_notification_set_hint(notification, image_path_hint_name, image_path_hint);
     }
-    
+
     var sps = require("sdk/simple-prefs").prefs;
     if (sps['timeoutExpire']) {
         if (sps['timeout'] >= 1)
@@ -348,12 +322,10 @@ linux.notifyWithActions = function(iconURL, title, text, notifier, closeHandler,
     }
 
     // Adding actions
-    //console.log("actionsList1:",actionsList.length, actionsList);
     if (actionsList) {
         for (var i in actionsList) {
             var label = actionsList[i]["label"];
             var handler = actionsList[i]["handler"];
-            //console.log("actionsList2:",handler,typeof(handler));
             if (handler && typeof(handler) === "function") {
                 // Defing callback function for action
                 var user_data_ptr = ctypes.int(i).address();
@@ -367,7 +339,7 @@ linux.notifyWithActions = function(iconURL, title, text, notifier, closeHandler,
             }
         }
     }
-    
+
     // Showing notification
     var error = new struct_gerror_ptr;
     if (!notify_notification_show(notification, error)) {
@@ -388,5 +360,4 @@ linux.notifyWithActions = function(iconURL, title, text, notifier, closeHandler,
     }
 
     return true;
-
 }

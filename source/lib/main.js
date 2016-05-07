@@ -1,5 +1,5 @@
 /**
- * GNotifier - Firefox/Thunderbird add-on that replaces 
+ * GNotifier - Firefox/Thunderbird add-on that replaces
  * built-in notifications with the OS native notifications
  *
  * Copyright 2014 by Michal Kosciesza <michal@mkiol.net>
@@ -20,30 +20,29 @@ Cu.import("resource://gre/modules/Timer.jsm");
 Cu.import("resource://gre/modules/FileUtils.jsm");
 Cu.import("resource://gre/modules/NetUtil.jsm");
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
-
 Cu.import("resource://gre/modules/Task.jsm");
 Cu.import("resource://gre/modules/Downloads.jsm");
-
 var sps = require("sdk/simple-prefs").prefs;
 var system = require("sdk/system");
-
 var origAlertsServiceFactory = Cm.getClassObject(Cc["@mozilla.org/alerts-service;1"], Ci.nsIFactory);
 var origAlertsService = Cc["@mozilla.org/alerts-service;1"].getService(Ci.nsIAlertsService);
+//var app = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication);
+//var io = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
 
 var loaded = false;
 
 // Determine Linux / OSX based on 'system.platform'
-if(system.platform == "darwin"){
-    var notifApi = require('./osx.js');
-} else if(system.platform == "winnt") {
-    var notifApi = require('./windows.js');
+var notifApi;
+if (system.platform === "darwin"){
+    notifApi = require("./osx.js");
+} else if (system.platform === "winnt") {
+    notifApi = require("./windows.js");
 } else {
-    var notifApi = require('./linux.js');
+    notifApi = require("./linux.js");
 }
 
 function showDownloadCompleteNotification(path, dir, filename) {
-
-    var utils = require('./utils.js');
+    var utils = require("./utils.js");
     var title = _("download_finished");
     var text = filename;
 
@@ -76,9 +75,8 @@ function showDownloadCompleteNotification(path, dir, filename) {
         // if success, return, if not trying standard notification
         if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, function(reason) {}, actions))
           return;
-
     }
-    
+
     // if linux and libnotify is inited, adding "Open" button
     // it only makes sense for some linux distros e.g. KDE, Gnome Shell
     if (sps['engine'] === 1 && system.platform === "linux" && loaded)
@@ -137,22 +135,19 @@ function AlertsService()
 {}
 AlertsService.prototype = {
     QueryInterface: XPCOMUtils.generateQI([Ci.nsIAlertsService]),
-    
+
     // New nsIAlertsService API (FF 46)
     showAlert: function(alert, alertListener) {
-      //console.log("showAlert", alert, alertListener);
       this.showAlertNotification(alert.imageURL, alert.title, alert.text, alert.textClickable, alert.cookie, alertListener, alert.name, alert.dir, alert.lang);
     },
 
     showAlertNotification: function GNotifier_AlertsService_showAlertNotification(imageUrl, title, text, textClickable, cookie, alertListener, name, dir, lang) {
-        //console.log("textClickable:",textClickable);
-        //console.log("alertListener:",alertListener);
         // Choosing engine: 0 - FF built-in, 1 - native, 2 - custom command
         if (sps['engine'] === 0) {
           origAlertsService.showAlertNotification(imageUrl, title, text, textClickable, cookie, alertListener, name, dir, lang);
           return;
         }
-        
+
         if (sps['engine'] === 2) {
           if (sps['command'] !== "") {
             var utils = require('./utils.js');
@@ -164,13 +159,13 @@ AlertsService.prototype = {
           }
           return;
         }
-      
+
         function GNotifier_AlertsService_showAlertNotification_cb(iconPath) {
             // Defing close handler
             var closeHandler = function(reason){
-                //console.log(reason);
                 // Generating "alertfinished"
-                if(alertListener && typeof(alertListener) == "object") {
+                console.log(reason);
+                if(alertListener) {
                     alertListener.observe(null, "alertfinished", cookie);
                 }
             };
@@ -178,7 +173,7 @@ AlertsService.prototype = {
             // Defing click handler
             var clickHandler = textClickable ? function(){
                 // Generating "alertclickcallback"
-                if(alertListener && typeof(alertListener) == "object") {
+                if(alertListener) {
                     alertListener.observe(null, "alertclickcallback", cookie);
                 }
             } : null;
@@ -186,7 +181,7 @@ AlertsService.prototype = {
             // Sending notification
             if (notifyNative(iconPath, title, text, name, closeHandler, clickHandler)) {
                 // Generating "alertshow"
-                if(alertListener && typeof(alertListener) == "object") {
+                if(alertListener) {
                     alertListener.observe(null, "alertshow", cookie);
                 }
             } else {
@@ -202,8 +197,8 @@ AlertsService.prototype = {
             text += possible.charAt(Math.floor(Math.random() * possible.length));
             return text;
         }
-        
-        if (imageUrl === null) {
+
+        if (!imageUrl) {
           GNotifier_AlertsService_showAlertNotification_cb("");
           return;
         }
@@ -227,7 +222,6 @@ AlertsService.prototype = {
                     FileUtils.PERMS_FILE
                 );
                 var iconStream = FileUtils.openSafeFileOutputStream(tempIconFile);
-
                 // Copy data from original icon to local file
                 var imageFile = NetUtil.newChannel(imageUrl);
                 NetUtil.asyncFetch(imageFile, function(imageStream,result) {
@@ -242,13 +236,11 @@ AlertsService.prototype = {
                         }
                         // Show notification with copied icon file
                         GNotifier_AlertsService_showAlertNotification_cb(tempIconFile.path);
-
                         // Close streams
                         iconStream.close();
                         imageStream.close();
                     });
                 });
-
                 // Remove temp icon file
                 setTimeout(function(){
                     tempIconFile.remove(false);
@@ -256,7 +248,6 @@ AlertsService.prototype = {
 
             } catch(e) {
                 GNotifier_AlertsService_showAlertNotification_cb(imageUrl);
-
                 // Remove temp icon file
                 setTimeout(function(){
                     tempIconFile.remove(false);
@@ -267,8 +258,7 @@ AlertsService.prototype = {
 };
 
 // FF notification
-function notifyFF(iconURL, title, text) {
-
+function notifyFF (iconURL, title, text) {
     // Unloading GNotifier implementaion of Alert service
     exports.onUnload();
 
@@ -278,23 +268,21 @@ function notifyFF(iconURL, title, text) {
         text: text,
         iconURL: iconURL
     });
-
 }
 
 // Native notification
-function notifyNative(iconURL, title, text, notifier, closeHandler, clickHandler) {
-
+function notifyNative (iconURL, title, text, notifier, closeHandler, clickHandler) {
+    //console.log("notifier:",notifier);
     var ret = notifApi.notify(iconURL, title, text, system.name, closeHandler, clickHandler);
     if(!ret) {
         console.log('Native notification fails! :-(');
-        notifyFF(iconURL, title, text);
+        //notifyFF(iconURL, title, text);
         return false;
     }
     return true;
 }
 
-function deleteTempFiles() {
-
+function deleteTempFiles () {
     var tempDir = FileUtils.getDir("TmpD",[""]);
     var entries = tempDir.directoryEntries;
     while(entries.hasMoreElements()) {
@@ -305,7 +293,16 @@ function deleteTempFiles() {
         if (filename.substring(0, 10) === "gnotifier-")
           entry.remove(false);
     }
+}
 
+function testNotification () {
+    var utils = require('./utils.js');
+    var notifications = require("sdk/notifications");
+    notifications.notify({
+        title: "GNotifier test",
+        text: "This works only in the Thunderbird!",
+        iconURL: utils.getIcon()
+    });
 }
 
 exports.main = function(options, callbacks) {
@@ -318,7 +315,7 @@ exports.main = function(options, callbacks) {
             // Replace alert-service
             var contract = "@mozilla.org/alerts-service;1";
             let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
-            
+
             // Unregister built-in alerts-service class factory
             registrar.unregisterFactory(
                 Cc[contract],
@@ -332,7 +329,7 @@ exports.main = function(options, callbacks) {
                 contract,
                 XPCOMUtils.generateSingletonFactory(AlertsService)
             );
-            
+
             loaded = true;
         }
     }
@@ -355,6 +352,10 @@ exports.main = function(options, callbacks) {
     if (loaded && (system.name == "Thunderbird" || system.name == "SeaMonkey" || system.name == "Icedove")) {
         var thunderbird = require('./thunderbird.js');
         thunderbird.init();
+    } else {
+        require("sdk/simple-prefs").on("test", function() {
+          testNotification();
+        });
     }
 
 };

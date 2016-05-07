@@ -1,5 +1,4 @@
 // windows
-module.exports = windows = {};
 var system = require("sdk/system");
 
 var { Cc, Ci, Cu, Cm, Cr } = require('chrome');
@@ -17,13 +16,13 @@ if (ctypes.voidptr_t.size == 4) {
 var winToast = ctypes.open(FileUtils.getFile("ProfD",
 ["extensions", "jid1-OoNOA6XBjznvLQ@jetpack", "resources", "gnotifier", "data", dllName]).path);
 
-windows.checkAvailable = function()
+exports.checkAvailable = function()
 {
     var setAppId = winToast.declare("SetAppId", ctypes.winapi_abi, ctypes.bool);
     return setAppId();
 }
 // Do a real notification
-windows.notify = function(iconURL, title, text, notifier, closeHandler, clickHandler){
+exports.notify = function(iconURL, title, text, notifier, closeHandler, clickHandler){
     try{
         const clickCallbackType = ctypes.FunctionType(ctypes.stdcall_abi, ctypes.void_t).ptr;
         const closeCallbackType = ctypes.FunctionType(ctypes.stdcall_abi, ctypes.void_t).ptr;
@@ -55,7 +54,8 @@ windows.notify = function(iconURL, title, text, notifier, closeHandler, clickHan
 
         return DisplayToastNotification(iconURL, title, text, notifier, clickCallback, closeCallback);
 
-    } catch(e){ 
+    } catch (e){
       console.log(e);
-      return false; }
+      return false;
+    }
 }

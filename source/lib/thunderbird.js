@@ -1,18 +1,26 @@
+/**
+ * GNotifier - Firefox/Thunderbird add-on that replaces
+ * built-in notifications with the OS native notifications
+ *
+ * Copyright 2014 by Michal Kosciesza <michal@mkiol.net>
+ *
+ * Licensed under GNU General Public License 3.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ *
+ * @license GPL-3.0 <https://www.gnu.org/licenses/gpl-3.0.html>
+ */
 
-// Thunderbird stuff
-module.exports = thunderbird = {};
-
-var { Cc, Ci, Cu, Cm, Cr } = require('chrome');
-var _ = require('sdk/l10n').get;
+var { Cc, Ci, Cu, Cm, Cr } = require("chrome");
+var _ = require("sdk/l10n").get;
 
 Cu.import("resource://app/modules/gloda/mimemsg.js");
 
 var gHeaderParser = Cc["@mozilla.org/messenger/headerparser;1"].getService(Ci.nsIMsgHeaderParser);
 var gMessenger = Cc["@mozilla.org/messenger;1"].getService(Ci.nsIMessenger);
 var system = require("sdk/system");
+//var app = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication);
 
-function showSimpleNewMessageNotification(isRSS) {
-
+function showSimpleNewMessageNotification (isRSS) {
     // Getting new messages count
     var newMailNotificationService = Cc["@mozilla.org/newMailNotificationService;1"].getService(Ci.mozINewMailNotificationService);
     var count = newMailNotificationService.messageCount;
@@ -23,8 +31,7 @@ function showSimpleNewMessageNotification(isRSS) {
     showNotification(title, text, null);
 }
 
-function showNewRSSNotification(message) {
-
+function showNewRSSNotification (message) {
     var author = message.mime2DecodedAuthor;
     // unicode character ranges taken from:
     // http://stackoverflow.com/questions/1073412/javascript-validation-issue-with-international-characters#1073545
@@ -40,8 +47,7 @@ function showNewRSSNotification(message) {
     showNotification(title, text, message);
 }
 
-function showNewEmailNotification(message) {
-
+function showNewEmailNotification (message) {
   var sps = require("sdk/simple-prefs").prefs;
   var textFormat = sps.emailTextFormat.replace(/\\n/, "\n");
 
@@ -52,83 +58,91 @@ function showNewEmailNotification(message) {
       showNotification(title, text, message);
     });
   });
-
 }
 
-function showNotification(title, text, message){
+function showNotification (title, text, message){
+    var utils = require('./utils.js');
+    var notifications = require("sdk/notifications");
 
-    var utils = require('./utils');
-    var sps = require("sdk/simple-prefs").prefs;
-    var notifApi = require('./linux');
-
-    if (system.name == "SeaMonkey") {
-      //TODO Click action handling for SeaMonkey
-      var notifications = require("sdk/notifications");
+    // Current implementation of click action doesn't support SeaMonkey,
+    // so doing not clickable notification if SeaMonkey
+    if (system.name === "SeaMonkey") {
       notifications.notify({
           title: title,
           text: text,
           iconURL: utils.getIcon()
       });
-    } else {
-      if (sps['engine'] == 1 && system.platform === "linux" && notifApi.checkButtonsSupported()) {
-          if (notifApi.notifyWithActions(utils.getIcon(), title, text, system.name,
-                      function(reason) {
-                          console.log(reason);
-                      },
-                      message ? [{
-                          label: _("open"),
-                          handler: function() {
-                              display(message);
-                          }
-                      }, {
-                          label: _("Mark_as_read"),
-                          handler: function() {
-                              message.markRead(true);
-                          }
-                      }] : null))
-              return;
-      }
+      return;
+    }
 
-      var notifications = require("sdk/notifications");
+    // Doing notification with buttons if Linux and buttons are supported in
+    // the notify server
+    var sps = require("sdk/simple-prefs").prefs;
+    if (sps['engine'] === 1 && system.platform === "linux") {
+      var notifApi = require('./linux.js');
+      if (notifApi.checkButtonsSupported() && notifApi.notifyWithActions(utils.getIcon(), title, text, system.name,
+            function(reason) {
+                //console.log(reason);
+            },
+            message ? [{
+                label: _("open"),
+                handler: function() {
+                    display(message);
+                }
+            }, {
+                label: _("Mark_as_read"),
+                handler: function() {
+                    message.markRead(true);
+                }
+            }] : null))
+        return;
+    }
+
+    if (message) {
       notifications.notify({
           title: title,
           text: text,
           iconURL: utils.getIcon(),
-          onClick: message ? function (data) {
-            display(message);
-          } : null
+          onClick: function (data){display(message)}
       });
+      return;
     }
+
+    notifications.notify({
+        title: title,
+        text: text,
+        iconURL: utils.getIcon()
+    });
 }
 
 // Display a given message. Heavily inspired by
 // https://developer.mozilla.org/docs/Mozilla/Thunderbird/Content_Tabs
-function display(message) {
+function display (message) {
     // Try opening new tabs in an existing 3pane window
     var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
     if (win) {
+        //INFO: tabmail is not supported in SeaMonkey
         var tabmail = win.document.getElementById("tabmail");
-        if (tabmail) {
-          var sps = require("sdk/simple-prefs").prefs;
-          if (sps['newMailOpen'] == 0) {
+        var sps = require("sdk/simple-prefs").prefs;
+        if (sps['newMailOpen'] == 0) {
+          if (tabmail)
             tabmail.openTab("message", {msgHdr: message});
-          } else {
+        } else {
+          if (tabmail)
             tabmail.switchToTab(0);
-            win.gFolderDisplay.show(message.folder);
-            win.gFolderDisplay.selectMessage(message);
-          }
-          win.focus();
-          return;
+          win.gFolderDisplay.show(message.folder);
+          win.gFolderDisplay.selectMessage(message);
         }
         win.focus();
+        return;
     }
+
     // If no window to open in can be found, fall back
     // to any window and spwan a new one from there.
     require("sdk/window/utils").windows()[0].openDialog("chrome://messenger/content/messageWindow.xul", "_blank", "all,chrome,dialog=no,status,toolbar", message);
 }
 
-function format(message, format, callback){
-
+function format (message, format, callback){
   var author = gHeaderParser.parseDecodedHeader(message.mime2DecodedAuthor);
 
   if(format.match(/%b/)){
@@ -183,51 +197,18 @@ function format(message, format, callback){
   }
 }
 
-function testNotification(){
-  if (system.name == "SeaMonkey") {
-    var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
-  } else {
-    var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("navigator:browser");
-  }
-  if (win && win.gFolderDisplay.selectedMessage)
+function testNotification () {
+  var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
+  if (win && win.gFolderDisplay && win.gFolderDisplay.selectedMessage) {
     showNewEmailNotification(win.gFolderDisplay.selectedMessage);
-  else
-    showNotification("GNotifier test", "You need to select a message to test this feature", null);
+  } else {
+    showNotification("GNotifier test", "You need to select a message to test this feature", undefined);
+  }
 }
 
-thunderbird.init = function() {
-
-    // Disabling native new email alert
-    var ps = require('sdk/preferences/service');
-    ps.set("mail.biff.show_alert", false);
-
-    // Folder listeners registration for OnItemIntPropertyChanged
-    var folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
-    folderListenerManager.AddFolderListener(thunderbird.mailListener, 0x8);
-
-    var sp = require("sdk/simple-prefs");
-    sp.on("test", function() {
-      testNotification();
-    });
-
-}
-
-thunderbird.deInit = function() {
-
-    // Enabling native new email alert
-    var ps = require('sdk/preferences/service');
-    ps.set("mail.biff.show_alert", true);
-
-    var folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
-    folderListenerManager.RemoveFolderListener(thunderbird.mailListener);
-
-}
-
-thunderbird.mailListener = {
-
+var mailListener = {
     OnItemIntPropertyChanged: function (aItem,aProperty,aOldValue,aNewValue) {
-
-        function getFoldersWithNewMail(aFolder) {
+        function getFoldersWithNewMail (aFolder) {
             var folderList = [];
             if (aFolder) {
                 //console.log("aFolder: ", aFolder.prettyName, aFolder.biffState, aFolder.hasNewMessages, aFolder.hasSubFolders);
@@ -331,4 +312,28 @@ thunderbird.mailListener = {
 
         }
     }
-}
+};
+
+exports.init = function() {
+    // Disabling native new email alert
+    var ps = require('sdk/preferences/service');
+    ps.set("mail.biff.show_alert", false);
+
+    // Folder listeners registration for OnItemIntPropertyChanged
+    var folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
+    folderListenerManager.AddFolderListener(mailListener, 0x8);
+
+    var sp = require("sdk/simple-prefs");
+    sp.on("test", function() {
+      testNotification();
+    });
+};
+
+exports.deInit = function() {
+    // Enabling native new email alert
+    var ps = require('sdk/preferences/service');
+    ps.set("mail.biff.show_alert", true);
+
+    var folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
+    folderListenerManager.RemoveFolderListener(mailListener);
+};

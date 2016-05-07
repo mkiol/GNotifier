@@ -112,11 +112,11 @@
             "options": [
                 {
                     "value": "0",
-                    "label": "New tab"
+                    "label": "Open new tab"
                 },
                 {
                     "value": "1",
-                    "label": "Selecting on list"
+                    "label": "Select on list"
                 }
             ]
         },
