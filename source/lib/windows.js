@@ -7,20 +7,41 @@ Cu.import("resource://gre/modules/FileUtils.jsm");
 
 var dllName;
 var callbackFunArray = [];
+var winToast = null;
 
 if (ctypes.voidptr_t.size == 4) {
     dllName = "ToastNotification.dll";
 } else{
     dllName = "ToastNotification64.dll";
 }
-var winToast = ctypes.open(FileUtils.getFile("ProfD",
-["extensions", "jid1-OoNOA6XBjznvLQ@jetpack", "resources", "gnotifier", "data", dllName]).path);
 
-exports.checkAvailable = function()
+exports.init = function()
 {
-    var setAppId = winToast.declare("SetAppId", ctypes.winapi_abi, ctypes.bool);
-    return setAppId();
+  if (winToast) {
+      winToast.close();
+      winToast = null;
+  }
+  try {
+    winToast = ctypes.open(FileUtils.getFile("ProfD",
+    ["extensions", "jid1-OoNOA6XBjznvLQ@jetpack", "resources", "gnotifier", "data", dllName]).path);
+  } catch (e) {
+    console.log(e);
+  }
+
+  if (!winToast) {
+      console.log("Unable to load " + dllName);
+      return false;
+  }
+
+  var setAppId = winToast.declare("SetAppId", ctypes.winapi_abi, ctypes.bool);
+  return setAppId();
 }
+
+exports.deInit = function() {
+    if (winToast)
+        winToast.close();
+}
+
 // Do a real notification
 exports.notify = function(iconURL, title, text, notifier, closeHandler, clickHandler){
     try{

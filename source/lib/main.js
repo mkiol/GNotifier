@@ -26,16 +26,12 @@ var sps = require("sdk/simple-prefs").prefs;
 var system = require("sdk/system");
 var origAlertsServiceFactory = Cm.getClassObject(Cc["@mozilla.org/alerts-service;1"], Ci.nsIFactory);
 var origAlertsService = Cc["@mozilla.org/alerts-service;1"].getService(Ci.nsIAlertsService);
-//var app = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication);
-//var io = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
 
 var loaded = false;
 
-// Determine Linux / OSX based on 'system.platform'
+// Determine Linux / Windows based on 'system.platform'
 var notifApi;
-if (system.platform === "darwin"){
-    notifApi = require("./osx.js");
-} else if (system.platform === "winnt") {
+if (system.platform === "winnt") {
     notifApi = require("./windows.js");
 } else {
     notifApi = require("./linux.js");
@@ -164,7 +160,7 @@ AlertsService.prototype = {
             // Defing close handler
             var closeHandler = function(reason){
                 // Generating "alertfinished"
-                console.log(reason);
+                //console.log(reason);
                 if(alertListener) {
                     alertListener.observe(null, "alertfinished", cookie);
                 }
@@ -302,14 +298,18 @@ function testNotification () {
         title: "GNotifier test",
         text: "This works only in the Thunderbird!",
         iconURL: utils.getIcon()
+        /*onClick: function (data){
+          var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("navigator:browser");
+          require("./windowsUtils.js").forceFocus(win);
+        }*/
     });
 }
 
 exports.main = function(options, callbacks) {
 
     // Check if libnofify / OSX library is present
-    if(notifApi.checkAvailable()) {
-        //console.log("notifApi.checkAvailable is ok");
+    if(notifApi.init()) {
+        //console.log("notifApi.init is ok");
         if (system.platform != "darwin") {
 
             // Replace alert-service
@@ -361,8 +361,10 @@ exports.main = function(options, callbacks) {
 };
 
 exports.onUnload = function (reason) {
-
     deleteTempFiles();
+
+    if (notifApi)
+        notifApi.deInit();
 
     // Unregister current alerts-service class factory
     var contract = "@mozilla.org/alerts-service;1";

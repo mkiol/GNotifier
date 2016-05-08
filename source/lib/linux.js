@@ -22,7 +22,7 @@ var { Cc, Ci, Cu, Cm, Cr } = require('chrome');
 Cu.import("resource://gre/modules/ctypes.jsm", this);
 var _ = require('sdk/l10n').get;
 
-var libc;
+var libc = null;
 var actionsCallbackFunArray = [];
 var closedCallbackFunArray = [];
 
@@ -183,70 +183,77 @@ exports.checkPlasma = function () {
 
 }
 
-exports.checkAvailable = function () {
-    var retValue = false;
+exports.init = function () {
+    if (libc) {
+        libc.close();
+        libc = null;
+    }
+
     try {
         libc = ctypes.open("libnotify.so.4");
-        retValue = true;
     } catch (e) {
         try {
             libc = ctypes.open("/usr/local/lib/libnotify.so.4");
-            retValue = true;
         } catch (e) {
-            retValue = false;
+            console.log(e);
         }
     }
 
-    if (retValue) {
-        // Initing data types
-        g_variant_new_string = libc.declare("g_variant_new_string",
-          ctypes.default_abi, struct_gvariant.ptr, ctypes.char.ptr);
-        notify_init = libc.declare("notify_init", ctypes.default_abi,
-          ctypes.bool, ctypes.char.ptr);
-        notify_is_initted = libc.declare("notify_is_initted",
-          ctypes.default_abi, ctypes.bool);
-        notify_notification_new = libc.declare(
-          "notify_notification_new", ctypes.default_abi,
-          struct_notification.ptr, ctypes.char.ptr,
-          ctypes.char.ptr, ctypes.char.ptr);
-        notify_notification_set_hint = libc.declare(
-          "notify_notification_set_hint", ctypes.default_abi, ctypes.void_t,
-          struct_notification.ptr, ctypes.char.ptr, struct_gvariant.ptr);
-        notify_notification_set_timeout = libc.declare(
-          "notify_notification_set_timeout", ctypes.default_abi, ctypes.bool,
-          struct_notification.ptr, ctypes.int);
-        notify_notification_show = libc.declare(
-          "notify_notification_show", ctypes.default_abi, ctypes.bool,
-          struct_notification.ptr, struct_gerror_ptr);
-        g_signal_connect_data = libc.declare("g_signal_connect_data",
-          ctypes.default_abi, ctypes.unsigned_long, ctypes.voidptr_t,
-          ctypes.char.ptr, ctypes.voidptr_t, ctypes.voidptr_t,
-          ctypes.voidptr_t, ctypes.unsigned_int);
-        notify_get_server_info = libc.declare("notify_get_server_info",
-          ctypes.default_abi,ctypes.bool,ctypes.char.ptr.ptr,
-          ctypes.char.ptr.ptr,ctypes.char.ptr.ptr,ctypes.char.ptr.ptr);
-        notify_get_server_caps = libc.declare("notify_get_server_caps",
-          ctypes.default_abi,struct_glist.ptr);
-        notify_notification_add_action = libc.declare("notify_notification_add_action",
-          ctypes.default_abi, ctypes.void_t, struct_notification.ptr,
-          ctypes.char.ptr, ctypes.char.ptr, ctypes.voidptr_t, ctypes.voidptr_t,
-          ctypes.voidptr_t);
-        notify_notification_get_closed_reason = libc.declare(
-          "notify_notification_get_closed_reason",
-          ctypes.default_abi, ctypes.int, struct_notification.ptr);
-
-        checkServerInfo();
-        //console.log("Notify server name: " + checkServerInfo());
-        retValue = checkServerCapabilities();
-
-        // Debug...
-        //showServerInfo();
-        //showServerCapabilities();
-    } else {
-        console.log("Libnotify library not found :-(");
+    if (!libc) {
+        console.log("Libnotify library not found!");
+        return false;
     }
 
-    return retValue;
+    // Initing data types
+    g_variant_new_string = libc.declare("g_variant_new_string",
+      ctypes.default_abi, struct_gvariant.ptr, ctypes.char.ptr);
+    notify_init = libc.declare("notify_init", ctypes.default_abi,
+      ctypes.bool, ctypes.char.ptr);
+    notify_is_initted = libc.declare("notify_is_initted",
+      ctypes.default_abi, ctypes.bool);
+    notify_notification_new = libc.declare(
+      "notify_notification_new", ctypes.default_abi,
+      struct_notification.ptr, ctypes.char.ptr,
+      ctypes.char.ptr, ctypes.char.ptr);
+    notify_notification_set_hint = libc.declare(
+      "notify_notification_set_hint", ctypes.default_abi, ctypes.void_t,
+      struct_notification.ptr, ctypes.char.ptr, struct_gvariant.ptr);
+    notify_notification_set_timeout = libc.declare(
+      "notify_notification_set_timeout", ctypes.default_abi, ctypes.bool,
+      struct_notification.ptr, ctypes.int);
+    notify_notification_show = libc.declare(
+      "notify_notification_show", ctypes.default_abi, ctypes.bool,
+      struct_notification.ptr, struct_gerror_ptr);
+    g_signal_connect_data = libc.declare("g_signal_connect_data",
+      ctypes.default_abi, ctypes.unsigned_long, ctypes.voidptr_t,
+      ctypes.char.ptr, ctypes.voidptr_t, ctypes.voidptr_t,
+      ctypes.voidptr_t, ctypes.unsigned_int);
+    notify_get_server_info = libc.declare("notify_get_server_info",
+      ctypes.default_abi,ctypes.bool,ctypes.char.ptr.ptr,
+      ctypes.char.ptr.ptr,ctypes.char.ptr.ptr,ctypes.char.ptr.ptr);
+    notify_get_server_caps = libc.declare("notify_get_server_caps",
+      ctypes.default_abi,struct_glist.ptr);
+    notify_notification_add_action = libc.declare("notify_notification_add_action",
+      ctypes.default_abi, ctypes.void_t, struct_notification.ptr,
+      ctypes.char.ptr, ctypes.char.ptr, ctypes.voidptr_t, ctypes.voidptr_t,
+      ctypes.voidptr_t);
+    notify_notification_get_closed_reason = libc.declare(
+      "notify_notification_get_closed_reason",
+      ctypes.default_abi, ctypes.int, struct_notification.ptr);
+
+    checkServerInfo();
+    //console.log("Notify server name: " + checkServerInfo());
+    retValue = checkServerCapabilities();
+
+    // Debug...
+    //showServerInfo();
+    //showServerCapabilities();
+    return true;
+}
+
+exports.deInit = function() {
+    if (libc)
+        libc.close();
 }
 
 exports.notify = function (iconURL, title, text, notifier, closeHandler, clickHandler) {

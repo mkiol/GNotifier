@@ -120,6 +120,7 @@ function showNotification (title, text, message){
 function display (message) {
     // Try opening new tabs in an existing 3pane window
     var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
+    //console.log(win.document.documentElement.getAttribute('windowtype'));
     if (win) {
         //INFO: tabmail is not supported in SeaMonkey
         var tabmail = win.document.getElementById("tabmail");
@@ -133,7 +134,14 @@ function display (message) {
           win.gFolderDisplay.show(message.folder);
           win.gFolderDisplay.selectMessage(message);
         }
-        win.focus();
+
+        // On Windows, bring TB window to the front
+        if (system.platform === "winnt") {
+          require("./windowsUtils.js").forceFocus(win);
+        } else {
+          win.focus();
+        }
+
         return;
     }
 
