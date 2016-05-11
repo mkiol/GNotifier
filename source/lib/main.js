@@ -296,7 +296,7 @@ function testNotification () {
     var notifications = require("sdk/notifications");
     notifications.notify({
         title: "GNotifier test",
-        text: "This works only in the Thunderbird!",
+        text: "This works only in Thunderbird!",
         iconURL: utils.getIcon()
         /*onClick: function (data){
           var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("navigator:browser");
