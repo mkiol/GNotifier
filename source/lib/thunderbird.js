@@ -262,6 +262,20 @@ var mailListener = {
           return false;
         }
 
+        function isFolderIncluded(folder) {
+            var sps = require("sdk/simple-prefs").prefs;
+            foldersIncluded = sps['foldersIncluded']; 
+            if (foldersIncluded !== "") {
+                var folderList = foldersIncluded.split(",");
+                for (var i in folderList) {
+                    if (folder.prettiestName.Equals(i))
+                        return true;
+                }
+            }
+            // return folder.prettiestName.Equals('Inbox')
+            return false;
+        }
+
         var sps = require("sdk/simple-prefs").prefs;
 
         // Check if root folder is RSS folder (mailbox://nobody@Feeds)
@@ -292,7 +306,7 @@ var mailListener = {
           for (var i in folderList) {
               if (folderList[i]) {
                 var folder = folderList[i];
-                if (!isFolderExcluded(folder)) {
+                if (!isFolderExcluded(folder) && isFolderIncluded(folder)) {
                   // Looking for messages with flag == Ci.nsMsgMessageFlags.New
                   var messages = folder.messages;
                   while (messages.hasMoreElements()) {

@@ -141,6 +141,13 @@
             "description": "Select a message from any folder, then come back and click on 'Test notification'",
             "type": "control",
             "value": ""
+        },
+        {
+            "name": "folderIncluded",
+            "title": "List of folder to allow notification from",
+            "description": "List of folder to allow notification from (comma seperated)",
+            "type": "string",
+            "value": ""
         }
     ]
 }
