@@ -262,17 +262,20 @@ var mailListener = {
           return false;
         }
 
-        function isFolderIncluded(folder) {
+        // Allow user to filter specific folders.
+        function isFolderAllowed(folder) {
             var sps = require("sdk/simple-prefs").prefs;
-            foldersIncluded = sps['foldersIncluded']; 
-            if (foldersIncluded !== "") {
-                var folderList = foldersIncluded.split(",");
-                for (var i in folderList) {
-                    if (folder.prettiestName.Equals(i))
+            foldersAllowedList = sps['foldersAllowedList'];
+            //console.log("allowed" + foldersAllowedList)
+            if (foldersAllowedList !== "") {
+                for (var i in foldersAllowedList.split(",")) {
+                    //console.log("i: " + i +" folder: " + folder);
+                    if (folder.prettiestName.toLowerCase() == i.toLowerCase())
                         return true;
                 }
             }
-            // return folder.prettiestName.Equals('Inbox')
+            else //allow all folders if setting is empty
+                return true;
             return false;
         }
 
@@ -306,7 +309,7 @@ var mailListener = {
           for (var i in folderList) {
               if (folderList[i]) {
                 var folder = folderList[i];
-                if (!isFolderExcluded(folder) && isFolderIncluded(folder)) {
+                if (!isFolderExcluded(folder) && isFolderAllowed(folder)) {
                   // Looking for messages with flag == Ci.nsMsgMessageFlags.New
                   var messages = folder.messages;
                   while (messages.hasMoreElements()) {

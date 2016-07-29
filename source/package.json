@@ -135,18 +135,18 @@
             "value": "%s"
         },
         {
+            "name": "foldersAllowedList",
+            "title": "List of folders to allow notifications from (Thunderbird only)",
+            "description": "Comma seperated list of folder names (e.g inbox,my other folder). Set to blank to allow all.",
+            "type": "string",
+            "value": ""
+        },
+        {
             "name": "test",
             "title": "Test Notification (Thunderbird only)",
             "label": "Test notification",
             "description": "Select a message from any folder, then come back and click on 'Test notification'",
             "type": "control",
-            "value": ""
-        },
-        {
-            "name": "folderIncluded",
-            "title": "List of folder to allow notification from",
-            "description": "List of folder to allow notification from (comma seperated)",
-            "type": "string",
             "value": ""
         }
     ]
