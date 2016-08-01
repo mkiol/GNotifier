@@ -265,17 +265,21 @@ var mailListener = {
         // Allow user to filter specific folders.
         function isFolderAllowed(folder) {
             var sps = require("sdk/simple-prefs").prefs;
-            foldersAllowedList = sps['foldersAllowedList'];
-            //console.log("allowed" + foldersAllowedList)
-            if (foldersAllowedList !== "") {
-                for (var i in foldersAllowedList.split(",")) {
-                    //console.log("i: " + i +" folder: " + folder);
-                    if (folder.prettiestName.toLowerCase() == i.toLowerCase())
+            foldersAllowedListPref = sps['foldersAllowedList'];
+            if (foldersAllowedListPref !== "") {
+                var foldersAllowedList = foldersAllowedListPref.split(",")
+                for (var i = 0; i < foldersAllowedList.length; i++) {
+                    folderName = foldersAllowedList[i].toLowerCase().trim();
+                    //app.console.log("folder: " + folder.prettiestName.toLowerCase() + " folderName: " + folderName);
+                    if (folder.prettiestName.toLowerCase() == folderName) {
                         return true;
+                    }
                 }
             }
-            else //allow all folders if setting is empty
+            else {
+                //allow all folders if setting is empty
                 return true;
+            }
             return false;
         }
 
