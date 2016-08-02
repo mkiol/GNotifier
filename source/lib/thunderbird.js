@@ -262,6 +262,27 @@ var mailListener = {
           return false;
         }
 
+        // Allow user to filter specific folders.
+        function isFolderAllowed(folder) {
+            var sps = require("sdk/simple-prefs").prefs;
+            foldersAllowedListPref = sps['foldersAllowedList'];
+            if (foldersAllowedListPref !== "") {
+                var foldersAllowedList = foldersAllowedListPref.split(",")
+                for (var i = 0; i < foldersAllowedList.length; i++) {
+                    folderName = foldersAllowedList[i].toLowerCase().trim();
+                    //app.console.log("folder: " + folder.prettiestName.toLowerCase() + " folderName: " + folderName);
+                    if (folder.prettiestName.toLowerCase() == folderName) {
+                        return true;
+                    }
+                }
+            }
+            else {
+                //allow all folders if setting is empty
+                return true;
+            }
+            return false;
+        }
+
         var sps = require("sdk/simple-prefs").prefs;
 
         // Check if root folder is RSS folder (mailbox://nobody@Feeds)
@@ -292,7 +313,7 @@ var mailListener = {
           for (var i in folderList) {
               if (folderList[i]) {
                 var folder = folderList[i];
-                if (!isFolderExcluded(folder)) {
+                if (!isFolderExcluded(folder) && isFolderAllowed(folder)) {
                   // Looking for messages with flag == Ci.nsMsgMessageFlags.New
                   var messages = folder.messages;
                   while (messages.hasMoreElements()) {
