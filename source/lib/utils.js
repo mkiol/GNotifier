@@ -52,8 +52,10 @@ exports.getIcon = function () {
     return picon;
 }
 
-// Source: http://dzone.com/snippets/validate-url-regexp
 exports.isUrlValid = function (s) {
+
+  // Source: http://dzone.com/snippets/validate-url-regexp
+
   var re = /(http|https|file):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
   return re.test(s);
 }
@@ -71,8 +73,18 @@ exports.sanitize = function(s) {
 
 }
 
-exports.execute = function(command) {
+exports.getFileExtension = function(filename) {
 
+  // Source: http://stackoverflow.com/a/1203361
+
+  var a = filename.split(".");
+  if (a.length === 1 || ( a[0] === "" && a.length === 2 ) ) {
+    return "";
+  }
+  return a.pop();
+}
+
+exports.execute = function(command) {
   var child_process = require("sdk/system/child_process");
   var { env } = require('sdk/system/environment');
 
@@ -86,9 +98,4 @@ exports.execute = function(command) {
   c.stderr.on('data', function (data) {
     console.log('command stderr: ' + data);
   });
-
-  /*c.on('close', function (code) {
-    console.log('child process exited with code ' + code);
-  });*/
-
 }

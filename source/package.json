@@ -62,6 +62,13 @@
             "value": true
         },
         {
+            "name": "excludedExtensionsList",
+            "title": "List of excluded filename extensions",
+            "description": "Comma separated list of filename extensions that will not trigger Download Complete notification. Example: \"html, js, jpg\".",
+            "type": "string",
+            "value": ""
+        },
+        {
             "name": "notifyIcon",
             "title": "Notification Icon (Linux only)",
             "description": "Defines icon used in the Download Complete and New E-mail notifications. For example: 'firefox', 'web-browser' or 'iceweasel'. If value is set to 'default' then icon will be set based on system name.",

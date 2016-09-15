@@ -1,6 +1,8 @@
 ## 1.9.8
+  - Option to define list of filename extensions that will not trigger Download Complete notification
   - Translations update
   - BUG FIX: Default action is triggered by clicking on the whole notification (GNOME, Cinnamon)
+  - BUG FIX: Support for multiple RSS accounts (thanks to [Stefan Reichelt](https://github.com/Songworks))
 
 ## 1.9.7
   - Thunderbird: Clickable new e-mail notification (thanks to [dffischer](https://github.com/dffischer))

@@ -39,6 +39,19 @@ if (system.platform === "winnt") {
 
 function showDownloadCompleteNotification(path, dir, filename) {
     var utils = require("./utils.js");
+
+    // Check if file extension is excluded
+    var ext = utils.getFileExtension(filename).toLowerCase().trim();
+    if (sps['excludedExtensionsList'] !== "") {
+        var excludedExtensionsList = sps['excludedExtensionsList'].split(",")
+        for (var i = 0; i < excludedExtensionsList.length; i++) {
+            eext = excludedExtensionsList[i].toLowerCase().trim();
+            if (ext == eext) {
+                return "";
+            }
+        }
+    }
+
     var title = _("download_finished");
     var text = filename;
 
