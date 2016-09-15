@@ -1,3 +1,7 @@
+## 1.9.8
+  - Translations update
+  - BUG FIX: Default action is triggered by clicking on the whole notification (GNOME, Cinnamon)
+
 ## 1.9.7
   - Thunderbird: Clickable new e-mail notification (thanks to [dffischer](https://github.com/dffischer))
 

@@ -7,7 +7,7 @@
         "Joe Simpson <headbangerkenny@gmail.com>",
         "Andrew Nagle <kabili@zyrenth.com>"
     ],
-    "version": "1.9.7",
+    "version": "1.9.8",
     "title": "GNotifier",
     "fullName": "GNotifier",
     "id": "jid1-OoNOA6XBjznvLQ@jetpack",
@@ -40,7 +40,7 @@
         {
             "name": "clickOption",
             "title": "Default click action",
-            "description": "Defines default click action for download complete notification. If your notification system supports buttons, this parameter defines which button is first.",
+            "description": "Defines default click action for download complete notification.",
             "type": "menulist",
             "value": 1,
             "options": [
@@ -117,6 +117,23 @@
                 {
                     "value": "1",
                     "label": "Select on list"
+                }
+            ]
+        },
+        {
+            "name": "clickOptionNewEmail",
+            "title": "Default click action for E-mail notifications (Thunderbird only)",
+            "description": "Defines default click action for e-mail notification.",
+            "type": "menulist",
+            "value": 0,
+            "options": [
+                {
+                    "value": "0",
+                    "label": "Open"
+                },
+                {
+                    "value": "1",
+                    "label": "Mark as read"
                 }
             ]
         },

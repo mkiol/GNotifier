@@ -80,22 +80,42 @@ function showNotification (title, text, message){
     var sps = require("sdk/simple-prefs").prefs;
     if (sps['engine'] === 1 && system.platform === "linux") {
       var notifApi = require('./linux.js');
-      if (notifApi.checkButtonsSupported() && notifApi.notifyWithActions(utils.getIcon(), title, text, system.name,
-            function(reason) {
-                //console.log(reason);
-            },
-            message ? [{
-                label: _("open"),
-                handler: function() {
-                    display(message);
-                }
-            }, {
-                label: _("Mark_as_read"),
-                handler: function() {
-                    message.markRead(true);
-                }
-            }] : null))
+
+      var actions = null;
+      if (message) {
+          if (sps['clickOptionNewEmail'] === 0) {
+          actions = [{
+              label: _("open"),
+              handler: function() {
+                  display(message);
+              }
+          }, {
+              label: _("Mark_as_read"),
+              handler: function() {
+                  message.markRead(true);
+              }
+          }];
+        } else {
+          actions = [{
+              label: _("Mark_as_read"),
+              handler: function() {
+                  message.markRead(true);
+              }
+          }, {
+              label: _("open"),
+              handler: function() {
+                  display(message);
+              }
+          }];
+        }
+      }
+
+      if (notifApi.checkButtonsSupported() &&
+          notifApi.notifyWithActions(utils.getIcon(), title, text, system.name,
+            function(reason) {}, actions)) {
         return;
+      }
+
     }
 
     if (message) {

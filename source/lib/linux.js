@@ -112,25 +112,32 @@ function checkServerCapabilities () {
 }
 
 function handleAction (notification, action, data) {
-  if (!data.isNull() && !action.isNull()) {
+  if (!data.isNull()) {
     // Getting handler from actionsCallbackFunArray by action_id
     // action_id is pointer value of 'data' arg
-    // notification_id is part of 'action' arg
     var action_id = ctypes.cast(data, ctypes.uintptr_t).value.toString();
-    var notification_id = action.readString().split("_")[1];
-    var i = actionsCallbackFunArray.length
+    var notification_id; //undefined
 
-    while (i > 0 && actionsCallbackFunArray.length > 0) {
-      i--;
-      if (actionsCallbackFunArray[i]["notification_id"] === notification_id) {
-        if (actionsCallbackFunArray[i]["action_id"] === action_id) {
-          actionsCallbackFunArray[i]["handler"]();
+    for(var i = 0; i < actionsCallbackFunArray.length; i++){
+        if(actionsCallbackFunArray[i]["action_id"] == action_id){
+            notification_id = actionsCallbackFunArray[i]["notification_id"];
+            //console.log("Calling action handler...")
+            actionsCallbackFunArray[i]["handler"]();
         }
-        actionsCallbackFunArray.splice(i, 1);
+    }
+
+    // Deleting all actions with notification_id
+    if (notification_id !== undefined) {
+      for(var i = actionsCallbackFunArray.length -1; i >= 0 ; i--){
+          if(actionsCallbackFunArray[i]["notification_id"] == notification_id){
+              //console.log("Deleting action for " + notification_id)
+              actionsCallbackFunArray.splice(i, 1);
+          }
       }
     }
+
   } else {
-      console.log("Action or data is null!");
+      console.log("Data is null!");
   }
 }
 
@@ -150,13 +157,12 @@ function handleClose (notification, data) {
       }
     }
 
-    // Clearing actionsCallbackFunArray
-    i = actionsCallbackFunArray.length
-    while (i > 0 && actionsCallbackFunArray.length > 0) {
-      i--;
-      if (actionsCallbackFunArray[i]["notification_id"] === notification_id) {
-        actionsCallbackFunArray.splice(i, 1);
-      }
+    // Deleting all actions with notification_id
+    for(var i = actionsCallbackFunArray.length -1; i >= 0 ; i--){
+        if(actionsCallbackFunArray[i]["notification_id"] == notification_id){
+            //console.log("Deleting action for " + notification_id)
+            actionsCallbackFunArray.splice(i, 1);
+        }
     }
 
   } else {
@@ -337,12 +343,16 @@ exports.notifyWithActions = function (iconURL, title, text, notifier, closeHandl
                 // Defing callback function for action
                 var user_data_ptr = ctypes.int(i).address();
                 var action_id = ctypes.cast(user_data_ptr, ctypes.uintptr_t).value.toString();
+
+                // First action will be "default"
+                var action_name = (i == 0 ? "default" : "gnotifier_"+action_id);
+
                 actionsCallbackFunArray.push({
                     "action_id": action_id,
                     "notification_id": notification_id,
                     "handler": handler
                 });
-                notify_notification_add_action(notification, ctypes.char.array()("gnotifier_"+notification_id+"_" + i), ctypes.char.array()(label), c_action_handle, user_data_ptr, null);
+                notify_notification_add_action(notification, ctypes.char.array()(action_name), ctypes.char.array()(label), c_action_handle, user_data_ptr, null);
             }
         }
     }
