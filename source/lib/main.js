@@ -237,17 +237,8 @@ AlertsService.prototype = {
                         imageStream.close();
                     });
                 });
-                // Remove temp icon file
-                setTimeout(function(){
-                    tempIconFile.remove(false);
-                },2000);
-
             } catch(e) {
                 GNotifier_AlertsService_showAlertNotification_cb(imageUrl);
-                // Remove temp icon file
-                setTimeout(function(){
-                    tempIconFile.remove(false);
-                },2000);
             }
         }
     }
