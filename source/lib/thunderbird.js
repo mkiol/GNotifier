@@ -307,7 +307,7 @@ var mailListener = {
 
         // Check if root folder is RSS folder (mailbox://nobody@Feeds)
         var rootURIarr = aItem.rootFolder.URI.split("@");
-        var isRSS = rootURIarr[rootURIarr.length-1] == "Feeds";
+        var isRSS = (rootURIarr[rootURIarr.length-1].indexOf("Feeds") !== -1);
         if (isRSS && !sps['enableRSS'])
           return;
 
