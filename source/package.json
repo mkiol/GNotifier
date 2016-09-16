@@ -107,6 +107,13 @@
             "value": false
         },
         {
+            "name": "maxMessageBuffer",
+            "title": "Maximum number of simultaneous notifications (Thunderbird only)",
+            "description": "Defines the maximum number of simultaneous notifications for new messages. For instance, \"5\" means that if you receive 4 new messages at once, all 4 will triggers individual notification, but if you receive 6 new messages at once, only 1 aggregated notification will be shown. Set to \"0\" to disable aggregation.",
+            "type": "integer",
+            "value": 5
+        },
+        {
             "name": "simpleNewMail",
             "title": "Simple New E-mail notification (Thunderbird only)",
             "description": "New mail notification will not contain details like subject or sender address.",
@@ -150,14 +157,14 @@
         {
             "name": "emailTitleFormat",
             "title": "Title for E-mail notifications (Thunderbird only)",
-            "description": "%s: Subject, %a: Sender (Name <E-mail>), %m: Sender E-mail, %n: Sender Name, %f: Folder, %v: Server, %k: Size, %u: Account, %b: Body excerpt, %%: %",
+            "description": "%s: Subject, %a: Sender (Name <E-mail>), %m: Sender E-mail, %n: Sender Name, %f: Folder, %v: Server, %k: Size, %u: Account, %b: Body excerpt, %c: Number of unread messages, %%: %",
             "type": "string",
             "value": "%a"
         },
         {
             "name": "emailTextFormat",
             "title": "Text for E-mail notifications (Thunderbird only)",
-            "description": "%s: Subject, %a: Sender (Name <E-mail>), %m: Sender E-mail, %n: Sender Name, %f: Folder, %v: Server, %k: Size, %u: Account, %b: Body excerpt, %%: %, \\n: Newline",
+            "description": "%s: Subject, %a: Sender (Name <E-mail>), %m: Sender E-mail, %n: Sender Name, %f: Folder, %v: Server, %k: Size, %u: Account, %b: Body excerpt, %c: Number of unread messages, %%: %, \\n: Newline",
             "type": "string",
             "value": "%s"
         },

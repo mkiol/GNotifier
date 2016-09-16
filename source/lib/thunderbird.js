@@ -14,21 +14,35 @@ var { Cc, Ci, Cu, Cm, Cr } = require("chrome");
 var _ = require("sdk/l10n").get;
 
 Cu.import("resource://app/modules/gloda/mimemsg.js");
+Cu.import("resource://gre/modules/Timer.jsm");
 
 var gHeaderParser = Cc["@mozilla.org/messenger/headerparser;1"].getService(Ci.nsIMsgHeaderParser);
 var gMessenger = Cc["@mozilla.org/messenger;1"].getService(Ci.nsIMessenger);
 var system = require("sdk/system");
+
 //var app = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication);
 
+var bufferedMessages = [];
+var timeoutID;
+
+function getNewMessageCount() {
+  // Getting new messages count
+  var newMailNotificationService = Cc["@mozilla.org/newMailNotificationService;1"].getService(Ci.mozINewMailNotificationService);
+  return newMailNotificationService.messageCount;
+}
+
 function showSimpleNewMessageNotification (isRSS) {
-    // Getting new messages count
-    var newMailNotificationService = Cc["@mozilla.org/newMailNotificationService;1"].getService(Ci.mozINewMailNotificationService);
-    var count = newMailNotificationService.messageCount;
-
     var title = isRSS ? _("New_article") : _("New_message");
-    var text = _("Number_of_unread_messages") + " " + count;
-
+    var text = _("Number_of_unread_messages") + " " + getNewMessageCount();
     showNotification(title, text, null);
+}
+
+function showMessageNotification (message) {
+  if (isFolderRSS(message.folder)) {
+    showNewRSSNotification(message);
+  } else {
+    showNewEmailNotification(message);
+  }
 }
 
 function showNewRSSNotification (message) {
@@ -45,6 +59,31 @@ function showNewRSSNotification (message) {
     var text = message.mime2DecodedSubject;
 
     showNotification(title, text, message);
+}
+
+function isFolderRSS(folder) {
+  var rootURIarr = folder.rootFolder.URI.split("@");
+  return (rootURIarr[rootURIarr.length-1].indexOf("Feeds") !== -1);
+}
+
+function bufferNewEmailNotification (message) {
+  clearTimeout(timeoutID);
+  bufferedMessages.push(message);
+  timeoutID = setTimeout(function() { showNewEmailNotificationFromBuffer(); }, 1000);
+}
+
+function showNewEmailNotificationFromBuffer () {
+  var sps = require("sdk/simple-prefs").prefs;
+  if (sps["maxMessageBuffer"] > 0 && bufferedMessages.length > sps["maxMessageBuffer"]) {
+    showSimpleNewMessageNotification(false);
+  } else {
+    for (var i = 0; i < bufferedMessages.length; i++) {
+      showMessageNotification(bufferedMessages[i]);
+    }
+  }
+
+  bufferedMessages = [];
+  timeoutID = undefined;
 }
 
 function showNewEmailNotification (message) {
@@ -183,7 +222,7 @@ function format (message, format, callback){
   }
 
   function doReplace(body){
-    var string = format.replace(new RegExp("(%[samnfvkub%])", 'g'), function(match, p1){
+    var string = format.replace(new RegExp("(%[samnfvkubc%])", 'g'), function(match, p1){
       switch(p1){
         // Subject, with "Re:" when appropriate
         case "%s":
@@ -215,6 +254,9 @@ function format (message, format, callback){
           body = body.replace(/\n/g, ' ').trim().substr(0, 80).trim();
           body += body.length > 80 ? "..." : "";
           return body;
+        // Numer of unread messages
+        case "%c":
+          return getNewMessageCount();
         // Percent
         case "%%":
           return "%";
@@ -237,7 +279,8 @@ function testNotification () {
       return;
     }
 
-    showNewEmailNotification(win.gFolderDisplay.selectedMessage);
+    showMessageNotification(win.gFolderDisplay.selectedMessage);
+
   } else {
     showNotification("GNotifier test", "You need to select a message to test this feature", undefined);
   }
@@ -294,38 +337,33 @@ function isFolderAllowed(folder) {
   return false;
 }
 
+function getFoldersWithNewMail (aFolder) {
+  var folderList = [];
+  if (aFolder) {
+    if (aFolder.biffState == Ci.nsIMsgFolder.nsMsgBiffState_NewMail) {
+      if (aFolder.hasNewMessages)
+        folderList.push(aFolder);
+      if (aFolder.hasSubFolders) {
+        var subFolders = aFolder.subFolders;
+        while (subFolders.hasMoreElements()) {
+          var subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
+          if (subFolder)
+            folderList = folderList.concat(getFoldersWithNewMail(subFolder));
+        }
+      }
+    }
+  }
+  return folderList;
+}
+
 var mailListener = {
     OnItemIntPropertyChanged: function (aItem,aProperty,aOldValue,aNewValue) {
-        function getFoldersWithNewMail (aFolder) {
-            var folderList = [];
-            if (aFolder) {
-                //console.log("aFolder: ", aFolder.prettyName, aFolder.biffState, aFolder.hasNewMessages, aFolder.hasSubFolders);
-                if (aFolder.biffState == Ci.nsIMsgFolder.nsMsgBiffState_NewMail) {
-                    if (aFolder.hasNewMessages)
-                        folderList.push(aFolder);
-                    if (aFolder.hasSubFolders) {
-                        //console.log("aFolder.hasSubFolders");
-                        var subFolders = aFolder.subFolders;
-                        while (subFolders.hasMoreElements()) {
-                            //console.log("subFolders.hasMoreElements()");
-                            var subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
-                            if (subFolder)
-                                folderList = folderList.concat(getFoldersWithNewMail(subFolder));
-                        }
-                    }
-                }
-            }
-
-            return folderList;
-        }
-
         var sps = require("sdk/simple-prefs").prefs;
 
-        // Check if root folder is RSS folder (mailbox://nobody@Feeds)
-        var rootURIarr = aItem.rootFolder.URI.split("@");
-        var isRSS = (rootURIarr[rootURIarr.length-1].indexOf("Feeds") !== -1);
-        if (isRSS && !sps['enableRSS'])
+        if (!sps['enableRSS'] && isFolderRSS(aItem)) {
+          // Notifications for RSS are disabled
           return;
+        }
 
         // New mail if BiffState == nsMsgBiffState_NewMail or NewMailReceived
         if (
@@ -334,15 +372,14 @@ var mailListener = {
           (aProperty == "NewMailReceived")
         ) {
 
-          if (sps['simpleNewMail']) {
+          /*if (sps['simpleNewMail']) {
               showSimpleNewMessageNotification(isRSS);
               return;
-          }
+          }*/
 
           var folderList = getFoldersWithNewMail(aItem);
           if (folderList.length == 0) {
               // Can't find folder with BiffState == nsMsgBiffState_NewMail
-              //console.log("Can't find folder with BiffState == nsMsgBiffState_NewMail");
               return;
           }
 
@@ -355,18 +392,8 @@ var mailListener = {
                   while (messages.hasMoreElements()) {
                       var message = messages.getNext().QueryInterface(Ci.nsIMsgDBHdr);
                       if (message.flags & Ci.nsMsgMessageFlags.New) {
-
-                          //console.log("Message: id="+message.messageId + " gnd="+message.getUint32Property("gnotifier-done"));
-                          /*var property = message.propertyEnumerator;
-                          while (property.hasMore()) {
-                            console.log(property.getNext());
-                          }*/
-
                           if (message.getUint32Property("gnotifier-done") != 1) {
-                            if(isRSS)
-                              showNewRSSNotification(message);
-                            else
-                              showNewEmailNotification(message);
+                            bufferNewEmailNotification(message);
                             message.setUint32Property("gnotifier-done",1);
                           }
                       }
