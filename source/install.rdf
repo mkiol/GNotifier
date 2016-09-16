@@ -11,6 +11,7 @@
           <em:creator>Michal Kosciesza &lt;michal@mkiol.net&gt;</em:creator>
           <em:optionsURL>data:text/xml,&lt;placeholder/&gt;</em:optionsURL>
           <em:optionsType>2</em:optionsType>
+          <em:multiprocessCompatible>true</em:multiprocessCompatible>
 
           <!-- Firefox -->
           <em:targetApplication>

@@ -14,6 +14,9 @@
     "description": "GNotifier integrates Firefox/Thunderbird's notifications with the native notification system. It supports most Linux desktops, Windows 8.1 and 10",
     "unpack": true,
     "main": "lib/main.js",
+    "permissions": {
+        "multiprocess": true
+    },
 
     "preferences": [
         {
@@ -63,7 +66,7 @@
         },
         {
             "name": "excludedExtensionsList",
-            "title": "List of excluded filename extensions",
+            "title": "List of excluded file extensions",
             "description": "Comma separated list of filename extensions that will not trigger Download Complete notification. Example: \"html, js, jpg\".",
             "type": "string",
             "value": ""
@@ -161,7 +164,7 @@
         {
             "name": "foldersAllowedList",
             "title": "List of folders to allow notifications from (Thunderbird only)",
-            "description": "Comma seperated list of folder names (e.g inbox,my other folder). Set to blank to allow all.",
+            "description": "Comma seperated list of folder names (or account name, folder name pairs). For example:  \"My email|Inbox, My folder\" will only allow notifications from \"Inbox\" folder under \"My email\" account and from any folder with name \"My folder\". Set to blank to allow all.",
             "type": "string",
             "value": ""
         },

@@ -47,7 +47,7 @@ function showDownloadCompleteNotification(path, dir, filename) {
         for (var i = 0; i < excludedExtensionsList.length; i++) {
             eext = excludedExtensionsList[i].toLowerCase().trim();
             if (ext == eext) {
-                return "";
+                return;
             }
         }
     }

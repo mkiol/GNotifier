@@ -228,10 +228,70 @@ function format (message, format, callback){
 function testNotification () {
   var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
   if (win && win.gFolderDisplay && win.gFolderDisplay.selectedMessage) {
+
+    // Folder filtering test
+    var folder = win.gFolderDisplay.selectedMessage.folder
+    if (isFolderExcluded(folder) || !isFolderAllowed(folder)) {
+      var name = folder.rootFolder.prettiestName + "|" + folder.prettiestName;
+      showNotification("GNotifier test", "Notifications from folder \"" + name + "\" are disabled.", undefined);
+      return;
+    }
+
     showNewEmailNotification(win.gFolderDisplay.selectedMessage);
   } else {
     showNotification("GNotifier test", "You need to select a message to test this feature", undefined);
   }
+}
+
+function isFolderExcluded(folder) {
+  // Reference: https://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgFolderFlags.idl
+
+  // Junk
+  if (folder.getFlag(0x40000000))
+    return true;
+  // Trash
+  if (folder.getFlag(0x00000100))
+    return true;
+  // SentMail
+  if (folder.getFlag(0x00000200))
+    return true;
+  // Drafts
+  if (folder.getFlag(0x00000400))
+    return true;
+  // Archive
+  if (folder.getFlag(0x00004000))
+    return true;
+  // Templates
+  if (folder.getFlag(0x00400000))
+    return true;
+  return false;
+}
+
+function isFolderAllowed(folder) {
+  // Allow user to filter specific folders.
+
+  var sps = require("sdk/simple-prefs").prefs;
+  foldersAllowedListPref = sps['foldersAllowedList'];
+  if (foldersAllowedListPref !== "") {
+    var foldersAllowedList = foldersAllowedListPref.split(",")
+    for (var i = 0; i < foldersAllowedList.length; i++) {
+      var folderName1 = foldersAllowedList[i].toLowerCase().trim();
+      var folderName2;
+      if (folderName1.indexOf("|") !== -1) {
+        // Folder name contains rootFolder name
+        folderName2 = folder.rootFolder.prettiestName.toLowerCase() + "|" + folder.prettiestName.toLowerCase();
+      } else {
+        folderName2 = folder.prettiestName.toLowerCase();
+      }
+      if (folderName1 == folderName2) {
+        return true;
+      }
+    }
+  } else {
+    //allow all folders if setting is empty
+    return true;
+  }
+  return false;
 }
 
 var mailListener = {
@@ -257,50 +317,6 @@ var mailListener = {
             }
 
             return folderList;
-        }
-
-        // Reference: https://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgFolderFlags.idl
-        function isFolderExcluded(folder) {
-          // Junk
-          if (folder.getFlag(0x40000000))
-            return true;
-          // Trash
-          if (folder.getFlag(0x00000100))
-            return true;
-          // SentMail
-          if (folder.getFlag(0x00000200))
-            return true;
-          // Drafts
-          if (folder.getFlag(0x00000400))
-            return true;
-          // Archive
-          if (folder.getFlag(0x00004000))
-            return true;
-          // Templates
-          if (folder.getFlag(0x00400000))
-            return true;
-          return false;
-        }
-
-        // Allow user to filter specific folders.
-        function isFolderAllowed(folder) {
-            var sps = require("sdk/simple-prefs").prefs;
-            foldersAllowedListPref = sps['foldersAllowedList'];
-            if (foldersAllowedListPref !== "") {
-                var foldersAllowedList = foldersAllowedListPref.split(",")
-                for (var i = 0; i < foldersAllowedList.length; i++) {
-                    folderName = foldersAllowedList[i].toLowerCase().trim();
-                    //app.console.log("folder: " + folder.prettiestName.toLowerCase() + " folderName: " + folderName);
-                    if (folder.prettiestName.toLowerCase() == folderName) {
-                        return true;
-                    }
-                }
-            }
-            else {
-                //allow all folders if setting is empty
-                return true;
-            }
-            return false;
         }
 
         var sps = require("sdk/simple-prefs").prefs;
