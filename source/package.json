@@ -114,13 +114,6 @@
             "value": 5
         },
         {
-            "name": "simpleNewMail",
-            "title": "Simple New E-mail notification (Thunderbird only)",
-            "description": "New mail notification will not contain details like subject or sender address.",
-            "type": "bool",
-            "value": false
-        },
-        {
             "name": "newMailOpen",
             "title": "Open new message action (Thunderbird only)",
             "description": "Defines how new messages should be opened when you click on notification.",
