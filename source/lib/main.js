@@ -37,7 +37,8 @@ if (system.platform === "winnt") {
     notifApi = require("./linux.js");
 }
 
-function showDownloadCompleteNotification(path, dir, filename) {
+function showDownloadCompleteNotification(path) {
+    var filename = path.replace(/^.*[\\\/]/, '');
     var utils = require("./utils.js");
 
     // Check if file extension is excluded
@@ -66,18 +67,18 @@ function showDownloadCompleteNotification(path, dir, filename) {
         if (sps['clickOption'] == 0) {
             actions = [{
                 label: plasma ? _("Folder") : _("Open_folder"),
-                handler: function() {utils.openFile("file://"+dir)}
+                handler: function() {utils.openDir(path)}
             }, {
                 label: plasma ? _("File") : _("Open_file"),
-                handler: function() {utils.openFile("file://"+path)}
+                handler: function() {utils.openFile(path)}
             }];
         } else {
             actions = [{
                 label: plasma ? _("File") : _("Open_file"),
-                handler: function() {utils.openFile("file://"+path)}
+                handler: function() {utils.openFile(path)}
             }, {
                 label: plasma ? _("Folder") : _("Open_folder"),
-                handler: function() {utils.openFile("file://"+dir)}
+                handler: function() {utils.openDir(path)}
             }];
         }
 
@@ -98,9 +99,9 @@ function showDownloadCompleteNotification(path, dir, filename) {
         iconURL: utils.getIcon(),
         onClick: function() {
                     if (sps['clickOption'] == 0) {
-                        utils.openFile("file://" + dir);
+                        utils.openDir(path);
                     } else {
-                        utils.openFile("file://" + path);
+                        utils.openFile(path);
                     };
                 }
     });
@@ -113,7 +114,7 @@ var downloadProgressListener = {
         if (sps['downloadCompleteAlert']) {
             switch(aDownload.state) {
             case dm.DOWNLOAD_FINISHED:
-                showDownloadCompleteNotification(aDownload.target.path, aDownload.target.path.replace(/[^\\\/]*$/, ''), aDownload.displayName);
+                showDownloadCompleteNotification(aDownload.target.path);
                 break;
             }
         }
@@ -128,7 +129,7 @@ Task.spawn(function () {
             onDownloadChanged: function(download) {
                 if(sps['downloadCompleteAlert'] && download.succeeded) {
                     if (download.target.exists === undefined || download.target.exists === true)
-                        showDownloadCompleteNotification(download.target.path, download.target.path.replace(/[^\\\/]*$/, ''), download.target.path.replace(/^.*[\\\/]/, ''));
+                        showDownloadCompleteNotification(download.target.path);
                 }
             }
         };

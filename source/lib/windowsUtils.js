@@ -1,10 +1,22 @@
+// Windows helper functions
+
+var { Cc, Ci, Cu, Cm, Cr } = require("chrome");
+Cu.import('resource://gre/modules/Services.jsm');
+Cu.import('resource://gre/modules/ctypes.jsm');
+Cu.import("resource://gre/modules/FileUtils.jsm");
+
+// Open Explorer with file selection
+// Reference: https://support.microsoft.com/en-us/kb/314853
+exports.openExplorer = function (file) {
+  var env = Cc["@mozilla.org/process/environment;1"].getService(Ci.nsIEnvironment);
+  var process = Cc["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
+  process.init(new FileUtils.File(env.get("windir")+"\\explorer.exe"));
+  process.runAsync(["/select,", file], 2);
+}
+
 // Brings FF/TB window to the front on Windows
 // Author: Noitidart <https://noitidart.github.io/>
 // Source: https://stackoverflow.com/questions/32031856/bring-firefox-window-to-the-front-using-firefox-addon/32038880#32038880
-
-var { Ci, Cu } = require('chrome');
-Cu.import('resource://gre/modules/Services.jsm');
-Cu.import('resource://gre/modules/ctypes.jsm');
 
 if (ctypes.voidptr_t.size == 4 /* 32-bit */ ) {
     var is64bit = false;

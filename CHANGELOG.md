@@ -5,6 +5,7 @@
   - Thunderbird: Option to define the maximum number of simultaneous notifications
   - BUG FIX: Default action is triggered by clicking on the whole notification (GNOME, Cinnamon)
   - BUG FIX: Support for multiple RSS accounts (thanks to [Stefan Reichelt](https://github.com/Songworks))
+  - BUG FIX: Click action on downolad complete notification focuses file on Windows
 
 ## 1.9.7
   - Thunderbird: Clickable new e-mail notification (thanks to [dffischer](https://github.com/dffischer))

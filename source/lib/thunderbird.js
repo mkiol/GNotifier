@@ -37,6 +37,11 @@ function showSimpleNewMessageNotification (isRSS) {
     showNotification(title, text, null);
 }
 
+function showAggregatedNotification () {
+    var text = _("Number_of_unread_messages") + " " + getNewMessageCount();
+    showNotification(_("New_messages"), text, null);
+}
+
 function showMessageNotification (message) {
   if (isFolderRSS(message.folder)) {
     showNewRSSNotification(message);
@@ -75,7 +80,7 @@ function bufferNewEmailNotification (message) {
 function showNewEmailNotificationFromBuffer () {
   var sps = require("sdk/simple-prefs").prefs;
   if (sps["maxMessageBuffer"] > 0 && bufferedMessages.length > sps["maxMessageBuffer"]) {
-    showSimpleNewMessageNotification(false);
+    showAggregatedNotification();
   } else {
     for (var i = 0; i < bufferedMessages.length; i++) {
       showMessageNotification(bufferedMessages[i]);

@@ -45,7 +45,7 @@
             "title": "Default click action",
             "description": "Defines default click action for download complete notification.",
             "type": "menulist",
-            "value": 1,
+            "value": 0,
             "options": [
                 {
                     "value": "0",
@@ -109,7 +109,7 @@
         {
             "name": "maxMessageBuffer",
             "title": "Maximum number of simultaneous notifications (Thunderbird only)",
-            "description": "Defines the maximum number of simultaneous notifications for new messages. For instance, \"5\" means that if you receive 4 new messages at once, all 4 will triggers individual notification, but if you receive 6 new messages at once, only 1 aggregated notification will be shown. Set to \"0\" to disable aggregation.",
+            "description": "Defines the maximum number of simultaneous notifications for new messages. For instance, \"5\" means that if you receive 4 new messages at once, all 4 will trigger individual notification, but if you receive 6 new messages at once, only 1 aggregated notification will be shown. Set to \"0\" to disable aggregation.",
             "type": "integer",
             "value": 5
         },
