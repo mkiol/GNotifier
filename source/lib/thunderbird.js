@@ -25,20 +25,14 @@ var system = require("sdk/system");
 var bufferedMessages = [];
 var timeoutID;
 
-function getNewMessageCount() {
-  // Getting new messages count
+function getUnreadMessageCount() {
+  // Getting unread messages count
   var newMailNotificationService = Cc["@mozilla.org/newMailNotificationService;1"].getService(Ci.mozINewMailNotificationService);
   return newMailNotificationService.messageCount;
 }
 
-function showSimpleNewMessageNotification (isRSS) {
-    var title = isRSS ? _("New_article") : _("New_message");
-    var text = _("Number_of_unread_messages") + " " + getNewMessageCount();
-    showNotification(title, text, null);
-}
-
 function showAggregatedNotification () {
-    var text = _("Number_of_unread_messages") + " " + getNewMessageCount();
+    var text = _("Number_of_new_messages") + " " + bufferedMessages.length;
     showNotification(_("New_messages"), text, null);
 }
 
@@ -261,7 +255,7 @@ function format (message, format, callback){
           return body;
         // Numer of unread messages
         case "%c":
-          return getNewMessageCount();
+          return getUnreadMessageCount();
         // Percent
         case "%%":
           return "%";
