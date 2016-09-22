@@ -14,6 +14,7 @@
 
 var data = require('sdk/self').data;
 var _ = require('sdk/l10n').get;
+var utils = require('./utils.js');
 
 var { Cc, Ci, Cu, Cm, Cr, components } = require('chrome');
 Cu.import("resource://gre/modules/Timer.jsm");
@@ -39,7 +40,6 @@ if (system.platform === "winnt") {
 
 function showDownloadCompleteNotification(path) {
     var filename = path.replace(/^.*[\\\/]/, '');
-    var utils = require("./utils.js");
 
     // Check if file extension is excluded
     var ext = utils.getFileExtension(filename).toLowerCase().trim();
@@ -160,7 +160,6 @@ AlertsService.prototype = {
 
         if (sps['engine'] === 2) {
           if (sps['command'] !== "") {
-            var utils = require('./utils.js');
             var command = sps['command'];
             command = command.replace("%image",imageUrl);
             command = command.replace("%title",title);
@@ -214,43 +213,44 @@ AlertsService.prototype = {
         }
 
         try {
-            // Try using a local icon file URL
-            var imageURI = NetUtil.newURI(imageUrl);
-            var iconFile = imageURI.QueryInterface(Ci.nsIFileURL).file;
-
-            // Success!
-            GNotifier_AlertsService_showAlertNotification_cb(iconFile.path);
+          // Try using a local icon file URL
+          var imageURI = NetUtil.newURI(imageUrl);
+          var iconFile = imageURI.QueryInterface(Ci.nsIFileURL).file;
+          GNotifier_AlertsService_showAlertNotification_cb(iconFile.path);
         } catch(e) {
-            var tempIconFile;
             try {
-                // Create temporary local file
-                // (Required since I don't want to manually
-                //  populate a GdkPixbuf...)
-                tempIconFile = FileUtils.getFile("TmpD", ["gnotifier-"+makeid()]);
-                tempIconFile.createUnique(
-                    Ci.nsIFile.NORMAL_FILE_TYPE,
-                    FileUtils.PERMS_FILE
-                );
-                var iconStream = FileUtils.openSafeFileOutputStream(tempIconFile);
-                // Copy data from original icon to local file
+              var imageHash = "gnotifier-"+utils.getHash(imageUrl);
+              var tempIconFile = FileUtils.getFile("TmpD", ["gnotifier", imageHash]);
+              if (tempIconFile.exists()) {
+                // icon file exists in tmp, using tmp file
+                GNotifier_AlertsService_showAlertNotification_cb(tempIconFile.path);
+              } else {
+                // icon file doesn't exist in tmp, downloading icon to tmp file
                 var imageFile = NetUtil.newChannel(imageUrl);
                 NetUtil.asyncFetch(imageFile, function(imageStream,result) {
+                  if (!components.isSuccessCode(result)) {
+                    console.log("NetUtil.asyncFetch error! result:",result);
+                    return;
+                  }
+                  // Create temporary local file
+                  // (Required since I don't want to manually
+                  //  populate a GdkPixbuf...)
+                  tempIconFile.createUnique(
+                    Ci.nsIFile.NORMAL_FILE_TYPE,
+                    FileUtils.PERMS_FILE
+                  );
+                  var iconStream = FileUtils.openSafeFileOutputStream(tempIconFile);
+                  NetUtil.asyncCopy(imageStream, iconStream, function(result) {
                     if (!components.isSuccessCode(result)) {
-                        console.log("NetUtil.asyncFetch error! result:",result);
-                        return;
+                      console.log("NetUtil.asyncCopy error! result:",result);
+                      return;
                     }
-                    NetUtil.asyncCopy(imageStream, iconStream, function(result) {
-                        if (!components.isSuccessCode(result)) {
-                            console.log("NetUtil.asyncCopy error! result:",result);
-                            return;
-                        }
-                        // Show notification with copied icon file
-                        GNotifier_AlertsService_showAlertNotification_cb(tempIconFile.path);
-                        // Close streams
-                        iconStream.close();
-                        imageStream.close();
-                    });
+                    GNotifier_AlertsService_showAlertNotification_cb(tempIconFile.path);
+                    iconStream.close();
+                    imageStream.close();
+                  });
                 });
+              }
             } catch(e) {
                 GNotifier_AlertsService_showAlertNotification_cb(imageUrl);
             }
@@ -284,20 +284,18 @@ function notifyNative (iconURL, title, text, notifier, closeHandler, clickHandle
 }
 
 function deleteTempFiles () {
-    var tempDir = FileUtils.getDir("TmpD",[""]);
+    var tempDir = FileUtils.getDir("TmpD",["gnotifier"]);
     var entries = tempDir.directoryEntries;
     while(entries.hasMoreElements()) {
         var entry = entries.getNext();
         entry.QueryInterface(Ci.nsIFile);
         var filename = entry.path.replace(/^.*[\\\/]/, '');
-        //console.log(filename,filename.substring(0, 10) === "gnotifier-");
         if (filename.substring(0, 10) === "gnotifier-")
           entry.remove(false);
     }
 }
 
 function testNotification () {
-    var utils = require('./utils.js');
     var notifications = require("sdk/notifications");
     notifications.notify({
         title: "GNotifier test",
