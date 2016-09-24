@@ -48,30 +48,38 @@ exports.getHash = function(text) {
 
 // Gets icon for notification based on "system.name" or "notifyIcon" param
 exports.getIcon = function () {
-    // Windows already attaches the program icon to notifications
-    if (system.platform === "winnt")
-        return "";
+  // Windows already attaches the program icon to notifications
+  if (system.platform === "winnt")
+    return "";
 
-    var sps = require("sdk/simple-prefs").prefs;
-    var picon = sps["notifyIcon"];
-    if (picon == "default") {
-        if (system.name === "Firefox")
-            return "firefox";
-        if (system.name === "Thunderbird")
-            return "thunderbird";
-	if (system.name === "Iceweasel")
-            return "iceweasel";
-        if (system.name === "SeaMonkey")
-            return "seamonkey";
-        if (system.name === "Pale Moon")
-            return "palemoon";
-	if (system.name === "Icedove")
-	  return "icedove";
+  var data = require("sdk/self").data;
+  var url = require("sdk/url");
+  var sps = require("sdk/simple-prefs").prefs;
+  var picon = sps["notifyIcon"];
 
-        // default Firefox icon
+  if (picon == "default") {
+    if (system.name === "Firefox")
         return "firefox";
-    }
-    return picon;
+    if (system.name === "Thunderbird")
+        return "thunderbird";
+  	if (system.name === "Iceweasel")
+        return "iceweasel";
+    if (system.name === "SeaMonkey")
+        return "seamonkey";
+    if (system.name === "Pale Moon")
+        return "palemoon";
+  	if (system.name === "Icedove")
+  	  return "icedove";
+
+    // default GNotifier icon
+    return url.toFilename(data.url("icon128.png"));
+  }
+
+  if (picon === "gnotifier") {
+    return url.toFilename(data.url("icon128.png"));
+  }
+
+  return picon;
 }
 
 exports.isUrlValid = function (s) {

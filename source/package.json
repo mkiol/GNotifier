@@ -14,6 +14,7 @@
     "description": "GNotifier integrates Firefox/Thunderbird's notifications with the native notification system. It supports most Linux desktops, Windows 8.1 and 10",
     "unpack": true,
     "main": "lib/main.js",
+
     "permissions": {
         "multiprocess": true
     },
@@ -81,7 +82,7 @@
         {
             "name": "notifyIcon",
             "title": "Notification Icon (Linux only)",
-            "description": "Defines icon used in the Download Complete and New E-mail notifications. For example: 'firefox', 'web-browser' or 'iceweasel'. If value is set to 'default' then icon will be set based on system name.",
+            "description": "Icon used in the Download Complete and New E-mail notifications. For example: 'firefox', 'web-browser', 'iceweasel' or 'gnotifier'. If value is set to 'default' then icon will be set based on application name.",
             "type": "string",
             "value": "default"
         },

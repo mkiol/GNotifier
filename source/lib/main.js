@@ -198,15 +198,6 @@ AlertsService.prototype = {
             }
         }
 
-        // Needed for generating temp icon file
-        function makeid() {
-            var text = "";
-            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            for( var i=0; i < 6; i++ )
-            text += possible.charAt(Math.floor(Math.random() * possible.length));
-            return text;
-        }
-
         if (!imageUrl) {
           GNotifier_AlertsService_showAlertNotification_cb("");
           return;
@@ -296,15 +287,12 @@ function deleteTempFiles () {
 }
 
 function testNotification () {
+    var data = require("sdk/self").data;
     var notifications = require("sdk/notifications");
     notifications.notify({
-        title: "GNotifier test",
+        title: "GNotifier",
         text: "This works only in Thunderbird!",
-        iconURL: utils.getIcon()
-        /*onClick: function (data){
-          var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("navigator:browser");
-          require("./windowsUtils.js").forceFocus(win);
-        }*/
+        iconURL: data.url("icon128.png")
     });
 }
 

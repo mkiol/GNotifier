@@ -274,14 +274,14 @@ function testNotification () {
     var folder = win.gFolderDisplay.selectedMessage.folder
     if (isFolderExcluded(folder) || !isFolderAllowed(folder)) {
       var name = folder.rootFolder.prettiestName + "|" + folder.prettiestName;
-      showNotification("GNotifier test", "Notifications from folder \"" + name + "\" are disabled.", undefined);
+      showNotification("GNotifier", "Notifications from folder \"" + name + "\" are disabled.", undefined);
       return;
     }
 
     showMessageNotification(win.gFolderDisplay.selectedMessage);
 
   } else {
-    showNotification("GNotifier test", "You need to select a message to test this feature", undefined);
+    showNotification("GNotifier", "You need to select a message to test this feature.", undefined);
   }
 }
 
