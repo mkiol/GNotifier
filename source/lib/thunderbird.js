@@ -19,6 +19,7 @@ Cu.import("resource://gre/modules/Timer.jsm");
 var gHeaderParser = Cc["@mozilla.org/messenger/headerparser;1"].getService(Ci.nsIMsgHeaderParser);
 var gMessenger = Cc["@mozilla.org/messenger;1"].getService(Ci.nsIMessenger);
 var system = require("sdk/system");
+var utils = require('./utils.js');
 
 //var app = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication);
 
@@ -32,8 +33,8 @@ function getUnreadMessageCount() {
 }
 
 function showAggregatedNotification () {
-    var text = _("Number_of_new_messages") + " " + bufferedMessages.length;
-    showNotification(_("New_messages"), text, null);
+  var text = _("Number_of_new_messages") + " " + bufferedMessages.length;
+  showNotification(_("New_messages"), text, null);
 }
 
 function showMessageNotification (message) {
@@ -45,19 +46,19 @@ function showMessageNotification (message) {
 }
 
 function showNewRSSNotification (message) {
-    var author = message.mime2DecodedAuthor;
-    // unicode character ranges taken from:
-    // http://stackoverflow.com/questions/1073412/javascript-validation-issue-with-international-characters#1073545
-    var author_regex = /^["']?([A-Za-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF\s]+)["']?\s<.+?>$/;
-    // check if author has name and email
-    if (author_regex.test(author)) {
-      // retrieve only name portion of author string
-      author = author.match(author_regex)[1];
-    }
-    var title = _("New_article_from") + " " + author;
-    var text = message.mime2DecodedSubject;
+  var author = message.mime2DecodedAuthor;
+  // unicode character ranges taken from:
+  // http://stackoverflow.com/questions/1073412/javascript-validation-issue-with-international-characters#1073545
+  var author_regex = /^["']?([A-Za-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF\s]+)["']?\s<.+?>$/;
+  // check if author has name and email
+  if (author_regex.test(author)) {
+    // retrieve only name portion of author string
+    author = author.match(author_regex)[1];
+  }
+  var title = _("New_article_from") + " " + author;
+  var text = message.mime2DecodedSubject;
 
-    showNotification(title, text, message);
+  showNotification(title, text, message);
 }
 
 function isFolderRSS(folder) {
@@ -99,78 +100,77 @@ function showNewEmailNotification (message) {
 }
 
 function showNotification (title, text, message){
-    var utils = require('./utils.js');
-    var notifications = require("sdk/notifications");
+  var notifications = require("sdk/notifications");
 
-    // Current implementation of click action doesn't support SeaMonkey,
-    // so doing not clickable notification if SeaMonkey
-    if (system.name === "SeaMonkey") {
-      notifications.notify({
-          title: title,
-          text: text,
-          iconURL: utils.getIcon()
-      });
-      return;
-    }
-
-    // Doing notification with buttons if Linux and buttons are supported in
-    // the notify server
-    var sps = require("sdk/simple-prefs").prefs;
-    if (sps['engine'] === 1 && system.platform === "linux") {
-      var notifApi = require('./linux.js');
-
-      var actions = null;
-      if (message) {
-          if (sps['clickOptionNewEmail'] === 0) {
-          actions = [{
-              label: _("open"),
-              handler: function() {
-                  display(message);
-              }
-          }, {
-              label: _("Mark_as_read"),
-              handler: function() {
-                  message.markRead(true);
-              }
-          }];
-        } else {
-          actions = [{
-              label: _("Mark_as_read"),
-              handler: function() {
-                  message.markRead(true);
-              }
-          }, {
-              label: _("open"),
-              handler: function() {
-                  display(message);
-              }
-          }];
-        }
-      }
-
-      if (notifApi.checkButtonsSupported() &&
-          notifApi.notifyWithActions(utils.getIcon(), title, text, system.name,
-            function(reason) {}, actions)) {
-        return;
-      }
-
-    }
-
-    if (message) {
-      notifications.notify({
-          title: title,
-          text: text,
-          iconURL: utils.getIcon(),
-          onClick: function (data){display(message)}
-      });
-      return;
-    }
-
+  // Current implementation of click action doesn't support SeaMonkey,
+  // so doing not clickable notification if SeaMonkey
+  if (system.name === "SeaMonkey") {
     notifications.notify({
-        title: title,
-        text: text,
-        iconURL: utils.getIcon()
+      title: title,
+      text: text,
+      iconURL: utils.getIcon()
     });
+    return;
+  }
+
+  // Doing notification with buttons if Linux and buttons are supported in
+  // the notify server
+  var sps = require("sdk/simple-prefs").prefs;
+  if (sps['engine'] === 1 && system.platform === "linux") {
+    var notifApi = require('./linux.js');
+
+    var actions = null;
+    if (message) {
+      if (sps['clickOptionNewEmail'] === 0) {
+      actions = [{
+          label: _("open"),
+          handler: function() {
+            display(message);
+          }
+        }, {
+          label: _("Mark_as_read"),
+          handler: function() {
+            message.markRead(true);
+          }
+        }];
+      } else {
+        actions = [{
+          label: _("Mark_as_read"),
+          handler: function() {
+            message.markRead(true);
+          }
+        }, {
+          label: _("open"),
+          handler: function() {
+            display(message);
+          }
+        }];
+      }
+    }
+
+    if (notifApi.checkButtonsSupported() &&
+        notifApi.notifyWithActions(utils.getIcon(), title, text, system.name,
+          function(reason) {}, actions)) {
+      return;
+    }
+
+  }
+
+  if (message) {
+    notifications.notify({
+      title: title,
+      text: text,
+      iconURL: utils.getIcon(),
+      onClick: function (data){display(message)}
+    });
+    return;
+  }
+
+  notifications.notify({
+    title: title,
+    text: text,
+    iconURL: utils.getIcon()
+  });
 }
 
 // Display a given message. Heavily inspired by
@@ -273,15 +273,16 @@ function testNotification () {
     // Folder filtering test
     var folder = win.gFolderDisplay.selectedMessage.folder
     if (isFolderExcluded(folder) || !isFolderAllowed(folder)) {
+      var notifications = require("sdk/notifications");
       var name = folder.rootFolder.prettiestName + "|" + folder.prettiestName;
-      showNotification("GNotifier", "Notifications from folder \"" + name + "\" are disabled.", undefined);
+      utils.showGnotifierNotification("Notifications from folder \"" + name + "\" are disabled.");
       return;
     }
 
     showMessageNotification(win.gFolderDisplay.selectedMessage);
 
   } else {
-    showNotification("GNotifier", "You need to select a message to test this feature.", undefined);
+    utils.showGnotifierNotification("You need to select a message to test this feature.");
   }
 }
 

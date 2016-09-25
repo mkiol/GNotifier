@@ -24,6 +24,16 @@ exports.openFile = function (path) {
   }
 }
 
+exports.showGnotifierNotification = function (text) {
+  var data = require("sdk/self").data;
+  var notifications = require("sdk/notifications");
+  notifications.notify({
+      title: "GNotifier",
+      text: text,
+      iconURL: data.url("icon128.png")
+  });
+}
+
 exports.openDir = function (path) {
   //console.log("openDir path: " + path);
   if (system.platform === "winnt") {

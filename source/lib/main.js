@@ -33,9 +33,9 @@ var loaded = false;
 // Determine Linux / Windows based on 'system.platform'
 var notifApi;
 if (system.platform === "winnt") {
-    notifApi = require("./windows.js");
+  notifApi = require("./windows.js");
 } else {
-    notifApi = require("./linux.js");
+  notifApi = require("./linux.js");
 }
 
 function showDownloadCompleteNotification(path) {
@@ -109,34 +109,34 @@ function showDownloadCompleteNotification(path) {
 
 // Works only for FF<26 and SeaMonkey
 var downloadProgressListener = {
-    onDownloadStateChange: function(aState, aDownload) {
-        var dm = Cc["@mozilla.org/download-manager;1"].getService(Ci.nsIDownloadManager);
-        if (sps['downloadCompleteAlert']) {
-            switch(aDownload.state) {
-            case dm.DOWNLOAD_FINISHED:
-                showDownloadCompleteNotification(aDownload.target.path);
-                break;
-            }
-        }
+  onDownloadStateChange: function(aState, aDownload) {
+    var dm = Cc["@mozilla.org/download-manager;1"].getService(Ci.nsIDownloadManager);
+    if (sps['downloadCompleteAlert']) {
+      switch(aDownload.state) {
+      case dm.DOWNLOAD_FINISHED:
+        showDownloadCompleteNotification(aDownload.target.path);
+        break;
+      }
     }
+  }
 }
 
 // Works only for FF>=26
 Task.spawn(function () {
-    try {
-        let list = yield Downloads.getList(Downloads.ALL);
-        let view = {
-            onDownloadChanged: function(download) {
-                if(sps['downloadCompleteAlert'] && download.succeeded) {
-                    if (download.target.exists === undefined || download.target.exists === true)
-                        showDownloadCompleteNotification(download.target.path);
-                }
-            }
-        };
-        yield list.addView(view);
-    } catch(e) {
-        console.log("Unexpected exception ",e);
-    }
+  try {
+    let list = yield Downloads.getList(Downloads.ALL);
+    let view = {
+      onDownloadChanged: function(download) {
+        if(sps['downloadCompleteAlert'] && download.succeeded) {
+          if (download.target.exists === undefined || download.target.exists === true)
+            showDownloadCompleteNotification(download.target.path);
+        }
+      }
+    };
+    yield list.addView(view);
+  } catch(e) {
+    console.log("Unexpected exception ",e);
+  }
 }).then(null, Cu.reportError);
 
 
@@ -251,139 +251,131 @@ AlertsService.prototype = {
 
 // FF notification
 function notifyFF (iconURL, title, text) {
-    // Unloading GNotifier implementaion of Alert service
-    exports.onUnload();
+  // Unloading GNotifier implementaion of Alert service
+  exports.onUnload();
 
-    var notifications = require("sdk/notifications");
-    notifications.notify({
-        title: title,
-        text: text,
-        iconURL: iconURL
-    });
+  var notifications = require("sdk/notifications");
+  notifications.notify({
+    title: title,
+    text: text,
+    iconURL: iconURL
+  });
 }
 
 // Native notification
 function notifyNative (iconURL, title, text, notifier, closeHandler, clickHandler) {
-    //console.log("notifier:",notifier);
-    var ret = notifApi.notify(iconURL, title, text, system.name, closeHandler, clickHandler);
-    if(!ret) {
-        console.log('Native notification fails! :-(');
-        //notifyFF(iconURL, title, text);
-        return false;
-    }
-    return true;
+  //console.log("notifier:",notifier);
+  var ret = notifApi.notify(iconURL, title, text, system.name, closeHandler, clickHandler);
+  if(!ret) {
+    console.log('Native notification fails! :-(');
+    //notifyFF(iconURL, title, text);
+    return false;
+  }
+  return true;
 }
 
 function deleteTempFiles () {
-    var tempDir = FileUtils.getDir("TmpD",["gnotifier"]);
-    var entries = tempDir.directoryEntries;
-    while(entries.hasMoreElements()) {
-        var entry = entries.getNext();
-        entry.QueryInterface(Ci.nsIFile);
-        var filename = entry.path.replace(/^.*[\\\/]/, '');
-        if (filename.substring(0, 10) === "gnotifier-")
-          entry.remove(false);
-    }
+  var tempDir = FileUtils.getDir("TmpD",["gnotifier"]);
+  var entries = tempDir.directoryEntries;
+  while(entries.hasMoreElements()) {
+    var entry = entries.getNext();
+    entry.QueryInterface(Ci.nsIFile);
+    var filename = entry.path.replace(/^.*[\\\/]/, '');
+    if (filename.substring(0, 10) === "gnotifier-")
+      entry.remove(false);
+  }
 }
 
 function testNotification () {
-    var data = require("sdk/self").data;
-    var notifications = require("sdk/notifications");
-    notifications.notify({
-        title: "GNotifier",
-        text: "This works only in Thunderbird!",
-        iconURL: data.url("icon128.png")
-    });
+  utils.showGnotifierNotification("This works only in Thunderbird!");
 }
 
 exports.main = function(options, callbacks) {
+  // Check if libnofify / OSX library is present
+  if(notifApi.init()) {
+    //console.log("notifApi.init is ok");
+    if (system.platform != "darwin") {
+      // Replace alert-service
+      var contract = "@mozilla.org/alerts-service;1";
+      let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
 
-    // Check if libnofify / OSX library is present
-    if(notifApi.init()) {
-        //console.log("notifApi.init is ok");
-        if (system.platform != "darwin") {
+      // Unregister built-in alerts-service class factory
+      registrar.unregisterFactory(
+        Cc[contract],
+        Cm.getClassObject(Cc[contract], Ci.nsIFactory)
+      );
 
-            // Replace alert-service
-            var contract = "@mozilla.org/alerts-service;1";
-            let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
+      // Register new factory
+      registrar.registerFactory(
+        Cc[contract],
+        "GNotifier Alerts Service",
+        contract,
+        XPCOMUtils.generateSingletonFactory(AlertsService)
+      );
 
-            // Unregister built-in alerts-service class factory
-            registrar.unregisterFactory(
-                Cc[contract],
-                Cm.getClassObject(Cc[contract], Ci.nsIFactory)
-            );
-
-            // Register new factory
-            registrar.registerFactory(
-                Cc[contract],
-                "GNotifier Alerts Service",
-                contract,
-                XPCOMUtils.generateSingletonFactory(AlertsService)
-            );
-
-            loaded = true;
-        }
+      loaded = true;
     }
+  }
 
-    // Works only in FF<26 and SeaMonkey
-    try {
-        var dm = Cc["@mozilla.org/download-manager;1"].getService(Ci.nsIDownloadManager);
-        dm.addListener(downloadProgressListener);
-    } catch(e) {}
-    try {
-        var ps = require('sdk/preferences/service');
-        if (loaded && sps['downloadCompleteAlert'])
-        ps.set("browser.download.manager.showAlertOnComplete", false);
-        else
-        ps.set("browser.download.manager.showAlertOnComplete", true);
-    } catch(e) {}
+  // Works only in FF<26 and SeaMonkey
+  try {
+    var dm = Cc["@mozilla.org/download-manager;1"].getService(Ci.nsIDownloadManager);
+    dm.addListener(downloadProgressListener);
+  } catch(e) {}
 
-    // Thunderbird init
-    //console.log("system.name:",system.name);
-    if (loaded && (system.name == "Thunderbird" || system.name == "SeaMonkey" || system.name == "Icedove")) {
-        var thunderbird = require('./thunderbird.js');
-        thunderbird.init();
-    } else {
-        require("sdk/simple-prefs").on("test", function() {
-          testNotification();
-        });
-    }
+  try {
+    var ps = require('sdk/preferences/service');
+    if (loaded && sps['downloadCompleteAlert'])
+    ps.set("browser.download.manager.showAlertOnComplete", false);
+    else
+    ps.set("browser.download.manager.showAlertOnComplete", true);
+  } catch(e) {}
 
+  // Thunderbird init
+  //console.log("system.name:",system.name);
+  if (loaded && (system.name == "Thunderbird" || system.name == "SeaMonkey" || system.name == "Icedove")) {
+    var thunderbird = require('./thunderbird.js');
+    thunderbird.init();
+  } else {
+    require("sdk/simple-prefs").on("test", function() {
+      testNotification();
+    });
+  }
 };
 
 exports.onUnload = function (reason) {
-    deleteTempFiles();
+  deleteTempFiles();
 
-    if (notifApi)
-        notifApi.deInit();
+  if (notifApi)
+    notifApi.deInit();
 
-    // Unregister current alerts-service class factory
-    var contract = "@mozilla.org/alerts-service;1";
-    let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
-    registrar.unregisterFactory(
-        Cc[contract],
-        Cm.getClassObject(Cc[contract], Ci.nsIFactory)
-    );
+  // Unregister current alerts-service class factory
+  var contract = "@mozilla.org/alerts-service;1";
+  let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
+  registrar.unregisterFactory(
+    Cc[contract],
+    Cm.getClassObject(Cc[contract], Ci.nsIFactory)
+  );
 
-    loaded = false;
+  loaded = false;
 
-    // Register orig alert service factory
-    registrar.registerFactory(
-        Cc[contract],
-        "Orig Alerts Service",
-        contract,
-        origAlertsServiceFactory
-    );
+  // Register orig alert service factory
+  registrar.registerFactory(
+    Cc[contract],
+    "Orig Alerts Service",
+    contract,
+    origAlertsServiceFactory
+  );
 
-    // Works only in FF<26
-    try {
-        var ps = require('sdk/preferences/service');
-        ps.set("browser.download.manager.showAlertOnComplete", true);
-    } catch(e) {}
+  // Works only in FF<26
+  try {
+    var ps = require('sdk/preferences/service');
+    ps.set("browser.download.manager.showAlertOnComplete", true);
+  } catch(e) {}
 
-    // Thunderbird deinit
-    if (system.name == "Thunderbird" || system.name == "SeaMonkey" || system.name == "Icedove") {
-        var thunderbird = require('./thunderbird.js');
-        thunderbird.deInit();
-    }
+  // Thunderbird deinit
+  if (system.name == "Thunderbird" || system.name == "SeaMonkey" || system.name == "Icedove") {
+    var thunderbird = require('./thunderbird.js');
+    thunderbird.deInit();
+  }
 }
