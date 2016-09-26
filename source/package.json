@@ -81,8 +81,8 @@
         },
         {
             "name": "notifyIcon",
-            "title": "Notification Icon (Linux only)",
-            "description": "Icon used in the Download Complete and New E-mail notifications. For example: 'firefox', 'web-browser', 'iceweasel' or 'gnotifier'. If value is set to 'default' then icon will be set based on application name.",
+            "title": "Notification Icon",
+            "description": "Icon used in the Download Complete and New E-mail notifications. It could be path pointing to icon file or icon name. Examples: '/home/my-cool-icon.png', 'aurora', 'nightly' or 'gnotifier'. If value is set to 'default' then icon will be set based on application name.",
             "type": "string",
             "value": "default"
         },

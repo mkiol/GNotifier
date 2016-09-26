@@ -346,8 +346,9 @@ exports.main = function(options, callbacks) {
 exports.onUnload = function (reason) {
   deleteTempFiles();
 
-  if (notifApi)
+  if (notifApi) {
     notifApi.deInit();
+  }
 
   // Unregister current alerts-service class factory
   var contract = "@mozilla.org/alerts-service;1";

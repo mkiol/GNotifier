@@ -30,7 +30,8 @@ exports.showGnotifierNotification = function (text) {
   notifications.notify({
       title: "GNotifier",
       text: text,
-      iconURL: data.url("icon128.png")
+      //iconURL: data.url("gnotifier.png")
+      iconURL: exports.getIcon()
   });
 }
 
@@ -56,38 +57,42 @@ exports.getHash = function(text) {
   return (hash > 0) ? hash : 0 - hash;
 };
 
-// Gets icon for notification based on "system.name" or "notifyIcon" param
 exports.getIcon = function () {
-  // Windows already attaches the program icon to notifications
-  if (system.platform === "winnt")
-    return "";
+  // Windows already attaches the program icon to notifications,
+  // but some icons are not displayed well, so will provided by gnotifier
 
   var data = require("sdk/self").data;
   var url = require("sdk/url");
   var sps = require("sdk/simple-prefs").prefs;
   var picon = sps["notifyIcon"];
+  var isWin = system.platform === "winnt";
 
   if (picon == "default") {
     if (system.name === "Firefox")
-        return "firefox";
+        return isWin ? url.toFilename(data.url("firefox.png")) : "firefox";
     if (system.name === "Thunderbird")
-        return "thunderbird";
+        return isWin ? url.toFilename(data.url("thunderbird.png")) : "thunderbird";
   	if (system.name === "Iceweasel")
-        return "iceweasel";
+        return isWin ? "" : "iceweasel";
     if (system.name === "SeaMonkey")
-        return "seamonkey";
+        return isWin ? url.toFilename(data.url("seamonkey.png")) : "seamonkey";
     if (system.name === "Pale Moon")
-        return "palemoon";
+        return isWin ? url.toFilename(data.url("palemoon.png")) : "palemoon";
+    if (system.name === "Waterfox")
+        return isWin ? url.toFilename(data.url("waterfox.png")) : "waterfox";
   	if (system.name === "Icedove")
-  	  return "icedove";
+  	  return isWin ? "" : "icedove";
 
     // default GNotifier icon
-    return url.toFilename(data.url("icon128.png"));
+    return isWin ? "" : url.toFilename(data.url("gnotifier.png"));
   }
 
-  if (picon === "gnotifier") {
-    return url.toFilename(data.url("icon128.png"));
-  }
+  if (picon === "gnotifier")
+    return url.toFilename(data.url("gnotifier.png"));
+  if (picon === "aurora")
+    return url.toFilename(data.url("aurora.png"));
+  if (picon === "nightly")
+    return url.toFilename(data.url("nightly.png"));
 
   return picon;
 }
