@@ -72,21 +72,24 @@ exports.getIcon = function () {
         return isWin ? url.toFilename(data.url("firefox.png")) : "firefox";
     if (system.name === "Thunderbird")
         return isWin ? url.toFilename(data.url("thunderbird.png")) : "thunderbird";
-  	if (system.name === "Iceweasel")
-        return isWin ? "" : "iceweasel";
     if (system.name === "SeaMonkey")
         return isWin ? url.toFilename(data.url("seamonkey.png")) : "seamonkey";
     if (system.name === "Pale Moon")
         return isWin ? url.toFilename(data.url("palemoon.png")) : "palemoon";
     if (system.name === "Waterfox")
         return isWin ? url.toFilename(data.url("waterfox.png")) : "waterfox";
-  	if (system.name === "Icedove")
+    if (system.name === "IceCat")
+  	  return isWin ? url.toFilename(data.url("icecat.png")) : "icecat";
+    if (system.name === "Icedove")
   	  return isWin ? "" : "icedove";
+    if (system.name === "Iceweasel")
+        return isWin ? "" : "iceweasel";
 
-    // default GNotifier icon
+    // default GNotifier icon for linux, or built-in icon for windows
     return isWin ? "" : url.toFilename(data.url("gnotifier.png"));
   }
 
+  // Extra named icons
   if (picon === "gnotifier")
     return url.toFilename(data.url("gnotifier.png"));
   if (picon === "aurora")
@@ -98,17 +101,13 @@ exports.getIcon = function () {
 }
 
 exports.isUrlValid = function (s) {
-
   // Source: http://dzone.com/snippets/validate-url-regexp
-
   var re = /(http|https|file):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
   return re.test(s);
 }
 
 exports.sanitize = function(s) {
-
     // Source: https://developer.mozilla.org/en-US/Add-ons/Overlay_Extensions/XUL_School/DOM_Building_and_HTML_Insertion#Safely_Using_Remote_HTML
-
     var parser = Cc["@mozilla.org/parserutils;1"].getService(Ci.nsIParserUtils);
     s = parser.sanitize(s, parser.SanitizerCidEmbedsOnly);
     var re = /<body\s*[^>]*>([\S\s]*?)<\/body>/i;
@@ -119,9 +118,7 @@ exports.sanitize = function(s) {
 }
 
 exports.getFileExtension = function(filename) {
-
   // Source: http://stackoverflow.com/a/1203361
-
   var a = filename.split(".");
   if (a.length === 1 || ( a[0] === "" && a.length === 2 ) ) {
     return "";
