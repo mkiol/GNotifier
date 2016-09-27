@@ -57,45 +57,49 @@ exports.getHash = function(text) {
   return (hash > 0) ? hash : 0 - hash;
 };
 
+function getFileUrltoResource(path) {
+  var data = require("sdk/self").data;
+  var url = require("sdk/url");
+  return "file://" + url.toFilename(data.url(path));
+}
+
 exports.getIcon = function () {
   // Windows already attaches the program icon to notifications,
   // but some icons are not displayed well, so will provided by gnotifier
 
-  var data = require("sdk/self").data;
-  var url = require("sdk/url");
   var sps = require("sdk/simple-prefs").prefs;
   var picon = sps["notifyIcon"];
   var isWin = system.platform === "winnt";
 
   if (picon == "default") {
     if (system.name === "Firefox")
-        return isWin ? url.toFilename(data.url("firefox.png")) : "firefox";
+        return isWin ? getFileUrltoResource("firefox.png") : "firefox";
     if (system.name === "Thunderbird")
-        return isWin ? url.toFilename(data.url("thunderbird.png")) : "thunderbird";
+        return isWin ? getFileUrltoResource("thunderbird.png") : "thunderbird";
     if (system.name === "SeaMonkey")
-        return isWin ? url.toFilename(data.url("seamonkey.png")) : "seamonkey";
+        return isWin ? getFileUrltoResource("seamonkey.png") : "seamonkey";
     if (system.name === "Pale Moon")
-        return isWin ? url.toFilename(data.url("palemoon.png")) : "palemoon";
+        return isWin ? getFileUrltoResource("palemoon.png") : "palemoon";
     if (system.name === "Waterfox")
-        return isWin ? url.toFilename(data.url("waterfox.png")) : "waterfox";
+        return isWin ? getFileUrltoResource("waterfox.png") : "waterfox";
     if (system.name === "IceCat")
-  	  return isWin ? url.toFilename(data.url("icecat.png")) : "icecat";
+  	  return isWin ? getFileUrltoResource("icecat.png") : "icecat";
     if (system.name === "Icedove")
   	  return isWin ? "" : "icedove";
     if (system.name === "Iceweasel")
         return isWin ? "" : "iceweasel";
 
     // default GNotifier icon for linux, or built-in icon for windows
-    return isWin ? "" : url.toFilename(data.url("gnotifier.png"));
+    return isWin ? "" : getFileUrltoResource("gnotifier.png");
   }
 
   // Extra named icons
   if (picon === "gnotifier")
-    return url.toFilename(data.url("gnotifier.png"));
+    return getFileUrltoResource("gnotifier.png");
   if (picon === "aurora")
-    return url.toFilename(data.url("aurora.png"));
+    return getFileUrltoResource("aurora.png");
   if (picon === "nightly")
-    return url.toFilename(data.url("nightly.png"));
+    return getFileUrltoResource("nightly.png");
 
   return picon;
 }
