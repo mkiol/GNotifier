@@ -4,10 +4,13 @@ Add-on for Firefox and Thunderbird. Replaces built-in notifications with the OS 
 
 ## Build instruction
 
-Make sure that you have installed [jpm](https://developer.mozilla.org/en-US/Add-ons/SDK/Tools/jpm#Installation) tool.
+1. Make sure that you have [jpm](https://developer.mozilla.org/en-US/Add-ons/SDK/Tools/jpm#Installation) tool installed.
+2. Open a terminal in the ./source dir
+3. Run ``jpm xpi`` to make the xpi
 
-1. Open a terminal in the ./source dir
-2. Run ``jpm xpi`` to make the xpi
+## Pale Moon
+
+The XPIs created with [cfx](https://developer.mozilla.org/en-US/Add-ons/SDK/Tools/cfx) are named in the following convention: [gnotifier-cfx-X.X.X.xpi](https://github.com/mkiol/GNotifier/tree/master/xpi). They are compatible with Pale Moon and old versions of Firefox.
 
 ## License
 

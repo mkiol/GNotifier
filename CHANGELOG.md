@@ -1,9 +1,10 @@
 ## 1.9.8
-  - New option, list of filename extensions that will not trigger Download Complete notification
+  - Notification filtering based on filename extension
   - Windows: Support for 'Custom command'
+  - Windows: Better icon presentation and support for custom 'Notification Icon' option
   - Windows: Click action on downolad complete notification focuses file
-  - Thunderbird: New option, list of folders to allow notifications from (thanks to [pd5rm](https://github.com/pd5rm))
-  - Thunderbird: New option, maximum number of simultaneous notifications
+  - Thunderbird: Notification filtering based on mailbox and folder name (thanks to [pd5rm](https://github.com/pd5rm))
+  - Thunderbird: Notifications aggregation (in case of many simultaneous new messages)
   - BUG FIX: Default action is triggered by clicking on the whole notification (GNOME, Cinnamon)
   - BUG FIX: Support for multiple RSS accounts (thanks to [Stefan Reichelt](https://github.com/Songworks))
 
