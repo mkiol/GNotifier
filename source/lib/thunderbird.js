@@ -357,75 +357,72 @@ function getFoldersWithNewMail (aFolder) {
 }
 
 var mailListener = {
-    OnItemIntPropertyChanged: function (aItem,aProperty,aOldValue,aNewValue) {
-        var sps = require("sdk/simple-prefs").prefs;
+  OnItemIntPropertyChanged: function (aItem,aProperty,aOldValue,aNewValue) {
+    var sps = require("sdk/simple-prefs").prefs;
 
-        if (!sps['enableRSS'] && isFolderRSS(aItem)) {
-          // Notifications for RSS are disabled
+    if (!sps['enableRSS'] && isFolderRSS(aItem)) {
+      // Notifications for RSS are disabled
+      return;
+    }
+
+    // New mail if BiffState == nsMsgBiffState_NewMail or NewMailReceived
+    if (
+      (aProperty == "BiffState" && aNewValue == Ci.nsIMsgFolder.nsMsgBiffState_NewMail &&
+        (aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_NoMail || aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_Unknown)) ||
+      (aProperty == "NewMailReceived")
+    ) {
+
+      var folderList = getFoldersWithNewMail(aItem);
+      if (folderList.length == 0) {
+          // Can't find folder with BiffState == nsMsgBiffState_NewMail
           return;
-        }
+      }
 
-        // New mail if BiffState == nsMsgBiffState_NewMail or NewMailReceived
-        if (
-          (aProperty == "BiffState" && aNewValue == Ci.nsIMsgFolder.nsMsgBiffState_NewMail &&
-            (aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_NoMail || aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_Unknown)) ||
-          (aProperty == "NewMailReceived")
-        ) {
-
-          /*if (sps['simpleNewMail']) {
-              showSimpleNewMessageNotification(isRSS);
-              return;
-          }*/
-
-          var folderList = getFoldersWithNewMail(aItem);
-          if (folderList.length == 0) {
-              // Can't find folder with BiffState == nsMsgBiffState_NewMail
-              return;
-          }
-
-          for (var i in folderList) {
-              if (folderList[i]) {
-                var folder = folderList[i];
-                if (!isFolderExcluded(folder) && isFolderAllowed(folder)) {
-                  // Looking for messages with flag == Ci.nsMsgMessageFlags.New
-                  var messages = folder.messages;
-                  while (messages.hasMoreElements()) {
-                      var message = messages.getNext().QueryInterface(Ci.nsIMsgDBHdr);
-                      if (message.flags & Ci.nsMsgMessageFlags.New) {
-                          if (message.getUint32Property("gnotifier-done") != 1) {
-                            bufferNewEmailNotification(message);
-                            message.setUint32Property("gnotifier-done",1);
-                          }
-                      }
-                  }
+      for (var i in folderList) {
+        if (folderList[i]) {
+          var folder = folderList[i];
+          if (!isFolderExcluded(folder) && isFolderAllowed(folder)) {
+            // Looking for messages with flag == Ci.nsMsgMessageFlags.New
+            var messages = folder.messages;
+            while (messages.hasMoreElements()) {
+              var message = messages.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+              if (message.flags & Ci.nsMsgMessageFlags.New) {
+                if (message.getUint32Property("gnotifier-done") != 1) {
+                  bufferNewEmailNotification(message);
+                  message.setUint32Property("gnotifier-done",1);
                 }
               }
+            }
           }
-
         }
+      }
+
     }
+  }
 };
 
 exports.init = function() {
-    // Disabling native new email alert
-    var ps = require('sdk/preferences/service');
-    ps.set("mail.biff.show_alert", false);
+  // Disabling native new email alert
+  var ps = require('sdk/preferences/service');
+  ps.set("mail.biff.show_alert", false);
 
-    // Folder listeners registration for OnItemIntPropertyChanged
-    var folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
-    folderListenerManager.AddFolderListener(mailListener, 0x8);
+  // Folder listeners registration for OnItemIntPropertyChanged
+  var folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
+  folderListenerManager.AddFolderListener(mailListener, 0x8);
 
-    var sp = require("sdk/simple-prefs");
-    sp.on("test", function() {
-      testNotification();
-    });
+  var sp = require("sdk/simple-prefs");
+  sp.on("test", function() {
+    testNotification();
+  });
 };
 
 exports.deInit = function() {
-    // Enabling native new email alert
-    var ps = require('sdk/preferences/service');
-    ps.set("mail.biff.show_alert", true);
+  bufferedMessages = [];
 
-    var folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
-    folderListenerManager.RemoveFolderListener(mailListener);
+  // Enabling native new email alert
+  var ps = require('sdk/preferences/service');
+  ps.set("mail.biff.show_alert", true);
+
+  var folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
+  folderListenerManager.RemoveFolderListener(mailListener);
 };

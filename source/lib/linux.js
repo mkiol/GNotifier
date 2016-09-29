@@ -258,8 +258,11 @@ exports.init = function () {
 }
 
 exports.deInit = function() {
-    if (libc)
-        libc.close();
+  actionsCallbackFunArray = [];
+  closedCallbackFunArray = [];
+
+  if (libc)
+    libc.close();
 }
 
 exports.notify = function (iconURL, title, text, notifier, closeHandler, clickHandler) {
