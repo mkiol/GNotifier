@@ -82,7 +82,7 @@
         {
             "name": "notifyIcon",
             "title": "Notification Icon",
-            "description": "Icon used in the Download Complete and New E-mail notifications. It could be icon URL or the name. Examples: 'file://c:\\my-cool-icon.png', 'nightly', 'aurora' or 'gnotifier'. If value is set to 'default' then icon will be set based on application name.",
+            "description": "Icon used for \"Download Complete\" and \"New E-mail\" notifications. It can be either icon URL or name. Examples: \"file://c:\\my-cool-icon.png\", \"nightly\", \"aurora\" or \"gnotifier\". If value is set to \"default\" then icon will be set based on application name.",
             "type": "string",
             "value": "default"
         },
