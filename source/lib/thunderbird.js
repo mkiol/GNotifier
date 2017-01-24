@@ -296,8 +296,9 @@ function isFolderExcluded(folder) {
   if (folder.getFlag(0x00000100))
     return true;
   // SentMail
-  if (folder.getFlag(0x00000200))
-    return true;
+  // Commented due to https://github.com/mkiol/GNotifier/issues/153
+  /*if (folder.getFlag(0x00000200))
+    return true;*/
   // Drafts
   if (folder.getFlag(0x00000400))
     return true;
@@ -314,7 +315,7 @@ function isFolderAllowed(folder) {
   // Allow user to filter specific folders.
 
   var sps = require("sdk/simple-prefs").prefs;
-  foldersAllowedListPref = sps['foldersAllowedList'];
+  var foldersAllowedListPref = sps['foldersAllowedList'].trim();
   if (foldersAllowedListPref !== "") {
     var foldersAllowedList = foldersAllowedListPref.split(",")
     for (var i = 0; i < foldersAllowedList.length; i++) {
