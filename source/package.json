@@ -103,7 +103,7 @@
         {
             "name": "enableRSS",
             "title": "Notifications for RSS feeds (Thunderbird only)",
-            "description": "Defines wheter notifications for new RSS items should be displayed.",
+            "description": "Defines whether notifications for new RSS items should be displayed.",
             "type": "bool",
             "value": false
         },
