@@ -10,7 +10,9 @@ Add-on for Firefox and Thunderbird. Replaces built-in notifications with the OS 
 
 ## Pale Moon
 
-The XPIs created with [cfx](https://developer.mozilla.org/en-US/Add-ons/SDK/Tools/cfx) are named in the following convention: [gnotifier-cfx-X.X.X.xpi](https://github.com/mkiol/GNotifier/tree/master/xpi). They are compatible with Pale Moon and old versions of Firefox.
+The XPIs created with [cfx](https://developer.mozilla.org/en-US/Add-ons/SDK/Tools/cfx) are named in the following convention: [gnotifier-cfx-X.X.X.xpi](https://github.com/mkiol/GNotifier/tree/master/xpi). They are compatible with Pale Moon and old versions of Firefox.  
+
+From Pale Moon 27.1 onwards, you can install the regular jpm-created XPIs normally.  
 
 ## License
 
