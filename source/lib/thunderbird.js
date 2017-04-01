@@ -211,58 +211,62 @@ function display (message) {
 function format (message, format, callback){
   var author = gHeaderParser.parseDecodedHeader(message.mime2DecodedAuthor);
 
-  if(format.match(/%b/)){
-    MsgHdrToMimeMessage(message, null, function (aMsgHdr, aMimeMsg){
-        var body = aMimeMsg.coerceBodyToPlaintext(aMsgHdr.folder);
-        doReplace(body);
-    });
-  } else {
-    doReplace();
-  }
+  var string = format.replace(new RegExp("(%[samnfvkubc%])", 'g'), function(match, p1){
+    switch(p1){
+      // Subject, with "Re:" when appropriate
+      case "%s":
+        var hasRe = message.flags & Ci.nsMsgMessageFlags.HasRe;
+        return hasRe ? 'Re: ' + message.mime2DecodedSubject : message.mime2DecodedSubject;
+      // Full Author
+      case "%a":
+        return message.mime2DecodedAuthor;
+      // Author e-mail address only
+      case "%m":
+        return author[0].email;
+      // Author name only
+      case "%n":
+        return author[0].name;
+      // Folder
+      case "%f":
+        return message.folder.prettiestName;
+      // Server
+      case "%v":
+        return message.folder.server.hostName;
+      // Size
+      case "%k":
+        return gMessenger.formatFileSize(message.messageSize);
+      // Account name
+      case "%u":
+        return message.folder.server.prettyName;
+      // Body excerpt
+      case "%b":
+        var body = getMessageBody(message);
+        body = body.replace(/\n/g, ' ').trim().substr(0, 80).trim();
+        body += body.length > 80 ? "..." : "";
+        return body;
+      // Numer of unread messages
+      case "%c":
+        return getUnreadMessageCount();
+      // Percent
+      case "%%":
+        return "%";
+    }
+  });
+  callback(string);
 
-  function doReplace(body){
-    var string = format.replace(new RegExp("(%[samnfvkubc%])", 'g'), function(match, p1){
-      switch(p1){
-        // Subject, with "Re:" when appropriate
-        case "%s":
-          var hasRe = message.flags & Ci.nsMsgMessageFlags.HasRe;
-          return hasRe ? 'Re: ' + message.mime2DecodedSubject : message.mime2DecodedSubject;
-        // Full Author
-        case "%a":
-          return message.mime2DecodedAuthor;
-        // Author e-mail address only
-        case "%m":
-          return author[0].email;
-        // Author name only
-        case "%n":
-          return author[0].name;
-        // Folder
-        case "%f":
-          return message.folder.prettiestName;
-        // Server
-        case "%v":
-          return message.folder.server.hostName;
-        // Size
-        case "%k":
-          return gMessenger.formatFileSize(message.messageSize);
-        // Account name
-        case "%u":
-          return message.folder.server.prettyName;
-        // Body excerpt
-        case "%b":
-          body = body.replace(/\n/g, ' ').trim().substr(0, 80).trim();
-          body += body.length > 80 ? "..." : "";
-          return body;
-        // Numer of unread messages
-        case "%c":
-          return getUnreadMessageCount();
-        // Percent
-        case "%%":
-          return "%";
-      }
-    });
+  function getMessageBody(aMsgHdr){
+    var listener = Cc["@mozilla.org/network/sync-stream-listener;1"].createInstance(Ci.nsISyncStreamListener);
 
-    callback(string);
+    var uri = aMsgHdr.folder.getUriForMsg(aMsgHdr);
+    gMessenger.messageServiceFromURI(uri).streamMessage(uri, listener, null, null, false, "");
+    var folder = aMsgHdr.folder;
+    return folder.getMsgTextFromStream(listener.inputStream,
+                                                  aMsgHdr.Charset,
+                                                  65536,
+                                                  100,
+                                                  false,
+                                                  true,
+                                                  { });
   }
 }
 
