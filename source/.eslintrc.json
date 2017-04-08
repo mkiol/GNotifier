@@ -1,0 +1,37 @@
+{
+    "env": {
+        "browser": true,
+        "es6": true
+    },
+    "extends": "eslint:recommended",
+    "globals": {
+        "browser": true,
+        "chrome": true,
+        "Downloads": true,
+        "require": false,
+        "exports": false,
+        "ctypes": true
+    },
+    "rules": {
+        "no-tabs": "warn",
+        "no-set-state": "off",
+        "indent": [
+            "error",
+            2
+        ],
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "quotes": [
+            "error",
+            "double"
+        ],
+        "semi": [
+            "error", "always"
+        ],
+        "no-console": [
+            "error", { "allow": ["log", "warn", "error"] }
+        ]
+    }
+}
