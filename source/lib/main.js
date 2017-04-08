@@ -122,7 +122,7 @@ const downloadProgressListener = {
 }
 
 // Works only for FF>=26
-Task.spawn(()=>{
+Task.spawn(function(){
   try {
     let list = yield Downloads.getList(Downloads.ALL);
     let view = {

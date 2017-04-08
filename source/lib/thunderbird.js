@@ -144,13 +144,23 @@ function showNotification (title, text, message){
       }
     }
 
-    if (notifApi.checkButtonsSupported() &&
-      notifApi.notifyWithActions(
+    if (notifApi.checkButtonsSupported()) {
 /* eslint-disable no-unused-vars */
-        utils.getIcon(), title, text, system.name, (reason)=>{}, actions)) {
+      let id = notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, (reason)=>{}, actions);
 /* eslint-enable no-unused-vars */
+      console.log("notifyWithActions, id: " + id);
+      if (id)
+        message.setStringProperty("gnotifier-notification-id", id);
       return;
     }
+
+/* eslint-disable no-unused-vars */
+    let id = notifApi.notify(utils.getIcon(), title, text, system.name, (reason)=>{}, (data)=>{display(message);});
+/* eslint-enable no-unused-vars */
+    console.log("notify, id: " + id);
+    if (id)
+      message.setStringProperty("gnotifier-notification-id", id);
+    return;
   }
 
   if (message) {
@@ -211,7 +221,7 @@ function display(message) {
   );
 }
 
-function format (message, format, callback){
+function format(message, format, callback){
   let author = gHeaderParser.parseDecodedHeader(message.mime2DecodedAuthor);
 
   let string = format.replace(new RegExp("(%[samnfvkubc%])", "g"), (match, p1)=>{
@@ -275,7 +285,14 @@ function format (message, format, callback){
   }
 }
 
-function testNotification () {
+function closeNotifications() {
+  if (sps["engine"] === 1 && system.platform === "linux") {
+    const notifApi = require("./linux.js");
+    notifApi.closeAll();
+  }
+}
+
+function testNotification() {
   const win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
   if (win && win.gFolderDisplay && win.gFolderDisplay.selectedMessage) {
 
@@ -363,6 +380,24 @@ function getFoldersWithNewMail (aFolder) {
 }
 
 var mailListener = {
+  OnItemPropertyFlagChanged: (message, atom, oldFlag, newFlag)=>{
+    //console.log("OnItemPropertyFlagChanged");
+    //console.log(message);
+    //console.log(oldFlag);
+    //console.log(newFlag);
+    // Ci.nsMsgMessageFlags.Read = 1, so if message is marked as read, new-old=1
+    if (newFlag-oldFlag == 1) {
+      const id = message.getStringProperty("gnotifier-notification-id");
+      if (id) {
+        console.log("Message marked as read and has notification_id="+id+" property");
+        if (sps["engine"] === 1 && system.platform === "linux") {
+          const notifApi = require("./linux.js");
+          notifApi.close(id);
+          message.setStringProperty("gnotifier-notification-id","");
+        }
+      }
+    }
+  },
   OnItemIntPropertyChanged: function (aItem,aProperty,aOldValue,aNewValue) {
     if (!sps["enableRSS"] && isFolderRSS(aItem)) {
       // Notifications for RSS are disabled
@@ -410,11 +445,20 @@ exports.init = ()=>{
 
   // Folder listeners registration for OnItemIntPropertyChanged
   const folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
-  folderListenerManager.AddFolderListener(mailListener, 0x8);
+
+  // On Linux listening also for "Read" flag change.
+  // It allows hiding notification when message is marked as read.
+  if (system.platform === "linux")
+    folderListenerManager.AddFolderListener(mailListener, 0x8|0x40);
+  else
+    folderListenerManager.AddFolderListener(mailListener, 0x8);
 
   const sp = require("sdk/simple-prefs");
   sp.on("test", function() {
     testNotification();
+  });
+  sp.on("close", function() {
+    closeNotifications();
   });
 };
 

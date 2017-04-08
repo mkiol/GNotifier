@@ -30,6 +30,7 @@ const sps = require("sdk/simple-prefs").prefs;
 let libc = null;
 let actionsCallbackFunArray = [];
 let closedCallbackFunArray = [];
+let notificationArray = [];
 
 let serverCapabilities = [];
 let serverName;
@@ -56,6 +57,7 @@ let notify_notification_new;
 let notify_notification_set_hint;
 let notify_notification_set_timeout;
 let notify_notification_show;
+let notify_notification_close;
 let g_signal_connect_data;
 let notify_get_server_info;
 let notify_get_server_caps;
@@ -158,6 +160,11 @@ function handleClose(notification, data) {
     // Getting handler from closedCallbackFunArray by notification_id
     // notification_id is pointer value of 'data' arg
     const notification_id = ctypes.cast(data, ctypes.uintptr_t).value.toString();
+
+    console.log("Notification " + notification_id + " has been closed.");
+    if (notificationArray.hasOwnProperty(notification_id))
+      delete notificationArray[notification_id];
+
     let i = closedCallbackFunArray.length;
     while (i > 0 && closedCallbackFunArray.length > 0) {
       i--;
@@ -241,6 +248,9 @@ exports.init = ()=>{
   notify_notification_show = libc.declare(
     "notify_notification_show", ctypes.default_abi, ctypes.bool,
     struct_notification.ptr, struct_gerror_ptr);
+  notify_notification_close = libc.declare(
+    "notify_notification_close", ctypes.default_abi, ctypes.bool,
+    struct_notification.ptr, struct_gerror_ptr);
   g_signal_connect_data = libc.declare("g_signal_connect_data",
     ctypes.default_abi, ctypes.unsigned_long, ctypes.voidptr_t,
     ctypes.char.ptr, ctypes.voidptr_t, ctypes.voidptr_t,
@@ -272,6 +282,29 @@ exports.deInit = ()=>{
   closedCallbackFunArray = [];
   if (libc)
     libc.close();
+};
+
+exports.closeAll = ()=>{
+  for(let id in notificationArray) {
+    exports.close(id);
+  }
+};
+
+exports.close = (id)=>{
+  try {
+    if (notificationArray.hasOwnProperty(id)) {
+      let error = new struct_gerror_ptr;
+      if (!notify_notification_close(notificationArray[id], error)) {
+        console.error("Notify_notification_close fails:");
+        console.error("error code: " + error.fields["gerror_code"]);
+        console.error("error message: " + error.fields["gerror_message"].readString());
+      }
+      console.log("Request to close notification " + id + " has been sent.");
+      delete notificationArray[id];
+    }
+  } catch (e) {
+    console.error(e);
+  }
 };
 
 exports.notify = (iconURL, title, text, notifier, closeHandler, clickHandler)=>{
@@ -384,6 +417,8 @@ exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actio
     return false;
   }
 
+  notificationArray[notification_id] = notification;
+
   // Connecting closed signal
   if (closeHandler && typeof(closeHandler) === "function") {
     // Defing callback function for 'closed' signal
@@ -401,5 +436,5 @@ exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actio
     );
   }
 
-  return true;
+  return notification_id;
 };
