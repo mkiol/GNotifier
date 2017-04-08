@@ -10,34 +10,39 @@
  * @license GPL-3.0 <https://www.gnu.org/licenses/gpl-3.0.html>
  */
 
-var { Cc, Ci, Cu, Cm, Cr } = require("chrome");
-var _ = require("sdk/l10n").get;
+/* eslint-disable no-unused-vars */
+const { Cc, Ci, Cu, Cm, Cr } = require("chrome");
+/* eslint-enable no-unused-vars */
+
+const _ = require("sdk/l10n").get;
+const sps = require("sdk/simple-prefs").prefs;
+const ps = require("sdk/preferences/service");
 
 Cu.import("resource://app/modules/gloda/mimemsg.js");
 Cu.import("resource://gre/modules/Timer.jsm");
 
-var gHeaderParser = Cc["@mozilla.org/messenger/headerparser;1"].getService(Ci.nsIMsgHeaderParser);
-var gMessenger = Cc["@mozilla.org/messenger;1"].getService(Ci.nsIMessenger);
-var system = require("sdk/system");
-var utils = require('./utils.js');
+const gHeaderParser = Cc["@mozilla.org/messenger/headerparser;1"].getService(Ci.nsIMsgHeaderParser);
+const gMessenger = Cc["@mozilla.org/messenger;1"].getService(Ci.nsIMessenger);
+const system = require("sdk/system");
+const utils = require("./utils.js");
 
 //var app = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication);
 
-var bufferedMessages = [];
-var timeoutID;
+let bufferedMessages = [];
+let timeoutID;
 
 function getUnreadMessageCount() {
   // Getting unread messages count
-  var newMailNotificationService = Cc["@mozilla.org/newMailNotificationService;1"].getService(Ci.mozINewMailNotificationService);
+  let newMailNotificationService = Cc["@mozilla.org/newMailNotificationService;1"].getService(Ci.mozINewMailNotificationService);
   return newMailNotificationService.messageCount;
 }
 
-function showAggregatedNotification () {
-  var text = _("Number_of_new_messages") + " " + bufferedMessages.length;
+function showAggregatedNotification() {
+  let text = _("Number_of_new_messages") + " " + bufferedMessages.length;
   showNotification(_("New_messages"), text, null);
 }
 
-function showMessageNotification (message) {
+function showMessageNotification(message) {
   if (isFolderRSS(message.folder)) {
     showNewRSSNotification(message);
   } else {
@@ -45,28 +50,28 @@ function showMessageNotification (message) {
   }
 }
 
-function showNewRSSNotification (message) {
-  var author = message.mime2DecodedAuthor;
+function showNewRSSNotification(message) {
+  let author = message.mime2DecodedAuthor;
   // unicode character ranges taken from:
   // http://stackoverflow.com/questions/1073412/javascript-validation-issue-with-international-characters#1073545
-  var author_regex = /^["']?([A-Za-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF\s]+)["']?\s<.+?>$/;
+  const author_regex = /^["']?([A-Za-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF\s]+)["']?\s<.+?>$/;
   // check if author has name and email
   if (author_regex.test(author)) {
     // retrieve only name portion of author string
     author = author.match(author_regex)[1];
   }
-  var title = _("New_article_from") + " " + author;
-  var text = message.mime2DecodedSubject;
+  let title = _("New_article_from") + " " + author;
+  let text = message.mime2DecodedSubject;
 
   showNotification(title, text, message);
 }
 
 function isFolderRSS(folder) {
-  var rootURIarr = folder.rootFolder.URI.split("@");
+  let rootURIarr = folder.rootFolder.URI.split("@");
   return (rootURIarr[rootURIarr.length-1].indexOf("Feeds") !== -1);
 }
 
-function bufferNewEmailNotification (message) {
+function bufferNewEmailNotification(message) {
   clearTimeout(timeoutID);
   bufferedMessages.push(message);
   timeoutID = setTimeout(function() { showNewEmailNotificationFromBuffer(); }, 1000);
@@ -115,45 +120,37 @@ function showNotification (title, text, message){
 
   // Doing notification with buttons if Linux and buttons are supported in
   // the notify server
-  var sps = require("sdk/simple-prefs").prefs;
-  if (sps['engine'] === 1 && system.platform === "linux") {
-    var notifApi = require('./linux.js');
+  if (sps["engine"] === 1 && system.platform === "linux") {
+    const notifApi = require("./linux.js");
 
-    var actions = null;
+    let actions = null;
     if (message) {
-      if (sps['clickOptionNewEmail'] === 0) {
-      actions = [{
+      if (sps["clickOptionNewEmail"] === 0) {
+        actions = [{
           label: _("open"),
-          handler: function() {
-            display(message);
-          }
+          handler: ()=>{display(message);}
         }, {
           label: _("Mark_as_read"),
-          handler: function() {
-            message.markRead(true);
-          }
+          handler: ()=>{message.markRead(true);}
         }];
       } else {
         actions = [{
           label: _("Mark_as_read"),
-          handler: function() {
-            message.markRead(true);
-          }
+          handler: ()=>{message.markRead(true);}
         }, {
           label: _("open"),
-          handler: function() {
-            display(message);
-          }
+          handler: ()=>{display(message);}
         }];
       }
     }
 
     if (notifApi.checkButtonsSupported() &&
-        notifApi.notifyWithActions(utils.getIcon(), title, text, system.name,
-          function(reason) {}, actions)) {
+      notifApi.notifyWithActions(
+/* eslint-disable no-unused-vars */
+        utils.getIcon(), title, text, system.name, (reason)=>{}, actions)) {
+/* eslint-enable no-unused-vars */
       return;
     }
-
   }
 
   if (message) {
@@ -161,7 +158,9 @@ function showNotification (title, text, message){
       title: title,
       text: text,
       iconURL: utils.getIcon(),
-      onClick: function (data){display(message)}
+/* eslint-disable no-unused-vars */
+      onClick: (data)=>{display(message);}
+/* eslint-enable no-unused-vars */
     });
     return;
   }
@@ -175,110 +174,115 @@ function showNotification (title, text, message){
 
 // Display a given message. Heavily inspired by
 // https://developer.mozilla.org/docs/Mozilla/Thunderbird/Content_Tabs
-function display (message) {
-    // Try opening new tabs in an existing 3pane window
-    var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
-    //console.log(win.document.documentElement.getAttribute('windowtype'));
-    if (win) {
-        //INFO: tabmail is not supported in SeaMonkey
-        var tabmail = win.document.getElementById("tabmail");
-        var sps = require("sdk/simple-prefs").prefs;
-        if (sps['newMailOpen'] == 0) {
-          if (tabmail)
-            tabmail.openTab("message", {msgHdr: message});
-        } else {
-          if (tabmail)
-            tabmail.switchToTab(0);
-          win.gFolderDisplay.show(message.folder);
-          win.gFolderDisplay.selectMessage(message);
-        }
-
-        // On Windows, bring TB window to the front
-        if (system.platform === "winnt") {
-          require("./windowsUtils.js").forceFocus(win);
-        } else {
-          win.focus();
-        }
-
-        return;
+function display(message) {
+  // Try opening new tabs in an existing 3pane window
+  const win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
+  //console.log(win.document.documentElement.getAttribute('windowtype'));
+  if (win) {
+    //INFO: tabmail is not supported in SeaMonkey
+    let tabmail = win.document.getElementById("tabmail");
+    if (sps["newMailOpen"] == 0) {
+      if (tabmail)
+        tabmail.openTab("message", {msgHdr: message});
+    } else {
+      if (tabmail)
+        tabmail.switchToTab(0);
+      win.gFolderDisplay.show(message.folder);
+      win.gFolderDisplay.selectMessage(message);
     }
 
-    // If no window to open in can be found, fall back
-    // to any window and spwan a new one from there.
-    require("sdk/window/utils").windows()[0].openDialog("chrome://messenger/content/messageWindow.xul", "_blank", "all,chrome,dialog=no,status,toolbar", message);
+    // On Windows, bring TB window to the front
+    if (system.platform === "winnt") {
+      require("./windowsUtils.js").forceFocus(win);
+    } else {
+      win.focus();
+    }
+
+    return;
+  }
+
+  // If no window to open in can be found, fall back
+  // to any window and spwan a new one from there.
+  require("sdk/window/utils").windows()[0].openDialog(
+    "chrome://messenger/content/messageWindow.xul",
+    "_blank",
+    "all,chrome,dialog=no,status,toolbar",
+    message
+  );
 }
 
 function format (message, format, callback){
-  var author = gHeaderParser.parseDecodedHeader(message.mime2DecodedAuthor);
+  let author = gHeaderParser.parseDecodedHeader(message.mime2DecodedAuthor);
 
-  var string = format.replace(new RegExp("(%[samnfvkubc%])", 'g'), function(match, p1){
+  let string = format.replace(new RegExp("(%[samnfvkubc%])", "g"), (match, p1)=>{
     switch(p1){
-      // Subject, with "Re:" when appropriate
-      case "%s":
-        var hasRe = message.flags & Ci.nsMsgMessageFlags.HasRe;
-        return hasRe ? 'Re: ' + message.mime2DecodedSubject : message.mime2DecodedSubject;
-      // Full Author
-      case "%a":
-        return message.mime2DecodedAuthor;
-      // Author e-mail address only
-      case "%m":
-        return author[0].email;
-      // Author name only
-      case "%n":
-        return author[0].name;
-      // Folder
-      case "%f":
-        return message.folder.prettiestName;
-      // Server
-      case "%v":
-        return message.folder.server.hostName;
-      // Size
-      case "%k":
-        return gMessenger.formatFileSize(message.messageSize);
-      // Account name
-      case "%u":
-        return message.folder.server.prettyName;
-      // Body excerpt
-      case "%b":
-        var body = getMessageBody(message);
-        body = body.replace(/\n/g, ' ').trim().substr(0, 80).trim();
-        body += body.length > 80 ? "..." : "";
-        return body;
-      // Numer of unread messages
-      case "%c":
-        return getUnreadMessageCount();
-      // Percent
-      case "%%":
-        return "%";
+    // Subject, with "Re:" when appropriate
+    case "%s":
+      var hasRe = message.flags & Ci.nsMsgMessageFlags.HasRe;
+      return hasRe ? "Re: " + message.mime2DecodedSubject : message.mime2DecodedSubject;
+    // Full Author
+    case "%a":
+      return message.mime2DecodedAuthor;
+    // Author e-mail address only
+    case "%m":
+      return author[0].email;
+    // Author name only
+    case "%n":
+      return author[0].name;
+    // Folder
+    case "%f":
+      return message.folder.prettiestName;
+    // Server
+    case "%v":
+      return message.folder.server.hostName;
+    // Size
+    case "%k":
+      return gMessenger.formatFileSize(message.messageSize);
+    // Account name
+    case "%u":
+      return message.folder.server.prettyName;
+    // Body excerpt
+    case "%b":
+      var body = getMessageBody(message);
+      body = body.replace(/\n/g, " ").trim().substr(0, 80).trim();
+      body += body.length > 80 ? "..." : "";
+      return body;
+    // Numer of unread messages
+    case "%c":
+      return getUnreadMessageCount();
+    // Percent
+    case "%%":
+      return "%";
     }
   });
   callback(string);
 
   function getMessageBody(aMsgHdr){
-    var listener = Cc["@mozilla.org/network/sync-stream-listener;1"].createInstance(Ci.nsISyncStreamListener);
+    const listener = Cc["@mozilla.org/network/sync-stream-listener;1"].createInstance(Ci.nsISyncStreamListener);
 
-    var uri = aMsgHdr.folder.getUriForMsg(aMsgHdr);
+    let uri = aMsgHdr.folder.getUriForMsg(aMsgHdr);
     gMessenger.messageServiceFromURI(uri).streamMessage(uri, listener, null, null, false, "");
-    var folder = aMsgHdr.folder;
-    return folder.getMsgTextFromStream(listener.inputStream,
-                                                  aMsgHdr.Charset,
-                                                  65536,
-                                                  100,
-                                                  false,
-                                                  true,
-                                                  { });
+    let folder = aMsgHdr.folder;
+    return folder.getMsgTextFromStream(
+      listener.inputStream,
+      aMsgHdr.Charset,
+      65536,
+      100,
+      false,
+      true,
+      { }
+    );
   }
 }
 
 function testNotification () {
-  var win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
+  const win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
   if (win && win.gFolderDisplay && win.gFolderDisplay.selectedMessage) {
 
     // Folder filtering test
-    var folder = win.gFolderDisplay.selectedMessage.folder
+    let folder = win.gFolderDisplay.selectedMessage.folder;
     if (isFolderExcluded(folder) || !isFolderAllowed(folder)) {
-      var notifications = require("sdk/notifications");
-      var name = folder.rootFolder.prettiestName + "|" + folder.prettiestName;
+      let name = folder.rootFolder.prettiestName + "|" + folder.prettiestName;
       utils.showGnotifierNotification("Notifications from folder \"" + name + "\" are disabled.");
       return;
     }
@@ -292,7 +296,6 @@ function testNotification () {
 
 function isFolderExcluded(folder) {
   // Reference: https://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgFolderFlags.idl
-
   // Junk
   if (folder.getFlag(0x40000000))
     return true;
@@ -317,14 +320,12 @@ function isFolderExcluded(folder) {
 
 function isFolderAllowed(folder) {
   // Allow user to filter specific folders.
-
-  var sps = require("sdk/simple-prefs").prefs;
-  var foldersAllowedListPref = sps['foldersAllowedList'].trim();
+  let foldersAllowedListPref = sps["foldersAllowedList"].trim();
   if (foldersAllowedListPref !== "") {
-    var foldersAllowedList = foldersAllowedListPref.split(",")
-    for (var i = 0; i < foldersAllowedList.length; i++) {
-      var folderName1 = foldersAllowedList[i].toLowerCase().trim();
-      var folderName2;
+    let foldersAllowedList = foldersAllowedListPref.split(",");
+    for (let i = 0; i < foldersAllowedList.length; i++) {
+      let folderName1 = foldersAllowedList[i].toLowerCase().trim();
+      let folderName2;
       if (folderName1.indexOf("|") !== -1) {
         // Folder name contains rootFolder name
         folderName2 = folder.rootFolder.prettiestName.toLowerCase() + "|" + folder.prettiestName.toLowerCase();
@@ -343,15 +344,15 @@ function isFolderAllowed(folder) {
 }
 
 function getFoldersWithNewMail (aFolder) {
-  var folderList = [];
+  let folderList = [];
   if (aFolder) {
     if (aFolder.biffState == Ci.nsIMsgFolder.nsMsgBiffState_NewMail) {
       if (aFolder.hasNewMessages)
         folderList.push(aFolder);
       if (aFolder.hasSubFolders) {
-        var subFolders = aFolder.subFolders;
+        let subFolders = aFolder.subFolders;
         while (subFolders.hasMoreElements()) {
-          var subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
+          let subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
           if (subFolder)
             folderList = folderList.concat(getFoldersWithNewMail(subFolder));
         }
@@ -363,9 +364,7 @@ function getFoldersWithNewMail (aFolder) {
 
 var mailListener = {
   OnItemIntPropertyChanged: function (aItem,aProperty,aOldValue,aNewValue) {
-    var sps = require("sdk/simple-prefs").prefs;
-
-    if (!sps['enableRSS'] && isFolderRSS(aItem)) {
+    if (!sps["enableRSS"] && isFolderRSS(aItem)) {
       // Notifications for RSS are disabled
       return;
     }
@@ -377,20 +376,20 @@ var mailListener = {
       (aProperty == "NewMailReceived")
     ) {
 
-      var folderList = getFoldersWithNewMail(aItem);
+      let folderList = getFoldersWithNewMail(aItem);
       if (folderList.length == 0) {
-          // Can't find folder with BiffState == nsMsgBiffState_NewMail
-          return;
+        // Can't find folder with BiffState == nsMsgBiffState_NewMail
+        return;
       }
 
-      for (var i in folderList) {
+      for (let i in folderList) {
         if (folderList[i]) {
-          var folder = folderList[i];
+          let folder = folderList[i];
           if (!isFolderExcluded(folder) && isFolderAllowed(folder)) {
             // Looking for messages with flag == Ci.nsMsgMessageFlags.New
-            var messages = folder.messages;
+            let messages = folder.messages;
             while (messages.hasMoreElements()) {
-              var message = messages.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+              let message = messages.getNext().QueryInterface(Ci.nsIMsgDBHdr);
               if (message.flags & Ci.nsMsgMessageFlags.New) {
                 if (message.getUint32Property("gnotifier-done") != 1) {
                   bufferNewEmailNotification(message);
@@ -401,21 +400,19 @@ var mailListener = {
           }
         }
       }
-
     }
   }
 };
 
-exports.init = function() {
+exports.init = ()=>{
   // Disabling native new email alert
-  var ps = require('sdk/preferences/service');
   ps.set("mail.biff.show_alert", false);
 
   // Folder listeners registration for OnItemIntPropertyChanged
-  var folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
+  const folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
   folderListenerManager.AddFolderListener(mailListener, 0x8);
 
-  var sp = require("sdk/simple-prefs");
+  const sp = require("sdk/simple-prefs");
   sp.on("test", function() {
     testNotification();
   });
@@ -425,9 +422,8 @@ exports.deInit = function() {
   bufferedMessages = [];
 
   // Enabling native new email alert
-  var ps = require('sdk/preferences/service');
   ps.set("mail.biff.show_alert", true);
 
-  var folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
+  const folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
   folderListenerManager.RemoveFolderListener(mailListener);
 };
