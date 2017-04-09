@@ -18,9 +18,7 @@
 // In the code, checking for "1.2" or other server versions
 // refers to the version implemented server-side.
 
-/* eslint-disable no-unused-vars */
-const { Cc, Ci, Cu, Cm, Cr } = require("chrome");
-/* eslint-enable no-unused-vars */
+const {Cu} = require("chrome");
 
 Cu.import("resource://gre/modules/ctypes.jsm", this);
 const _ = require("sdk/l10n").get;

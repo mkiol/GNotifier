@@ -12,9 +12,7 @@
  * @license GPL-3.0 <https://www.gnu.org/licenses/gpl-3.0.html>
  */
 
-/* eslint-disable no-unused-vars */
-let { Cc, Ci, Cu, Cm, Cr, components } = require("chrome");
-/* eslint-enable no-unused-vars */
+const {Cc, Ci, Cu, Cm, components} = require("chrome");
 
 Cu.import("resource://gre/modules/Timer.jsm");
 Cu.import("resource://gre/modules/FileUtils.jsm");
@@ -49,8 +47,8 @@ function showDownloadCompleteNotification(path) {
     }
   }
 
-  const title = _("download_finished");
-  const text = filename;
+  let title = _("download_finished");
+  let text = filename;
 
   // If engine = 1 & linux & supports action buttons, add 2 actions:
   // open file & open folder
@@ -65,31 +63,32 @@ function showDownloadCompleteNotification(path) {
     if (sps["clickOption"] == 0) {
       actions = [{
         label: plasma ? _("Folder") : _("Open_folder"),
-        handler: ()=>{utils.openDir(path)}
+        handler: ()=>{utils.openDir(path);}
       }, {
         label: plasma ? _("File") : _("Open_file"),
-        handler: ()=>{utils.openFile(path)}
+        handler: ()=>{utils.openFile(path);}
       }];
     } else {
       actions = [{
         label: plasma ? _("File") : _("Open_file"),
-        handler: ()=>{utils.openFile(path)}
+        handler: ()=>{utils.openFile(path);}
       }, {
         label: plasma ? _("Folder") : _("Open_folder"),
-        handler: ()=>{utils.openDir(path)}
+        handler: ()=>{utils.openDir(path);}
       }];
     }
-
+/* eslint-disable no-unused-vars */
     if (notifApi.notifyWithActions(utils.getIcon(), title, text,
         system.name, (reason)=>{}, actions))
       return;
+/* eslint-enable no-unused-vars */
   }
 
   // Below only makes sense for some linux distros e.g. KDE, Gnome Shell
   // If linux and libnotify is inited, add "Open" button:
   // <input text="Open" type="submit"/>
   if (sps["engine"] === 1 && system.platform === "linux")
-      text = text+"<input text='"+_("open")+"' type='submit'/>";
+    text = text+"<input text='"+_("open")+"' type='submit'/>";
 
   // Generate standard desktop notification
   const notifications = require("sdk/notifications");
@@ -98,11 +97,11 @@ function showDownloadCompleteNotification(path) {
     text: text,
     iconURL: utils.getIcon(),
     onClick: ()=>{
-      if (sps['clickOption'] == 0) {
+      if (sps["clickOption"] == 0) {
         utils.openDir(path);
       } else {
         utils.openFile(path);
-      };
+      }
     }
   });
 }
@@ -119,7 +118,7 @@ const downloadProgressListener = {
       }
     }
   }
-}
+};
 
 // Works only for FF>=26
 Task.spawn(function(){
@@ -137,7 +136,7 @@ Task.spawn(function(){
     };
     yield list.addView(view);
   } catch(e) {
-    console.error("Unexpected exception ",e);
+    console.error(e);
   }
 }).then(null, Cu.reportError);
 
@@ -165,7 +164,7 @@ AlertsService.prototype = {
     // Engine 2 - custom command
     if (sps["engine"] === 2) {
       if (sps["command"] !== "") {
-        let command = sps['command'];
+        let command = sps["command"];
         command = command.replace("%image",imageUrl);
         command = command.replace("%title",title);
         command = command.replace("%text",text);
@@ -175,13 +174,15 @@ AlertsService.prototype = {
     }
 
     function GNotifier_AlertsService_showAlertNotification_cb(iconPath) {
-      const closeHandler = (reason)=>{
+/* eslint-disable no-unused-vars */
+      let closeHandler = (reason)=>{
         if(alertListener) {
           alertListener.observe(null, "alertfinished", cookie);
         }
       };
+/* eslint-enable no-unused-vars */
 
-      const clickHandler = textClickable ? ()=>{
+      let clickHandler = textClickable ? ()=>{
         if(alertListener) {
           alertListener.observe(null, "alertclickcallback", cookie);
         }
@@ -206,22 +207,22 @@ AlertsService.prototype = {
 
     try {
       // Try using a local icon file URL
-      const imageURI = NetUtil.newURI(imageUrl);
-      const iconFile = imageURI.QueryInterface(Ci.nsIFileURL).file;
+      let imageURI = NetUtil.newURI(imageUrl);
+      let iconFile = imageURI.QueryInterface(Ci.nsIFileURL).file;
       GNotifier_AlertsService_showAlertNotification_cb(iconFile.path);
     } catch(e) {
       try {
-        const imageHash = "gnotifier-"+utils.getHash(imageUrl);
-        const tempIconFile = FileUtils.getFile("TmpD", ["gnotifier", imageHash]);
+        let imageHash = "gnotifier-"+utils.getHash(imageUrl);
+        let tempIconFile = FileUtils.getFile("TmpD", ["gnotifier", imageHash]);
         if (tempIconFile.exists()) {
           // icon file exists in tmp, using tmp file
           GNotifier_AlertsService_showAlertNotification_cb(tempIconFile.path);
         } else {
           // icon file doesn't exist in tmp, downloading icon to tmp file
-          const imageFile = NetUtil.newChannel(imageUrl);
+          let imageFile = NetUtil.newChannel(imageUrl);
           NetUtil.asyncFetch(imageFile, (imageStream,result)=>{
             if (!components.isSuccessCode(result)) {
-              console.warn("NetUtil.asyncFetch error! result:",result);
+              console.warn("NetUtil.asyncFetch error! result:", result);
               return;
             }
             // Create temporary local file
@@ -231,7 +232,7 @@ AlertsService.prototype = {
               Ci.nsIFile.NORMAL_FILE_TYPE,
               FileUtils.PERMS_FILE
             );
-            const iconStream = FileUtils.openSafeFileOutputStream(tempIconFile);
+            let iconStream = FileUtils.openSafeFileOutputStream(tempIconFile);
             NetUtil.asyncCopy(imageStream, iconStream, function(result) {
               if (!components.isSuccessCode(result)) {
                 console.log("NetUtil.asyncCopy error! result:", result);
@@ -250,19 +251,21 @@ AlertsService.prototype = {
   }
 };
 
-function deleteTempFiles () {
+function deleteTempFiles() {
   const tempDir = FileUtils.getDir("TmpD",["gnotifier"]);
   const entries = tempDir.directoryEntries;
   while(entries.hasMoreElements()) {
     let entry = entries.getNext();
     entry.QueryInterface(Ci.nsIFile);
-    const filename = entry.path.replace(/^.*[\\\/]/, '');
+    let filename = entry.path.replace(/^.*[\\\/]/, "");
     if (filename.substring(0, 10) === "gnotifier-")
       entry.remove(false);
   }
 }
 
+/* eslint-disable no-unused-vars */
 exports.main = (options, callbacks)=>{
+/* eslint-enable no-unused-vars */
   if (!notifApi) {
     if (system.platform === "winnt") {
       notifApi = require("./windows.js");
@@ -299,7 +302,9 @@ exports.main = (options, callbacks)=>{
     // Works only in FF<26 and SeaMonkey
     let dm = Cc["@mozilla.org/download-manager;1"].getService(Ci.nsIDownloadManager);
     dm.addListener(downloadProgressListener);
-  } catch(e) {}
+  } catch(e) {
+    console.error("Expected exception");
+  }
 
   try {
     // Works only in FF<26 and SeaMonkey
@@ -308,13 +313,15 @@ exports.main = (options, callbacks)=>{
       ps.set("browser.download.manager.showAlertOnComplete", false);
     else
       ps.set("browser.download.manager.showAlertOnComplete", true);
-  } catch(e) {}
+  } catch(e) {
+    console.error("Expected exception");
+  }
 
   // Thunderbird init
   if (system.name == "Thunderbird" ||
       system.name == "SeaMonkey" ||
       system.name == "Icedove") {
-    let thunderbird = require('./thunderbird.js');
+    let thunderbird = require("./thunderbird.js");
     thunderbird.init();
   } else {
     require("sdk/simple-prefs").on("test", ()=>{
@@ -324,6 +331,7 @@ exports.main = (options, callbacks)=>{
 };
 
 exports.onUnload = (reason)=>{
+  console.log("Unload reason: " + reason);
   deleteTempFiles();
 
   if (!notifApi) {
@@ -353,7 +361,9 @@ exports.onUnload = (reason)=>{
   try {
     let ps = require("sdk/preferences/service");
     ps.set("browser.download.manager.showAlertOnComplete", true);
-  } catch(e) {}
+  } catch(e) {
+    console.log("Expected exception");
+  }
 
   // Thunderbird deinit
   if (system.name == "Thunderbird" ||
@@ -362,4 +372,4 @@ exports.onUnload = (reason)=>{
     let thunderbird = require("./thunderbird.js");
     thunderbird.deInit();
   }
-}
+};

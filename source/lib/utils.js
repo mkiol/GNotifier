@@ -10,9 +10,7 @@
  * @license GPL-3.0 <https://www.gnu.org/licenses/gpl-3.0.html>
  */
 
-/* eslint-disable no-unused-vars */
-const { Cc, Ci, Cu, Cm, Cr } = require("chrome");
-/* eslint-enable no-unused-vars */
+const {Cc, Ci} = require("chrome");
 
 const system = require("sdk/system");
 const sps = require("sdk/simple-prefs").prefs;
