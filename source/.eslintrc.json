@@ -5,12 +5,16 @@
     },
     "extends": "eslint:recommended",
     "globals": {
-        "browser": true,
-        "chrome": true,
-        "Downloads": true,
+        "browser": false,
+        "chrome": false,
+        "Downloads": false,
+        "FileUtils": false,
         "require": false,
         "exports": false,
-        "ctypes": true
+        "ctypes": false,
+        "XPCOMUtils": false,
+        "NetUtil": false,
+        "Task": false
     },
     "rules": {
         "no-tabs": "warn",

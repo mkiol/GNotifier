@@ -28,7 +28,7 @@ const sps = require("sdk/simple-prefs").prefs;
 let libc = null;
 let actionsCallbackFunArray = [];
 let closedCallbackFunArray = [];
-let notificationArray = [];
+let notificationMap = new Map();
 
 let serverCapabilities = [];
 let serverName;
@@ -160,8 +160,8 @@ function handleClose(notification, data) {
     const notification_id = ctypes.cast(data, ctypes.uintptr_t).value.toString();
 
     console.log("Notification " + notification_id + " has been closed.");
-    if (notificationArray.hasOwnProperty(notification_id))
-      delete notificationArray[notification_id];
+    if (notificationMap.has(notification_id))
+      notificationMap.delete(notification_id);
 
     let i = closedCallbackFunArray.length;
     while (i > 0 && closedCallbackFunArray.length > 0) {
@@ -283,22 +283,22 @@ exports.deInit = ()=>{
 };
 
 exports.closeAll = ()=>{
-  for(let id in notificationArray) {
+  for(let id of notificationMap.values()) {
     exports.close(id);
   }
 };
 
 exports.close = (id)=>{
   try {
-    if (notificationArray.hasOwnProperty(id)) {
+    if (notificationMap.has(id)) {
       let error = new struct_gerror_ptr;
-      if (!notify_notification_close(notificationArray[id], error)) {
+      if (!notify_notification_close(notificationMap.get(id), error)) {
         console.error("Notify_notification_close fails:");
         console.error("error code: " + error.fields["gerror_code"]);
         console.error("error message: " + error.fields["gerror_message"].readString());
       }
       console.log("Request to close notification " + id + " has been sent.");
-      delete notificationArray[id];
+      notificationMap.delete(id);
     }
   } catch (e) {
     console.error(e);
@@ -415,7 +415,7 @@ exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actio
     return false;
   }
 
-  notificationArray[notification_id] = notification;
+  notificationMap.set(notification_id, notification);
 
   // Connecting closed signal
   if (closeHandler && typeof(closeHandler) === "function") {

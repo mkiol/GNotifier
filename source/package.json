@@ -176,6 +176,14 @@
             "description": "Select a message from any folder, then come back and click on 'Test notification'",
             "type": "control",
             "value": ""
+        },
+        {
+            "name": "close",
+            "title": "Close all notifications (Thunderbird only)",
+            "label": "Close notifications",
+            "description": "Hides all notification from the screen",
+            "type": "control",
+            "value": ""
         }
     ]
 }

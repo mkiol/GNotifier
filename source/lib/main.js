@@ -121,14 +121,14 @@ const downloadProgressListener = {
 };
 
 // Works only for FF>=26
-Task.spawn(function(){
+Task.spawn(function*() {
   try {
     let list = yield Downloads.getList(Downloads.ALL);
     let view = {
-      onDownloadChanged: function(download) {
-        if(sps['downloadCompleteAlert'] && download.succeeded) {
+      onDownloadChanged: (download)=>{
+        if(sps["downloadCompleteAlert"] && download.succeeded) {
           if (download.target.exists === undefined || download.target.exists === true) {
-            console.log("onDownloadChanged: " + download.target.path);
+            //console.log("onDownloadChanged: " + download.target.path);
             showDownloadCompleteNotification(download.target.path);
           }
         }
@@ -141,19 +141,20 @@ Task.spawn(function(){
 }).then(null, Cu.reportError);
 
 // New implmentation of Alert Service
-function AlertsService() {}
-AlertsService.prototype = {
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIAlertsService]),
+class AlertsService {
+  constructor() {
+    this.QueryInterface = XPCOMUtils.generateQI([Ci.nsIAlertsService]);
+  }
 
   // New nsIAlertsService API (FF 46)
-  showAlert: (alert, alertListener)=>{
+  showAlert(alert, alertListener) {
     this.showAlertNotification(alert.imageURL, alert.title, alert.text,
       alert.textClickable, alert.cookie, alertListener, alert.name,
       alert.dir, alert.lang);
-  },
+  }
 
-  showAlertNotification: (imageUrl, title, text, textClickable, cookie,
-                          alertListener, name, dir, lang)=>{
+  showAlertNotification(imageUrl, title, text, textClickable,
+                        cookie, alertListener, name, dir, lang) {
     // Engine 0 - FF built-in
     if (sps["engine"] === 0) {
       origAlertsService.showAlertNotification(imageUrl, title, text,
@@ -249,7 +250,7 @@ AlertsService.prototype = {
       }
     }
   }
-};
+}
 
 function deleteTempFiles() {
   const tempDir = FileUtils.getDir("TmpD",["gnotifier"]);
