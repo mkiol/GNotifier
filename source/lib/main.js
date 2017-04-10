@@ -2,10 +2,6 @@
  * GNotifier - Firefox/Thunderbird add-on that replaces
  * built-in notifications with the OS native notifications
  *
- * Copyright 2014 by Michal Kosciesza <michal@mkiol.net>
- * Copyright 2014 by Alexander Schlarb <alexander1066@xmine128.tk>
- * Copyright 2014 by Joe Simpson <headbangerkenny@gmail.com>
- *
  * Licensed under GNU General Public License 3.0 or later.
  * Some rights reserved. See COPYING, AUTHORS.
  *
@@ -77,11 +73,11 @@ function showDownloadCompleteNotification(path) {
         handler: ()=>{utils.openDir(path);}
       }];
     }
-/* eslint-disable no-unused-vars */
+    /* eslint-disable no-unused-vars */
     if (notifApi.notifyWithActions(utils.getIcon(), title, text,
-        system.name, (reason)=>{}, actions))
+        system.name, reason=>{}, actions))
       return;
-/* eslint-enable no-unused-vars */
+    /* eslint-enable no-unused-vars */
   }
 
   // Below only makes sense for some linux distros e.g. KDE, Gnome Shell
@@ -175,13 +171,13 @@ class AlertsService {
     }
 
     function GNotifier_AlertsService_showAlertNotification_cb(iconPath) {
-/* eslint-disable no-unused-vars */
-      let closeHandler = (reason)=>{
+      /* eslint-disable no-unused-vars */
+      let closeHandler = reason=>{
         if(alertListener) {
           alertListener.observe(null, "alertfinished", cookie);
         }
+      /* eslint-enable no-unused-vars */
       };
-/* eslint-enable no-unused-vars */
 
       let clickHandler = textClickable ? ()=>{
         if(alertListener) {
@@ -275,6 +271,8 @@ exports.main = (options, callbacks)=>{
     }
   }
 
+  const sp = require("sdk/simple-prefs");
+
   if(notifApi.init()) {
     // Replace alert-service
     const contract = "@mozilla.org/alerts-service;1";
@@ -293,6 +291,14 @@ exports.main = (options, callbacks)=>{
       contract,
       XPCOMUtils.generateSingletonFactory(AlertsService)
     );
+
+    // Close notification button
+    sp.on("close", function() {
+      if (sps["engine"] === 1 && system.platform === "linux") {
+        notifApi.closeAll();
+      }
+    });
+
   } else {
     notifApi = null;
     console.error("Notification API init has failed!");
@@ -304,7 +310,7 @@ exports.main = (options, callbacks)=>{
     let dm = Cc["@mozilla.org/download-manager;1"].getService(Ci.nsIDownloadManager);
     dm.addListener(downloadProgressListener);
   } catch(e) {
-    console.error("Expected exception");
+    // continue regardless of error
   }
 
   try {
@@ -315,7 +321,7 @@ exports.main = (options, callbacks)=>{
     else
       ps.set("browser.download.manager.showAlertOnComplete", true);
   } catch(e) {
-    console.error("Expected exception");
+    // continue regardless of error
   }
 
   // Thunderbird init
@@ -325,7 +331,7 @@ exports.main = (options, callbacks)=>{
     let thunderbird = require("./thunderbird.js");
     thunderbird.init();
   } else {
-    require("sdk/simple-prefs").on("test", ()=>{
+    sp.on("test", ()=>{
       utils.showGnotifierNotification("This works only in Thunderbird!");
     });
   }
@@ -363,7 +369,7 @@ exports.onUnload = (reason)=>{
     let ps = require("sdk/preferences/service");
     ps.set("browser.download.manager.showAlertOnComplete", true);
   } catch(e) {
-    console.log("Expected exception");
+    // continue regardless of error
   }
 
   // Thunderbird deinit

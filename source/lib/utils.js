@@ -2,8 +2,6 @@
  * GNotifier - Firefox/Thunderbird add-on that replaces
  * built-in notifications with the OS native notifications
  *
- * Copyright 2014 by Michal Kosciesza <michal@mkiol.net>
- *
  * Licensed under GNU General Public License 3.0 or later.
  * Some rights reserved. See COPYING, AUTHORS.
  *

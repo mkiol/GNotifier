@@ -2,8 +2,6 @@
  * GNotifier - Firefox/Thunderbird add-on that replaces
  * built-in notifications with the OS native notifications
  *
- * Copyright 2014 by Michal Kosciesza <michal@mkiol.net>
- *
  * Licensed under GNU General Public License 3.0 or later.
  * Some rights reserved. See COPYING, AUTHORS.
  *
@@ -225,9 +223,11 @@ function format(message, format, callback){
   let string = format.replace(new RegExp("(%[samnfvkubc%])", "g"), (match, p1)=>{
     switch(p1){
     // Subject, with "Re:" when appropriate
-    case "%s":
-      var hasRe = message.flags & Ci.nsMsgMessageFlags.HasRe;
-      return hasRe ? "Re: " + message.mime2DecodedSubject : message.mime2DecodedSubject;
+    case "%s": {
+      let hasRe = message.flags & Ci.nsMsgMessageFlags.HasRe;
+      let subject = message.mime2DecodedSubject == "" ? _("Empty_subject") : message.mime2DecodedSubject;
+      return hasRe ? "Re: " + subject : subject;
+    }
     // Full Author
     case "%a":
       return message.mime2DecodedAuthor;
@@ -250,11 +250,12 @@ function format(message, format, callback){
     case "%u":
       return message.folder.server.prettyName;
     // Body excerpt
-    case "%b":
-      var body = getMessageBody(message);
+    case "%b": {
+      let body = getMessageBody(message);
       body = body.replace(/\n/g, " ").trim().substr(0, 80).trim();
       body += body.length > 80 ? "..." : "";
-      return body;
+      return body == "" ? _("Empty_body") : body;
+    }
     // Numer of unread messages
     case "%c":
       return getUnreadMessageCount();
@@ -280,13 +281,6 @@ function format(message, format, callback){
       true,
       { }
     );
-  }
-}
-
-function closeNotifications() {
-  if (sps["engine"] === 1 && system.platform === "linux") {
-    const notifApi = require("./linux.js");
-    notifApi.closeAll();
   }
 }
 
@@ -454,9 +448,6 @@ exports.init = ()=>{
   const sp = require("sdk/simple-prefs");
   sp.on("test", function() {
     testNotification();
-  });
-  sp.on("close", function() {
-    closeNotifications();
   });
 };
 

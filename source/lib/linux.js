@@ -278,17 +278,18 @@ exports.init = ()=>{
 exports.deInit = ()=>{
   actionsCallbackFunArray = [];
   closedCallbackFunArray = [];
+  notificationMap.clear();
   if (libc)
     libc.close();
 };
 
 exports.closeAll = ()=>{
-  for(let id of notificationMap.values()) {
+  for(let id of notificationMap.keys()) {
     exports.close(id);
   }
 };
 
-exports.close = (id)=>{
+exports.close = id=>{
   try {
     if (notificationMap.has(id)) {
       let error = new struct_gerror_ptr;
