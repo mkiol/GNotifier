@@ -65,6 +65,7 @@ function isFolderRSS(folder) {
 function bufferNewEmailNotification(message) {
   clearTimeout(timeoutID);
   bufferedMessages.push(message);
+  console.log(message.mime2DecodedSubject);
   timeoutID = setTimeout(()=>{showNewEmailNotificationFromBuffer();}, 1000);
 }
 
@@ -75,9 +76,9 @@ function showNewEmailNotificationFromBuffer() {
     for (var i = 0; i < bufferedMessages.length; i++) {
       showMessageNotification(bufferedMessages[i]);
     }
-    bufferedMessages = [];
   }
 
+  bufferedMessages = [];
   timeoutID = null;
 }
 
@@ -419,12 +420,15 @@ function isFolderAllowed(folder) {
   return false;
 }
 
-function getFoldersWithNewMail (aFolder) {
+function getFoldersWithNewMail(aFolder) {
   let folderList = [];
   if (aFolder) {
     if (aFolder.biffState == Ci.nsIMsgFolder.nsMsgBiffState_NewMail) {
-      if (aFolder.hasNewMessages)
+      if (aFolder.hasNewMessages) {
         folderList.push(aFolder);
+        //console.log("aFolder: " + aFolder.prettiestName);
+        //console.log("aFolder.rootFolder: " + aFolder.rootFolder.prettiestName);
+      }
       if (aFolder.hasSubFolders) {
         let subFolders = aFolder.subFolders;
         while (subFolders.hasMoreElements()) {
@@ -440,12 +444,14 @@ function getFoldersWithNewMail (aFolder) {
 
 var mailListener = {
   OnItemPropertyFlagChanged: (message, atom, oldFlag, newFlag)=>{
-    //console.log("OnItemPropertyFlagChanged");
-    //console.log(message);
-    //console.log(oldFlag);
-    //console.log(newFlag);
-    // Ci.nsMsgMessageFlags.Read = 1, so if message is marked as read, new-old=1
-    if (newFlag-oldFlag == 1) {
+    /*console.log("OnItemPropertyFlagChanged");
+    console.log(message.mime2DecodedSubject);
+    console.log("oldFlag: " + oldFlag);
+    console.log("newFlag: " + newFlag);
+    console.log("oldFlag isRead: " + ((oldFlag & Ci.nsMsgMessageFlags.Read) ? "true" : "false"));
+    console.log("newFlag isRead: " + ((newFlag & Ci.nsMsgMessageFlags.Read) ? "true" : "false"));*/
+    if ((newFlag & Ci.nsMsgMessageFlags.Read) &&
+        !(oldFlag & Ci.nsMsgMessageFlags.Read)) {
       const id = message.getStringProperty("gnotifier-notification-id");
       if (id) {
         console.log("Message marked as read and has notification_id="+id+" property");
@@ -470,7 +476,10 @@ var mailListener = {
       (aProperty == "NewMailReceived")
     ) {
 
-      let folderList = getFoldersWithNewMail(aItem);
+      //console.log("aItem: " + aItem.prettiestName);
+      //console.log("aItem.rootFolder: " + aItem.rootFolder.prettiestName);
+      let folderList = getFoldersWithNewMail(aItem.rootFolder);
+      //let folderList = getFoldersWithNewMail(aItem);
       if (folderList.length == 0) {
         // Can't find folder with BiffState == nsMsgBiffState_NewMail
         return;
