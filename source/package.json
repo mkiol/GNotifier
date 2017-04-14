@@ -11,7 +11,7 @@
     "title": "GNotifier",
     "fullName": "GNotifier",
     "id": "jid1-OoNOA6XBjznvLQ@jetpack",
-    "description": "GNotifier integrates Firefox/Thunderbird's notifications with the native notification system. It supports most Linux desktops, Windows 8.1 and 10",
+    "description": "GNotifier integrates Thunderbird's notifications with the native notification system. It supports most Linux desktops, Windows 8.1 and 10",
     "unpack": true,
     "main": "lib/main.js",
 
@@ -23,7 +23,7 @@
         {
             "name": "engine",
             "title": "Notification engine",
-            "description": "Defines how notification will be displayed. Possible options are: Firefox's built-in engine (Standard), OS native engine (GNotifier) or Custom shell command (Custom command).",
+            "description": "Defines how notification will be displayed. Possible options are: built-in engine (Standard), OS native engine (GNotifier) or Custom shell command (Custom command).",
             "type": "menulist",
             "value": 1,
             "options": [
@@ -102,21 +102,21 @@
         },
         {
             "name": "enableRSS",
-            "title": "Notifications for RSS feeds (Thunderbird only)",
+            "title": "Notifications for RSS feeds",
             "description": "Defines whether notifications for new RSS items should be displayed.",
             "type": "bool",
             "value": false
         },
         {
             "name": "maxMessageBuffer",
-            "title": "Maximum number of simultaneous notifications (Thunderbird only)",
-            "description": "Defines the maximum number of simultaneous notifications for new messages. For instance, \"5\" means that if you receive less or equal 5 messages at once, all will trigger individual notification, but if you receive more than 6 new messages at once, only 1 aggregated notification will be shown. Set to \"0\" to disable aggregation.",
+            "title": "Maximum number of simultaneous notifications",
+            "description": "Defines the maximum number of simultaneous notifications for new messages. For instance, \"5\" means that if you receive less or equal 5 messages at once, all will trigger individual notification, but if you receive more than 6 new messages at once, only 1 multiple messages notification will be shown. Set to \"0\" to disable aggregation.",
             "type": "integer",
             "value": 5
         },
         {
             "name": "newMailOpen",
-            "title": "Open new message action (Thunderbird only)",
+            "title": "Open new message action",
             "description": "Defines how new messages should be opened when you click on notification.",
             "type": "menulist",
             "value": 0,
@@ -133,7 +133,7 @@
         },
         {
             "name": "clickOptionNewEmail",
-            "title": "Default click action for E-mail notifications (Thunderbird only)",
+            "title": "Default click action for E-mail notifications",
             "description": "Defines default click action for e-mail notification.",
             "type": "menulist",
             "value": 0,
@@ -150,38 +150,60 @@
         },
         {
             "name": "emailTitleFormat",
-            "title": "Title for E-mail notifications (Thunderbird only)",
+            "title": "Title for message notification",
             "description": "%s: Subject, %a: Sender (Name <E-mail>), %m: Sender E-mail, %n: Sender Name, %f: Folder, %v: Server, %k: Size, %u: Account, %b: Body excerpt, %c: Number of unread messages, %%: %",
             "type": "string",
             "value": "%a"
         },
         {
             "name": "emailTextFormat",
-            "title": "Text for E-mail notifications (Thunderbird only)",
+            "title": "Text for message notification",
             "description": "%s: Subject, %a: Sender (Name <E-mail>), %m: Sender E-mail, %n: Sender Name, %f: Folder, %v: Server, %k: Size, %u: Account, %b: Body excerpt, %c: Number of unread messages, %%: %, \\n: Newline",
             "type": "string",
             "value": "%s"
         },
         {
+            "name": "aggregatedEmailTitleFormat",
+            "title": "Title for multiple messages notification",
+            "description": "%C: Count of new messages, %c: Number of unread messages, %%: %",
+            "type": "string",
+            "value": "%_Number_of_new_messages %C"
+        },
+        {
+            "name": "aggregatedEmailTextFormat",
+            "title": "Text for multiple messages notification",
+            "description": "%[format]{n}: Format definition (the same as in \"Text for message notification\") for \"n\" first emails, %C: Count of new messages, %c: Number of unread messages, %%: %, \\n: Newline",
+            "type": "string",
+            "value": "%[%n: %s]{3}"
+        },
+        {
             "name": "foldersAllowedList",
-            "title": "List of folders to allow notifications from (Thunderbird only)",
+            "title": "List of folders to allow notifications from",
             "description": "Comma seperated list of folder names (or account name, folder name pairs). For example:  \"My email|Inbox, My folder\" will only allow notifications from \"Inbox\" folder under \"My email\" account and from any folder with name \"My folder\". Set to blank to allow all.",
             "type": "string",
             "value": ""
         },
         {
             "name": "test",
-            "title": "Test Notification (Thunderbird only)",
-            "label": "Test notification",
-            "description": "Select a message from any folder, then come back and click on 'Test notification'",
+            "title": "Test notification",
+            "label": "Test",
+            "description": "Select a message from any folder, then come back and click on 'Test'",
+            "type": "control",
+            "value": ""
+        },
+        {
+            "name": "testAggregated",
+            "title": "Test multiple messages notification",
+            "label": "Test",
+            "description": "Select a message from any folder, then come back and click on 'Test'",
             "type": "control",
             "value": ""
         },
         {
             "name": "close",
-            "title": "Close all notifications (Thunderbird only)",
+            "title": "Close all notifications (Linux only)",
             "label": "Close notifications",
-            "description": "Hides all notification from the screen",
+            "description": "Close all active notifications",
             "type": "control",
             "value": ""
         }

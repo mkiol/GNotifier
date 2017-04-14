@@ -33,11 +33,6 @@ function getUnreadMessageCount() {
   return newMailNotificationService.messageCount;
 }
 
-function showAggregatedNotification() {
-  let text = _("Number_of_new_messages") + " " + bufferedMessages.length;
-  showNotification(_("New_messages"), text, null);
-}
-
 function showMessageNotification(message) {
   if (isFolderRSS(message.folder)) {
     showNewRSSNotification(message);
@@ -70,37 +65,37 @@ function isFolderRSS(folder) {
 function bufferNewEmailNotification(message) {
   clearTimeout(timeoutID);
   bufferedMessages.push(message);
-  timeoutID = setTimeout(function() { showNewEmailNotificationFromBuffer(); }, 1000);
+  timeoutID = setTimeout(()=>{showNewEmailNotificationFromBuffer();}, 1000);
 }
 
-function showNewEmailNotificationFromBuffer () {
-  var sps = require("sdk/simple-prefs").prefs;
-  if (sps["maxMessageBuffer"] > 0 && bufferedMessages.length > sps["maxMessageBuffer"]) {
+function showNewEmailNotificationFromBuffer() {
+  if (sps.maxMessageBuffer > 0 && bufferedMessages.length > sps.maxMessageBuffer) {
     showAggregatedNotification();
   } else {
     for (var i = 0; i < bufferedMessages.length; i++) {
       showMessageNotification(bufferedMessages[i]);
     }
+    bufferedMessages = [];
   }
 
-  bufferedMessages = [];
-  timeoutID = undefined;
+  timeoutID = null;
 }
 
-function showNewEmailNotification (message) {
-  var sps = require("sdk/simple-prefs").prefs;
-  var textFormat = sps.emailTextFormat.replace(/\\n/, "\n");
-
-  format(message, sps.emailTitleFormat, function(string){
-    var title = string;
-    format(message, textFormat, function(string){
-      var text = string;
-      showNotification(title, text, message);
-    });
-  });
+function showAggregatedNotification() {
+  let title = format2(sps.aggregatedEmailTitleFormat);
+  let text = formatAggregated(sps.aggregatedEmailTextFormat.replace(/\\n/, "\n"));
+  //console.log("title: " + title);
+  //console.log("text: " + text);
+  showNotification(title, text, null);
 }
 
-function showNotification (title, text, message){
+function showNewEmailNotification(message) {
+  let title = format(message, sps.emailTitleFormat);
+  let text = format(message, sps.emailTextFormat.replace(/\\n/, "\n"));
+  showNotification(title, text, message);
+}
+
+function showNotification(title, text, message){
   var notifications = require("sdk/notifications");
 
   // Current implementation of click action doesn't support SeaMonkey,
@@ -142,19 +137,19 @@ function showNotification (title, text, message){
 
     if (notifApi.checkButtonsSupported()) {
 /* eslint-disable no-unused-vars */
-      let id = notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, (reason)=>{}, actions);
+      let id = notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, reason=>{}, actions);
 /* eslint-enable no-unused-vars */
       console.log("notifyWithActions, id: " + id);
-      if (id)
+      if (message && id)
         message.setStringProperty("gnotifier-notification-id", id);
       return;
     }
 
 /* eslint-disable no-unused-vars */
-    let id = notifApi.notify(utils.getIcon(), title, text, system.name, (reason)=>{}, (data)=>{display(message);});
+    let id = notifApi.notify(utils.getIcon(), title, text, system.name, reason=>{}, data=>{display(message);});
 /* eslint-enable no-unused-vars */
     console.log("notify, id: " + id);
-    if (id)
+    if (message && id)
       message.setStringProperty("gnotifier-notification-id", id);
     return;
   }
@@ -165,7 +160,7 @@ function showNotification (title, text, message){
       text: text,
       iconURL: utils.getIcon(),
 /* eslint-disable no-unused-vars */
-      onClick: (data)=>{display(message);}
+      onClick: data=>{display(message);}
 /* eslint-enable no-unused-vars */
     });
     return;
@@ -217,10 +212,65 @@ function display(message) {
   );
 }
 
-function format(message, format, callback){
-  let author = gHeaderParser.parseDecodedHeader(message.mime2DecodedAuthor);
+function formatAggregated(formatRe){
+  let string = format2(formatRe);
+  string = string.replace(new RegExp("%\\[(.+)\\]\{(.+)\}", "g"), (match, p1, p2)=>{
+    let n = parseInt(p2);
+    if (n == 0)
+      n = 1;
+    else if (n > 10)
+      n = 10;
+    else if (n < -10)
+      n = -10;
 
-  let string = format.replace(new RegExp("(%[samnfvkubc%])", "g"), (match, p1)=>{
+    let text = "";
+    let maxn = bufferedMessages.length;
+    if (n > 0) {
+      n = n > maxn ? maxn : n;
+      for (let i = 0; i<n; i++) {
+        text += (format(bufferedMessages[i], p1));
+        if (i != n-1)
+          text += "\n";
+      }
+    } else {
+      n = n < -maxn ? maxn : -n;
+      for (let i = maxn-1; i>maxn-n-1; i--) {
+        text += (format(bufferedMessages[i], p1));
+        if (i != maxn-n)
+          text += "\n";
+      }
+    }
+    return text;
+  });
+  return string;
+}
+
+function formatL10n(formatRe){
+  return formatRe.replace(new RegExp("%_(\\w+)", "g"), (match, p1)=>{
+    return _(p1);
+  });
+}
+
+function format2(formatRe){
+  let string = formatL10n(formatRe);
+  string = string.replace(new RegExp("(%[cC%])", "g"), (match, p1)=>{
+    switch(p1) {
+    // Number of new messages
+    case "%C":
+      return bufferedMessages.length;
+    // Numer of unread messages
+    case "%c":
+      return getUnreadMessageCount();
+    case "%%":
+      return "%";
+    }
+  });
+  return string;
+}
+
+function format(message, formatRe){
+  let author = gHeaderParser.parseDecodedHeader(message.mime2DecodedAuthor);
+  let string = formatRe.replace(new RegExp("(%[samnfvkubc%])", "g"), (match, p1)=>{
     switch(p1){
     // Subject, with "Re:" when appropriate
     case "%s": {
@@ -264,42 +314,59 @@ function format(message, format, callback){
       return "%";
     }
   });
-  callback(string);
-
-  function getMessageBody(aMsgHdr){
-    const listener = Cc["@mozilla.org/network/sync-stream-listener;1"].createInstance(Ci.nsISyncStreamListener);
-
-    let uri = aMsgHdr.folder.getUriForMsg(aMsgHdr);
-    gMessenger.messageServiceFromURI(uri).streamMessage(uri, listener, null, null, false, "");
-    let folder = aMsgHdr.folder;
-    return folder.getMsgTextFromStream(
-      listener.inputStream,
-      aMsgHdr.Charset,
-      65536,
-      100,
-      false,
-      true,
-      { }
-    );
-  }
+  //callback(string);
+  return string;
 }
 
-function testNotification() {
-  const win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
-  if (win && win.gFolderDisplay && win.gFolderDisplay.selectedMessage) {
+function getMessageBody(aMsgHdr){
+  const listener = Cc["@mozilla.org/network/sync-stream-listener;1"].createInstance(Ci.nsISyncStreamListener);
+  let uri = aMsgHdr.folder.getUriForMsg(aMsgHdr);
+  gMessenger.messageServiceFromURI(uri).streamMessage(uri, listener, null, null, false, "");
+  let folder = aMsgHdr.folder;
+  return folder.getMsgTextFromStream(listener.inputStream, aMsgHdr.Charset,
+    65536, 100, false, true,{ });
+}
 
+function selectedMessage() {
+  const win = Cc["@mozilla.org/appshell/window-mediator;1"]
+    .getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
+  if (win && win.gFolderDisplay && win.gFolderDisplay.selectedMessage) {
     // Folder filtering test
     let folder = win.gFolderDisplay.selectedMessage.folder;
     if (isFolderExcluded(folder) || !isFolderAllowed(folder)) {
       let name = folder.rootFolder.prettiestName + "|" + folder.prettiestName;
       utils.showGnotifierNotification("Notifications from folder \"" + name + "\" are disabled.");
-      return;
+      return null;
+    }
+    return win.gFolderDisplay.selectedMessage;
+  } else {
+    utils.showGnotifierNotification("You need to select a message to make a test.");
+    return null;
+  }
+}
+
+function testNotification() {
+  let message = selectedMessage();
+  if (message)
+    showMessageNotification(message);
+}
+
+function testAggregatedNotification() {
+  let sMessage = selectedMessage();
+  if (sMessage) {
+    bufferedMessages = [];
+
+    let i = 0;
+    let messages = sMessage.folder.messages;
+    while (messages.hasMoreElements()) {
+      let message = messages.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+      bufferedMessages.push(message);
+      i++;
+      if (i > 9)
+        break;
     }
 
-    showMessageNotification(win.gFolderDisplay.selectedMessage);
-
-  } else {
-    utils.showGnotifierNotification("You need to select a message to test this feature.");
+    showAggregatedNotification();
   }
 }
 
@@ -446,12 +513,15 @@ exports.init = ()=>{
     folderListenerManager.AddFolderListener(mailListener, 0x8);
 
   const sp = require("sdk/simple-prefs");
-  sp.on("test", function() {
+  sp.on("test", ()=>{
     testNotification();
+  });
+  sp.on("testAggregated", ()=>{
+    testAggregatedNotification();
   });
 };
 
-exports.deInit = function() {
+exports.deInit = ()=>{
   bufferedMessages = [];
 
   // Enabling native new email alert

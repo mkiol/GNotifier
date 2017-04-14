@@ -294,9 +294,7 @@ exports.close = id=>{
     if (notificationMap.has(id)) {
       let error = new struct_gerror_ptr;
       if (!notify_notification_close(notificationMap.get(id), error)) {
-        console.error("Notify_notification_close fails:");
-        console.error("error code: " + error.fields["gerror_code"]);
-        console.error("error message: " + error.fields["gerror_message"].readString());
+        console.error("Notify_notification_close fails");
       }
       console.log("Request to close notification " + id + " has been sent.");
       notificationMap.delete(id);
@@ -410,9 +408,7 @@ exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actio
   // Showing notification
   let error = new struct_gerror_ptr;
   if (!notify_notification_show(notification, error)) {
-    console.error("Notify_notification_show fails:");
-    console.error("error code: " + error.fields["gerror_code"]);
-    console.error("error message: " + error.fields["gerror_message"].readString());
+    console.error("Notify_notification_show fails");
     return false;
   }
 
