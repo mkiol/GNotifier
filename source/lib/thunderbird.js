@@ -98,6 +98,23 @@ function showNewEmailNotification(message) {
   showNotification(title, text, message);
 }
 
+function deleteMessage(message) {
+  try {
+    const win = Cc["@mozilla.org/appshell/window-mediator;1"]
+      .getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane").msgWindow;
+    let messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
+    message.markRead(true);
+    message.folder.msgDatabase = null;
+    messages.appendElement(message, false);
+    message.folder.deleteMessages(messages, win, false, false, null, true);
+    message.folder.msgDatabase = null;
+  } catch (e) {
+    console.error("Unable to delete messages. Exception: " + e);
+    return false;
+  }
+  return true;
+}
+
 function showNotification(title, text, message){
   const notifications = require("sdk/notifications");
 
@@ -112,76 +129,92 @@ function showNotification(title, text, message){
     return;
   }
 
-  // Doing notification with buttons if Linux and buttons are supported in
-  // the notify server
-  if (sps.engine === 1 && system.platform === "linux") {
-    const notifApi = require("./linux.js");
+  if (message) {
+    let id = 0; // Notification ID from libnotify (Linux only).
+    let notifApi = null; // Notification API for libnotify (Linux only).
+    let actions = [];
 
-    let id = null;
-    let actions = null;
-    if (message) {
-      if (sps.clickOptionNewEmail === 0) {
-        actions = [{
-          label: _("open"),
-          handler: ()=>{
-            display(message);
-            notifApi.close(id);
-          }
-        }, {
-          label: _("Mark_as_read"),
-          handler: ()=>{
-            message.markRead(true);
-            notifApi.close(id);
-          }
-        }];
-      } else {
-        actions = [{
-          label: _("Mark_as_read"),
-          handler: ()=>{
-            message.markRead(true);
-            notifApi.close(id);
-          }
-        }, {
-          label: _("open"),
-          handler: ()=>{
-            display(message);
-            notifApi.close(id);
-          }
-        }];
+    let openAction = {
+      label: _("open"),
+      handler: ()=>{
+        display(message);
+        if (notifApi)
+          notifApi.close(id);
       }
+    };
+    let markReadAction = {
+      label: _("Mark_as_read"),
+      handler: ()=>{
+        message.markRead(true);
+        message.folder.msgDatabase = null;
+        if (notifApi)
+          notifApi.close(id);
+      }
+    };
+    let deleteAction = {
+      label: _("Delete"),
+      handler: ()=>{
+        deleteMessage(message);
+        if (notifApi)
+          notifApi.close(id);
+      }
+    };
 
+    switch(sps.clickOptionNewEmail) {
+    case 0:
+      actions.push(openAction);
+      actions.push(markReadAction);
+      actions.push(deleteAction);
+      break;
+    case 1:
+      actions.push(markReadAction);
+      actions.push(openAction);
+      actions.push(deleteAction);
+      break;
+    case 2:
+      actions.push(deleteAction);
+      actions.push(openAction);
+      actions.push(markReadAction);
+      break;
+    }
+
+    // Do notification with buttons if Linux and
+    // buttons are supported in the notify server
+    if (sps.engine === 1 && system.platform === "linux") {
+      notifApi = require("./linux.js");
       if (notifApi.checkButtonsSupported()) {
-        /* eslint-disable no-unused-vars */
+/* eslint-disable no-unused-vars */
         id = notifApi.notifyWithActions(utils.getIcon(), title, text,
           system.name, reason=>{}, actions);
-          /* eslint-enable no-unused-vars */
+/* eslint-enable no-unused-vars */
         console.log("notifyWithActions, id: " + id);
         if (message && id)
           message.setStringProperty("gnotifier-notification-id", id);
         return;
+      } else {
+/* eslint-disable no-unused-vars */
+        id = notifApi.notify(utils.getIcon(), title, text, system.name,
+          reason=>{}, data=>{
+            // Call first top action (default action) on click
+            actions[0].handler();
+          });
+/* eslint-enable no-unused-vars */
+        console.log("notify, id: " + id);
+        if (message && id)
+          message.setStringProperty("gnotifier-notification-id", id);
+        return;
       }
-
-      /* eslint-disable no-unused-vars */
-      id = notifApi.notify(utils.getIcon(), title, text, system.name,
-        reason=>{}, data=>{
-          display(message);
-          notifApi.close(id);
-        });
-        /* eslint-enable no-unused-vars */
-      console.log("notify, id: " + id);
-      if (message && id)
-        message.setStringProperty("gnotifier-notification-id", id);
-      return;
     }
-  }
 
-  if (message) {
     notifications.notify({
       title: title,
       text: text,
       iconURL: utils.getIcon(),
 /* eslint-disable no-unused-vars */
-      onClick: data=>{display(message);}
+      onClick: data=>{
+        // Call first top action (default action) on click
+        actions[0].handler();
+      }
 /* eslint-enable no-unused-vars */
     });
     return;
@@ -197,7 +230,7 @@ function showNotification(title, text, message){
 function showClickableNotification(title, text, clickHandler) {
   if (sps.engine === 1 && system.platform === "linux") {
     const notifApi = require("./linux.js");
-    /* eslint-disable no-unused-vars */
+/* eslint-disable no-unused-vars */
     let id = notifApi.notify(utils.getIcon(), title, text, system.name,
       reason=>{}, data=>{
         if (clickHandler) {
@@ -205,7 +238,7 @@ function showClickableNotification(title, text, clickHandler) {
           notifApi.close(id);
         }
       });
-    /* eslint-enable no-unused-vars */
+/* eslint-enable no-unused-vars */
   } else {
     const notifications = require("sdk/notifications");
     if (clickHandler) {

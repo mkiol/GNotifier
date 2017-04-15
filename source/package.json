@@ -145,6 +145,10 @@
                 {
                     "value": "1",
                     "label": "Mark as read"
+                },
+                {
+                    "value": "2",
+                    "label": "Delete"
                 }
             ]
         },
