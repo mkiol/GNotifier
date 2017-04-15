@@ -65,7 +65,6 @@ function isFolderRSS(folder) {
 function bufferNewEmailNotification(message) {
   clearTimeout(timeoutID);
   bufferedMessages.push(message);
-  console.log(message.mime2DecodedSubject);
   timeoutID = setTimeout(()=>{showNewEmailNotificationFromBuffer();}, 1000);
 }
 
@@ -88,7 +87,9 @@ function showAggregatedNotification() {
   console.log("showAggregatedNotification");
   console.log("title: " + title);
   console.log("text: " + text);
-  showNotification(title, text, null);
+
+  showClickableNotification(title, text,
+    system.name === "SeaMonkey" ? null : ()=>focusWindow(true));
 }
 
 function showNewEmailNotification(message) {
@@ -98,7 +99,7 @@ function showNewEmailNotification(message) {
 }
 
 function showNotification(title, text, message){
-  var notifications = require("sdk/notifications");
+  const notifications = require("sdk/notifications");
 
   // Current implementation of click action doesn't support SeaMonkey,
   // so doing not clickable notification if SeaMonkey
@@ -113,49 +114,65 @@ function showNotification(title, text, message){
 
   // Doing notification with buttons if Linux and buttons are supported in
   // the notify server
-  if (sps["engine"] === 1 && system.platform === "linux") {
+  if (sps.engine === 1 && system.platform === "linux") {
     const notifApi = require("./linux.js");
 
+    let id = null;
     let actions = null;
     if (message) {
-      if (sps["clickOptionNewEmail"] === 0) {
+      if (sps.clickOptionNewEmail === 0) {
         actions = [{
           label: _("open"),
-          handler: ()=>{display(message);}
+          handler: ()=>{
+            display(message);
+            notifApi.close(id);
+          }
         }, {
           label: _("Mark_as_read"),
-          handler: ()=>{message.markRead(true);}
+          handler: ()=>{
+            message.markRead(true);
+            notifApi.close(id);
+          }
         }];
       } else {
         actions = [{
           label: _("Mark_as_read"),
-          handler: ()=>{message.markRead(true);}
+          handler: ()=>{
+            message.markRead(true);
+            notifApi.close(id);
+          }
         }, {
           label: _("open"),
-          handler: ()=>{display(message);}
+          handler: ()=>{
+            display(message);
+            notifApi.close(id);
+          }
         }];
       }
-    }
 
-    if (notifApi.checkButtonsSupported()) {
-/* eslint-disable no-unused-vars */
-      let id = notifApi.notifyWithActions(utils.getIcon(), title, text,
-        system.name, reason=>{}, actions);
-/* eslint-enable no-unused-vars */
-      console.log("notifyWithActions, id: " + id);
+      if (notifApi.checkButtonsSupported()) {
+        /* eslint-disable no-unused-vars */
+        id = notifApi.notifyWithActions(utils.getIcon(), title, text,
+          system.name, reason=>{}, actions);
+          /* eslint-enable no-unused-vars */
+        console.log("notifyWithActions, id: " + id);
+        if (message && id)
+          message.setStringProperty("gnotifier-notification-id", id);
+        return;
+      }
+
+      /* eslint-disable no-unused-vars */
+      id = notifApi.notify(utils.getIcon(), title, text, system.name,
+        reason=>{}, data=>{
+          display(message);
+          notifApi.close(id);
+        });
+        /* eslint-enable no-unused-vars */
+      console.log("notify, id: " + id);
       if (message && id)
         message.setStringProperty("gnotifier-notification-id", id);
       return;
     }
-
-/* eslint-disable no-unused-vars */
-    let id = notifApi.notify(utils.getIcon(), title, text, system.name,
-      reason=>{}, data=>{display(message);});
-/* eslint-enable no-unused-vars */
-    console.log("notify, id: " + id);
-    if (message && id)
-      message.setStringProperty("gnotifier-notification-id", id);
-    return;
   }
 
   if (message) {
@@ -177,17 +194,65 @@ function showNotification(title, text, message){
   });
 }
 
+function showClickableNotification(title, text, clickHandler) {
+  if (sps.engine === 1 && system.platform === "linux") {
+    const notifApi = require("./linux.js");
+    /* eslint-disable no-unused-vars */
+    let id = notifApi.notify(utils.getIcon(), title, text, system.name,
+      reason=>{}, data=>{
+        if (clickHandler) {
+          clickHandler();
+          notifApi.close(id);
+        }
+      });
+    /* eslint-enable no-unused-vars */
+  } else {
+    const notifications = require("sdk/notifications");
+    if (clickHandler) {
+      notifications.notify({
+        title: title,
+        text: text,
+        iconURL: utils.getIcon(),
+        onClick: clickHandler
+      });
+    } else {
+      notifications.notify({
+        title: title,
+        text: text,
+        iconURL: utils.getIcon()
+      });
+    }
+  }
+}
+
+function focusWindow(selectTabmail) {
+  const win = Cc["@mozilla.org/appshell/window-mediator;1"]
+    .getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
+  if (win) {
+    if (selectTabmail) {
+      let tabmail = win.document.getElementById("tabmail");
+      if (tabmail)
+        tabmail.switchToTab(0);
+    }
+    // On Windows, bring TB window to the front
+    if (system.platform === "winnt") {
+      require("./windowsUtils.js").forceFocus(win);
+    } else {
+      win.focus();
+    }
+  }
+}
+
 // Display a given message. Heavily inspired by
 // https://developer.mozilla.org/docs/Mozilla/Thunderbird/Content_Tabs
 function display(message) {
   // Try opening new tabs in an existing 3pane window
   const win = Cc["@mozilla.org/appshell/window-mediator;1"]
     .getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
-  //console.log(win.document.documentElement.getAttribute('windowtype'));
   if (win) {
     //INFO: tabmail is not supported in SeaMonkey
     let tabmail = win.document.getElementById("tabmail");
-    if (sps["newMailOpen"] == 0) {
+    if (sps.newMailOpen == 0) {
       if (tabmail)
         tabmail.openTab("message", {msgHdr: message});
     } else {
@@ -197,13 +262,7 @@ function display(message) {
       win.gFolderDisplay.selectMessage(message);
     }
 
-    // On Windows, bring TB window to the front
-    if (system.platform === "winnt") {
-      require("./windowsUtils.js").forceFocus(win);
-    } else {
-      win.focus();
-    }
-
+    focusWindow(false);
     return;
   }
 
@@ -373,6 +432,7 @@ function testAggregatedNotification() {
     }
 
     showAggregatedNotification();
+    bufferedMessages = [];
   }
 }
 

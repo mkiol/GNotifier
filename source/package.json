@@ -167,7 +167,7 @@
             "title": "Title for multiple messages notification",
             "description": "%C: Count of new messages, %c: Number of unread messages, %%: %",
             "type": "string",
-            "value": "%_Number_of_new_messages %C"
+            "value": "%_New_messages: %C"
         },
         {
             "name": "aggregatedEmailTextFormat",
