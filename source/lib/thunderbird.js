@@ -85,8 +85,9 @@ function showNewEmailNotificationFromBuffer() {
 function showAggregatedNotification() {
   let title = format2(sps.aggregatedEmailTitleFormat);
   let text = formatAggregated(sps.aggregatedEmailTextFormat.replace(/\\n/, "\n"));
-  //console.log("title: " + title);
-  //console.log("text: " + text);
+  console.log("showAggregatedNotification");
+  console.log("title: " + title);
+  console.log("text: " + text);
   showNotification(title, text, null);
 }
 
@@ -138,7 +139,8 @@ function showNotification(title, text, message){
 
     if (notifApi.checkButtonsSupported()) {
 /* eslint-disable no-unused-vars */
-      let id = notifApi.notifyWithActions(utils.getIcon(), title, text, system.name, reason=>{}, actions);
+      let id = notifApi.notifyWithActions(utils.getIcon(), title, text,
+        system.name, reason=>{}, actions);
 /* eslint-enable no-unused-vars */
       console.log("notifyWithActions, id: " + id);
       if (message && id)
@@ -147,7 +149,8 @@ function showNotification(title, text, message){
     }
 
 /* eslint-disable no-unused-vars */
-    let id = notifApi.notify(utils.getIcon(), title, text, system.name, reason=>{}, data=>{display(message);});
+    let id = notifApi.notify(utils.getIcon(), title, text, system.name,
+      reason=>{}, data=>{display(message);});
 /* eslint-enable no-unused-vars */
     console.log("notify, id: " + id);
     if (message && id)
@@ -178,7 +181,8 @@ function showNotification(title, text, message){
 // https://developer.mozilla.org/docs/Mozilla/Thunderbird/Content_Tabs
 function display(message) {
   // Try opening new tabs in an existing 3pane window
-  const win = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
+  const win = Cc["@mozilla.org/appshell/window-mediator;1"]
+    .getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
   //console.log(win.document.documentElement.getAttribute('windowtype'));
   if (win) {
     //INFO: tabmail is not supported in SeaMonkey
@@ -320,7 +324,8 @@ function format(message, formatRe){
 }
 
 function getMessageBody(aMsgHdr){
-  const listener = Cc["@mozilla.org/network/sync-stream-listener;1"].createInstance(Ci.nsISyncStreamListener);
+  const listener = Cc["@mozilla.org/network/sync-stream-listener;1"]
+    .createInstance(Ci.nsISyncStreamListener);
   let uri = aMsgHdr.folder.getUriForMsg(aMsgHdr);
   gMessenger.messageServiceFromURI(uri).streamMessage(uri, listener, null, null, false, "");
   let folder = aMsgHdr.folder;
@@ -420,7 +425,7 @@ function isFolderAllowed(folder) {
   return false;
 }
 
-function getFoldersWithNewMail(aFolder) {
+/*function getFoldersWithNewMail(aFolder) {
   let folderList = [];
   if (aFolder) {
     if (aFolder.biffState == Ci.nsIMsgFolder.nsMsgBiffState_NewMail) {
@@ -440,14 +445,41 @@ function getFoldersWithNewMail(aFolder) {
     }
   }
   return folderList;
+}*/
+
+function handleNewMessage(message) {
+  let folder = message.folder;
+
+  if (!sps.enableRSS && isFolderRSS(folder)) {
+    // Notifications for RSS are disabled
+    return;
+  }
+
+  if (!isFolderExcluded(folder) && isFolderAllowed(folder)) {
+    if (message.getUint32Property("gnotifier-done") != 1) {
+      bufferNewEmailNotification(message);
+      message.setUint32Property("gnotifier-done", 1);
+    }
+  }
 }
 
 var mailListener = {
+  OnItemAdded: (parentItem, item)=>{
+    console.log("OnItemAdded");
+    let message = item.QueryInterface(Ci.nsIMsgDBHdr);
+    console.log("message subject: " + message.mime2DecodedSubject);
+    if (message.flags & Ci.nsMsgMessageFlags.New) {
+      console.log("new message");
+      handleNewMessage(message);
+    }
+  },
+
   OnItemPropertyFlagChanged: (message, atom, oldFlag, newFlag)=>{
     /*console.log("OnItemPropertyFlagChanged");
-    console.log(message.mime2DecodedSubject);
+    console.log("message subject: " + message.mime2DecodedSubject);
     console.log("oldFlag: " + oldFlag);
     console.log("newFlag: " + newFlag);
+    console.log("oldFlag-newFlag: " + (oldFlag-newFlag));
     console.log("oldFlag isRead: " + ((oldFlag & Ci.nsMsgMessageFlags.Read) ? "true" : "false"));
     console.log("newFlag isRead: " + ((newFlag & Ci.nsMsgMessageFlags.Read) ? "true" : "false"));*/
     if ((newFlag & Ci.nsMsgMessageFlags.Read) &&
@@ -462,7 +494,7 @@ var mailListener = {
         }
       }
     }
-  },
+  }/*,
   OnItemIntPropertyChanged: function (aItem,aProperty,aOldValue,aNewValue) {
     if (!sps["enableRSS"] && isFolderRSS(aItem)) {
       // Notifications for RSS are disabled
@@ -494,17 +526,14 @@ var mailListener = {
             while (messages.hasMoreElements()) {
               let message = messages.getNext().QueryInterface(Ci.nsIMsgDBHdr);
               if (message.flags & Ci.nsMsgMessageFlags.New) {
-                if (message.getUint32Property("gnotifier-done") != 1) {
-                  bufferNewEmailNotification(message);
-                  message.setUint32Property("gnotifier-done",1);
-                }
+                handleNewMessage(message);
               }
             }
           }
         }
       }
     }
-  }
+  }*/
 };
 
 exports.init = ()=>{
@@ -512,14 +541,20 @@ exports.init = ()=>{
   ps.set("mail.biff.show_alert", false);
 
   // Folder listeners registration for OnItemIntPropertyChanged
-  const folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
+  const folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"]
+    .getService(Ci.nsIMsgMailSession);
 
-  // On Linux listening also for "Read" flag change.
-  // It allows hiding notification when message is marked as read.
+  // On Linux listening also for "read" flag change for hiding notification
+  // when message is marked as read
   if (system.platform === "linux")
-    folderListenerManager.AddFolderListener(mailListener, 0x8|0x40);
+    folderListenerManager.AddFolderListener(mailListener,
+      Ci.nsIFolderListener.added | Ci.nsIFolderListener.propertyFlagChanged
+      // | Ci.nsIFolderListener.intPropertyChanged
+    );
   else
-    folderListenerManager.AddFolderListener(mailListener, 0x8);
+    folderListenerManager.AddFolderListener(mailListener,
+      Ci.nsIFolderListener.added // | Ci.nsIFolderListener.intPropertyChanged
+    );
 
   const sp = require("sdk/simple-prefs");
   sp.on("test", ()=>{
@@ -536,6 +571,7 @@ exports.deInit = ()=>{
   // Enabling native new email alert
   ps.set("mail.biff.show_alert", true);
 
-  const folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"].getService(Ci.nsIMsgMailSession);
+  const folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"]
+    .getService(Ci.nsIMsgMailSession);
   folderListenerManager.RemoveFolderListener(mailListener);
 };
