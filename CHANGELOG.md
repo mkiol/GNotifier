@@ -1,11 +1,19 @@
-## 1.9.8
+## 1.9.9 (beta)
+  - Enhancements for multiple messages notification. New options: "Title for multiple messages notification", "Text for multiple messages notification", "Click action for multiple messages notification"
+  - Delete action. On Linux, every new e-mail notification has now 3 buttons: "Open", "Mark as read" and "Delete"
+  - Better notifications for no-subject/no-body emails
+  - Linux: Notification is hidden from the tray when the message is marked as read
+  - BUG FIX: Notification wasn't displayed when incoming folder and sent folder were the same
+  - BUG FIX: All messages notifications stop working after a while
+
+  ## 1.9.8
   - Notification filtering based on filename extension
   - Windows: Support for 'Custom command'
   - Windows: Better icon presentation and support for custom 'Notification Icon' option
   - Windows: Click action on downolad complete notification focuses file
   - Thunderbird: Notification filtering based on mailbox and folder name (thanks to [pd5rm](https://github.com/pd5rm))
   - Thunderbird: Notifications aggregation (in case of many simultaneous new messages)
-  - BUG FIX: Default action is triggered by clicking on the whole notification (GNOME, Cinnamon)
+  - Linux: Default action is triggered by clicking on the whole notification (GNOME, Cinnamon)
   - BUG FIX: Support for multiple RSS accounts (thanks to [Stefan Reichelt](https://github.com/Songworks))
 
 ## 1.9.7
