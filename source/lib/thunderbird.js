@@ -33,42 +33,18 @@ function getUnreadMessageCount() {
   return newMailNotificationService.messageCount;
 }
 
-function showMessageNotification(message) {
-  if (isFolderRSS(message.folder)) {
-    showNewRSSNotification(message);
-  } else {
-    showNewEmailNotification(message);
-  }
-}
-
-function showNewRSSNotification(message) {
-  let author = message.mime2DecodedAuthor;
-  // unicode character ranges taken from:
-  // http://stackoverflow.com/questions/1073412/javascript-validation-issue-with-international-characters#1073545
-  const author_regex = /^["']?([A-Za-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF\s]+)["']?\s<.+?>$/;
-  // check if author has name and email
-  if (author_regex.test(author)) {
-    // retrieve only name portion of author string
-    author = author.match(author_regex)[1];
-  }
-  let title = _("New_article_from") + " " + author;
-  let text = message.mime2DecodedSubject;
-
-  showNotification(title, text, message);
-}
-
 function isFolderRSS(folder) {
   let rootURIarr = folder.rootFolder.URI.split("@");
   return (rootURIarr[rootURIarr.length-1].indexOf("Feeds") !== -1);
 }
 
-function bufferNewEmailNotification(message) {
+function bufferMessageNotification(message) {
   clearTimeout(timeoutID);
   bufferedMessages.push(message);
-  timeoutID = setTimeout(()=>{showNewEmailNotificationFromBuffer();}, 1000);
+  timeoutID = setTimeout(()=>{showMessageNotificationFromBuffer();}, 1000);
 }
 
-function showNewEmailNotificationFromBuffer() {
+function showMessageNotificationFromBuffer() {
   if (sps.maxMessageBuffer > 0 && bufferedMessages.length > sps.maxMessageBuffer) {
     showAggregatedNotification();
   } else {
@@ -84,18 +60,23 @@ function showNewEmailNotificationFromBuffer() {
 function showAggregatedNotification() {
   let title = format2(sps.aggregatedEmailTitleFormat);
   let text = formatAggregated(sps.aggregatedEmailTextFormat.replace(/\\n/, "\n"));
-  console.log("showAggregatedNotification");
-  console.log("title: " + title);
-  console.log("text: " + text);
-
-  showClickableNotification(title, text,
-    system.name === "SeaMonkey" ? null : ()=>focusWindow(true));
+  let message = sps.aggregatedClickOption === 0 ? bufferedMessages[0] : bufferedMessages[bufferedMessages.length-1];
+  showNotification(title, text, sps.aggregatedClickOption === 2 ? null : message, true);
 }
 
-function showNewEmailNotification(message) {
+function showMessageNotification(message) {
   let title = format(message, sps.emailTitleFormat);
   let text = format(message, sps.emailTextFormat.replace(/\\n/, "\n"));
   showNotification(title, text, message);
+}
+
+function addId(message, id) {
+  message.setStringProperty("gnotifier-notification-id", id);
+}
+
+function delId(message) {
+  if (message.getStringProperty("gnotifier-notification-id") != "")
+    message.setStringProperty("gnotifier-notification-id", "");
 }
 
 function deleteMessage(message) {
@@ -103,8 +84,7 @@ function deleteMessage(message) {
     const win = Cc["@mozilla.org/appshell/window-mediator;1"]
       .getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane").msgWindow;
     let messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
-    message.markRead(true);
-    message.folder.msgDatabase = null;
+    markRead(message);
     messages.appendElement(message, false);
     message.folder.deleteMessages(messages, win, false, false, null, true);
     message.folder.msgDatabase = null;
@@ -115,7 +95,17 @@ function deleteMessage(message) {
   return true;
 }
 
-function showNotification(title, text, message){
+function markRead(message) {
+  /*console.log("Mark read, subject: " + message.mime2DecodedSubject);
+  console.log("isRead: " + message.isRead);
+  console.log("isFlagged: " + message.isFlagged);
+  console.log("isKilled: " + message.isKilled);
+  console.log("flags: " + message.flags);*/
+  message.markRead(true);
+  message.folder.msgDatabase = null;
+}
+
+function showNotification(title, text, message, agregated = false){
   const notifications = require("sdk/notifications");
 
   // Current implementation of click action doesn't support SeaMonkey,
@@ -137,6 +127,7 @@ function showNotification(title, text, message){
     let openAction = {
       label: _("open"),
       handler: ()=>{
+        delId(message);
         display(message);
         if (notifApi)
           notifApi.close(id);
@@ -145,8 +136,8 @@ function showNotification(title, text, message){
     let markReadAction = {
       label: _("Mark_as_read"),
       handler: ()=>{
-        message.markRead(true);
-        message.folder.msgDatabase = null;
+        delId(message);
+        markRead(message);
         if (notifApi)
           notifApi.close(id);
       }
@@ -154,28 +145,33 @@ function showNotification(title, text, message){
     let deleteAction = {
       label: _("Delete"),
       handler: ()=>{
+        delId(message);
         deleteMessage(message);
         if (notifApi)
           notifApi.close(id);
       }
     };
 
-    switch(sps.clickOptionNewEmail) {
-    case 0:
+    if (agregated) {
       actions.push(openAction);
-      actions.push(markReadAction);
-      actions.push(deleteAction);
-      break;
-    case 1:
-      actions.push(markReadAction);
-      actions.push(openAction);
-      actions.push(deleteAction);
-      break;
-    case 2:
-      actions.push(deleteAction);
-      actions.push(openAction);
-      actions.push(markReadAction);
-      break;
+    } else {
+      switch(sps.clickOptionNewEmail) {
+      case 0:
+        actions.push(openAction);
+        actions.push(markReadAction);
+        actions.push(deleteAction);
+        break;
+      case 1:
+        actions.push(markReadAction);
+        actions.push(openAction);
+        actions.push(deleteAction);
+        break;
+      case 2:
+        actions.push(deleteAction);
+        actions.push(openAction);
+        actions.push(markReadAction);
+        break;
+      }
     }
 
     // Do notification with buttons if Linux and
@@ -188,8 +184,8 @@ function showNotification(title, text, message){
           system.name, reason=>{}, actions);
 /* eslint-enable no-unused-vars */
         console.log("notifyWithActions, id: " + id);
-        if (message && id)
-          message.setStringProperty("gnotifier-notification-id", id);
+        if (!agregated && message && id)
+          addId(message, id);
         return;
       } else {
 /* eslint-disable no-unused-vars */
@@ -200,8 +196,8 @@ function showNotification(title, text, message){
           });
 /* eslint-enable no-unused-vars */
         console.log("notify, id: " + id);
-        if (message && id)
-          message.setStringProperty("gnotifier-notification-id", id);
+        if (!agregated && message && id)
+          addId(message, id);
         return;
       }
     }
@@ -213,6 +209,7 @@ function showNotification(title, text, message){
 /* eslint-disable no-unused-vars */
       onClick: data=>{
         // Call first top action (default action) on click
+        // Action for aggregated notification is always 'open'
         actions[0].handler();
       }
 /* eslint-enable no-unused-vars */
@@ -225,37 +222,6 @@ function showNotification(title, text, message){
     text: text,
     iconURL: utils.getIcon()
   });
-}
-
-function showClickableNotification(title, text, clickHandler) {
-  if (sps.engine === 1 && system.platform === "linux") {
-    const notifApi = require("./linux.js");
-/* eslint-disable no-unused-vars */
-    let id = notifApi.notify(utils.getIcon(), title, text, system.name,
-      reason=>{}, data=>{
-        if (clickHandler) {
-          clickHandler();
-          notifApi.close(id);
-        }
-      });
-/* eslint-enable no-unused-vars */
-  } else {
-    const notifications = require("sdk/notifications");
-    if (clickHandler) {
-      notifications.notify({
-        title: title,
-        text: text,
-        iconURL: utils.getIcon(),
-        onClick: clickHandler
-      });
-    } else {
-      notifications.notify({
-        title: title,
-        text: text,
-        iconURL: utils.getIcon()
-      });
-    }
-  }
 }
 
 function focusWindow(selectTabmail) {
@@ -367,6 +333,14 @@ function format2(formatRe){
 
 function format(message, formatRe){
   let author = gHeaderParser.parseDecodedHeader(message.mime2DecodedAuthor);
+  /*console.log("format");
+  console.log(" author: " + message.mime2DecodedAuthor);
+  console.log(" subject: " + message.mime2DecodedSubject);
+  console.log(" email: " + author[0].email);
+  console.log(" name: " + author[0].name);
+  console.log(" folder: " + message.folder.prettiestName);
+  console.log(" server: " + message.folder.server.hostName);
+  console.log(" account: " + message.folder.server.prettyName);*/
   let string = formatRe.replace(new RegExp("(%[samnfvkubc%])", "g"), (match, p1)=>{
     switch(p1){
     // Subject, with "Re:" when appropriate
@@ -411,7 +385,6 @@ function format(message, formatRe){
       return "%";
     }
   });
-  //callback(string);
   return string;
 }
 
@@ -518,28 +491,6 @@ function isFolderAllowed(folder) {
   return false;
 }
 
-/*function getFoldersWithNewMail(aFolder) {
-  let folderList = [];
-  if (aFolder) {
-    if (aFolder.biffState == Ci.nsIMsgFolder.nsMsgBiffState_NewMail) {
-      if (aFolder.hasNewMessages) {
-        folderList.push(aFolder);
-        //console.log("aFolder: " + aFolder.prettiestName);
-        //console.log("aFolder.rootFolder: " + aFolder.rootFolder.prettiestName);
-      }
-      if (aFolder.hasSubFolders) {
-        let subFolders = aFolder.subFolders;
-        while (subFolders.hasMoreElements()) {
-          let subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
-          if (subFolder)
-            folderList = folderList.concat(getFoldersWithNewMail(subFolder));
-        }
-      }
-    }
-  }
-  return folderList;
-}*/
-
 function handleNewMessage(message) {
   let folder = message.folder;
 
@@ -550,7 +501,7 @@ function handleNewMessage(message) {
 
   if (!isFolderExcluded(folder) && isFolderAllowed(folder)) {
     if (message.getUint32Property("gnotifier-done") != 1) {
-      bufferNewEmailNotification(message);
+      bufferMessageNotification(message);
       message.setUint32Property("gnotifier-done", 1);
     }
   }
@@ -583,50 +534,11 @@ var mailListener = {
         if (sps["engine"] === 1 && system.platform === "linux") {
           const notifApi = require("./linux.js");
           notifApi.close(id);
-          message.setStringProperty("gnotifier-notification-id","");
+          delId(message);
         }
       }
     }
-  }/*,
-  OnItemIntPropertyChanged: function (aItem,aProperty,aOldValue,aNewValue) {
-    if (!sps["enableRSS"] && isFolderRSS(aItem)) {
-      // Notifications for RSS are disabled
-      return;
-    }
-
-    // New mail if BiffState == nsMsgBiffState_NewMail or NewMailReceived
-    if (
-      (aProperty == "BiffState" && aNewValue == Ci.nsIMsgFolder.nsMsgBiffState_NewMail &&
-        (aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_NoMail || aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_Unknown)) ||
-      (aProperty == "NewMailReceived")
-    ) {
-
-      //console.log("aItem: " + aItem.prettiestName);
-      //console.log("aItem.rootFolder: " + aItem.rootFolder.prettiestName);
-      let folderList = getFoldersWithNewMail(aItem.rootFolder);
-      //let folderList = getFoldersWithNewMail(aItem);
-      if (folderList.length == 0) {
-        // Can't find folder with BiffState == nsMsgBiffState_NewMail
-        return;
-      }
-
-      for (let i in folderList) {
-        if (folderList[i]) {
-          let folder = folderList[i];
-          if (!isFolderExcluded(folder) && isFolderAllowed(folder)) {
-            // Looking for messages with flag == Ci.nsMsgMessageFlags.New
-            let messages = folder.messages;
-            while (messages.hasMoreElements()) {
-              let message = messages.getNext().QueryInterface(Ci.nsIMsgDBHdr);
-              if (message.flags & Ci.nsMsgMessageFlags.New) {
-                handleNewMessage(message);
-              }
-            }
-          }
-        }
-      }
-    }
-  }*/
+  }
 };
 
 exports.init = ()=>{
