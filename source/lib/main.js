@@ -294,9 +294,15 @@ exports.main = (options, callbacks)=>{
 
     // Close notification button
     sp.on("close", function() {
-      if (sps["engine"] === 1 && system.platform === "linux") {
-        notifApi.closeAll();
+      if (system.platform !== "linux") {
+        utils.showGnotifierNotification("This works only in Linux!");
+        return;
       }
+      if (sps.engine !== 1) {
+        utils.showGnotifierNotification("This works only if \"Notification engine\" is set to \"Gnotifier\"!");
+        return;
+      }
+      notifApi.closeAll();
     });
 
   } else {
@@ -332,6 +338,9 @@ exports.main = (options, callbacks)=>{
     thunderbird.init();
   } else {
     sp.on("test", ()=>{
+      utils.showGnotifierNotification("This works only in Thunderbird!");
+    });
+    sp.on("testAggregated", ()=>{
       utils.showGnotifierNotification("This works only in Thunderbird!");
     });
   }

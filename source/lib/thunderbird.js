@@ -41,7 +41,7 @@ function isFolderRSS(folder) {
 function bufferMessageNotification(message) {
   clearTimeout(timeoutID);
   bufferedMessages.push(message);
-  timeoutID = setTimeout(()=>{showMessageNotificationFromBuffer();}, 1000);
+  timeoutID = setTimeout(()=>{showMessageNotificationFromBuffer();}, 2000);
 }
 
 function showMessageNotificationFromBuffer() {
@@ -183,7 +183,7 @@ function showNotification(title, text, message, agregated = false){
         id = notifApi.notifyWithActions(utils.getIcon(), title, text,
           system.name, reason=>{}, actions);
 /* eslint-enable no-unused-vars */
-        console.log("notifyWithActions, id: " + id);
+        //console.log("notifyWithActions, id: " + id);
         if (!agregated && message && id)
           addId(message, id);
         return;
@@ -195,7 +195,7 @@ function showNotification(title, text, message, agregated = false){
             actions[0].handler();
           });
 /* eslint-enable no-unused-vars */
-        console.log("notify, id: " + id);
+        //console.log("notify, id: " + id);
         if (!agregated && message && id)
           addId(message, id);
         return;
@@ -509,11 +509,11 @@ function handleNewMessage(message) {
 
 var mailListener = {
   OnItemAdded: (parentItem, item)=>{
-    console.log("OnItemAdded");
+    //console.log("OnItemAdded");
     let message = item.QueryInterface(Ci.nsIMsgDBHdr);
-    console.log("message subject: " + message.mime2DecodedSubject);
+    //console.log("message subject: " + message.mime2DecodedSubject);
     if (message.flags & Ci.nsMsgMessageFlags.New) {
-      console.log("new message");
+      //console.log("New message");
       handleNewMessage(message);
     }
   },
@@ -530,7 +530,7 @@ var mailListener = {
         !(oldFlag & Ci.nsMsgMessageFlags.Read)) {
       const id = message.getStringProperty("gnotifier-notification-id");
       if (id) {
-        console.log("Message marked as read and has notification_id="+id+" property");
+        //console.log("Message marked as read and has notification_id="+id+" property");
         if (sps["engine"] === 1 && system.platform === "linux") {
           const notifApi = require("./linux.js");
           notifApi.close(id);

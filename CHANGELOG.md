@@ -1,12 +1,12 @@
-## 1.9.9 (beta)
+## 1.10.0
   - Enhancements for multiple messages notification. New options: "Title for multiple messages notification", "Text for multiple messages notification", "Click action for multiple messages notification"
   - Delete action. On Linux, every new e-mail notification has now 3 buttons: "Open", "Mark as read" and "Delete"
   - Better notifications for no-subject/no-body emails
   - Linux: Notification is hidden from the tray when the message is marked as read
   - BUG FIX: Notification wasn't displayed when incoming folder and sent folder were the same
-  - BUG FIX: All messages notifications stop working after a while
+  - BUG FIX: All messages notifications stop working after a while (thanks to [gabrielfin](https://github.com/gabrielfin))
 
-  ## 1.9.8
+## 1.9.8
   - Notification filtering based on filename extension
   - Windows: Support for 'Custom command'
   - Windows: Better icon presentation and support for custom 'Notification Icon' option

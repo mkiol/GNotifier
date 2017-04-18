@@ -159,7 +159,7 @@ function handleClose(notification, data) {
     // notification_id is pointer value of 'data' arg
     const notification_id = ctypes.cast(data, ctypes.uintptr_t).value.toString();
 
-    console.log("Notification " + notification_id + " has been closed.");
+    //console.log("Notification " + notification_id + " has been closed.");
     if (notificationMap.has(notification_id))
       notificationMap.delete(notification_id);
 
@@ -296,7 +296,7 @@ exports.close = id=>{
       if (!notify_notification_close(notificationMap.get(id), error)) {
         console.error("Notify_notification_close fails");
       }
-      console.log("Request to close notification " + id + " has been sent.");
+      //console.log("Request to close notification " + id + " has been sent.");
       notificationMap.delete(id);
     }
   } catch (e) {
