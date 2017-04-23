@@ -249,16 +249,23 @@ function display(message) {
   const win = Cc["@mozilla.org/appshell/window-mediator;1"]
     .getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
   if (win) {
+    win.gFolderTreeView.selectFolder(message.folder);
+    win.gFolderDisplay.show(message.folder);
+    win.gFolderDisplay.selectMessage(message);
+    
     //INFO: tabmail is not supported in SeaMonkey
     let tabmail = win.document.getElementById("tabmail");
     if (sps.newMailOpen == 0) {
-      if (tabmail)
-        tabmail.openTab("message", {msgHdr: message});
+      if (tabmail) {
+        let arg = {
+          msgHdr: message,
+          folder: message.folder
+        };
+        tabmail.openTab("message", arg);
+      }
     } else {
       if (tabmail)
         tabmail.switchToTab(0);
-      win.gFolderDisplay.show(message.folder);
-      win.gFolderDisplay.selectMessage(message);
     }
 
     focusWindow(false);
