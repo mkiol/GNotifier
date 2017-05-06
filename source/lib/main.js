@@ -137,19 +137,16 @@ Task.spawn(function*() {
 }).then(null, Cu.reportError);
 
 // New implmentation of Alert Service
-class AlertsService {
-  constructor() {
-    this.QueryInterface = XPCOMUtils.generateQI([Ci.nsIAlertsService]);
-  }
-
+function AlertsService() {}
+AlertsService.prototype = {
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIAlertsService]),
   // New nsIAlertsService API (FF 46)
-  showAlert(alert, alertListener) {
+  showAlert: function(alert, alertListener) {
     this.showAlertNotification(alert.imageURL, alert.title, alert.text,
       alert.textClickable, alert.cookie, alertListener, alert.name,
       alert.dir, alert.lang);
-  }
-
-  showAlertNotification(imageUrl, title, text, textClickable,
+  },
+  showAlertNotification: function(imageUrl, title, text, textClickable,
                         cookie, alertListener, name, dir, lang) {
     // Engine 0 - FF built-in
     if (sps["engine"] === 0) {
@@ -246,7 +243,7 @@ class AlertsService {
       }
     }
   }
-}
+};
 
 function deleteTempFiles() {
   const tempDir = FileUtils.getDir("TmpD",["gnotifier"]);
