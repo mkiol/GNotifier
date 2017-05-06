@@ -32,7 +32,7 @@ function showDownloadCompleteNotification(path) {
 
   // Check if file extension is excluded
   const ext = utils.getFileExtension(filename).toLowerCase();
-  if (sps["excludedExtensionsList"] !== "") {
+  if (sps.excludedExtensionsList !== "") {
     const excludedExtensionsList = sps["excludedExtensionsList"].split(",");
     for (let i = 0; i < excludedExtensionsList.length; i++) {
       const eext = excludedExtensionsList[i].toLowerCase().trim();
@@ -48,34 +48,52 @@ function showDownloadCompleteNotification(path) {
 
   // If engine = 1 & linux & supports action buttons, add 2 actions:
   // open file & open folder
-  if (sps["engine"] === 1 &&
+  if (sps.engine === 1 &&
       system.platform === "linux" &&
       notifApi.checkButtonsSupported()) {
 
     // Fix for Plasma4: Space on buttons is small so using short labels
     const plasma = notifApi.checkPlasma();
 
+    let id = null;
     let actions;
-    if (sps["clickOption"] == 0) {
+    if (sps.clickOption == 0) {
       actions = [{
         label: plasma ? _("Folder") : _("Open_folder"),
-        handler: ()=>{utils.openDir(path);}
+        handler: ()=>{
+          utils.openDir(path);
+          if (id && notifApi && sps.engine === 1 && system.platform === "linux")
+            notifApi.close(id);
+        }
       }, {
         label: plasma ? _("File") : _("Open_file"),
-        handler: ()=>{utils.openFile(path);}
+        handler: ()=>{
+          utils.openFile(path);
+          if (id && notifApi && sps.engine === 1 && system.platform === "linux")
+            notifApi.close(id);
+        }
       }];
     } else {
       actions = [{
         label: plasma ? _("File") : _("Open_file"),
-        handler: ()=>{utils.openFile(path);}
+        handler: ()=>{
+          utils.openFile(path);
+          if (id && notifApi && sps.engine === 1 && system.platform === "linux")
+            notifApi.close(id);
+        }
       }, {
         label: plasma ? _("Folder") : _("Open_folder"),
-        handler: ()=>{utils.openDir(path);}
+        handler: ()=>{
+          utils.openDir(path);
+          if (id && notifApi && sps.engine === 1 && system.platform === "linux")
+            notifApi.close(id);
+        }
       }];
     }
     /* eslint-disable no-unused-vars */
-    if (notifApi.notifyWithActions(utils.getIcon(), title, text,
-        system.name, reason=>{}, actions))
+    id = notifApi.notifyWithActions(utils.getIcon(), title, text,
+        system.name, reason=>{}, actions);
+    if (id)
       return;
     /* eslint-enable no-unused-vars */
   }
@@ -83,7 +101,7 @@ function showDownloadCompleteNotification(path) {
   // Below only makes sense for some linux distros e.g. KDE, Gnome Shell
   // If linux and libnotify is inited, add "Open" button:
   // <input text="Open" type="submit"/>
-  if (sps["engine"] === 1 && system.platform === "linux")
+  if (sps.engine === 1 && system.platform === "linux")
     text = text+"<input text='"+_("open")+"' type='submit'/>";
 
   // Generate standard desktop notification
@@ -106,7 +124,7 @@ function showDownloadCompleteNotification(path) {
 const downloadProgressListener = {
   onDownloadStateChange: (aState, aDownload)=>{
     const dm = Cc["@mozilla.org/download-manager;1"].getService(Ci.nsIDownloadManager);
-    if (sps["downloadCompleteAlert"]) {
+    if (sps.downloadCompleteAlert) {
       switch(aDownload.state) {
       case dm.DOWNLOAD_FINISHED:
         showDownloadCompleteNotification(aDownload.target.path);
@@ -122,7 +140,7 @@ Task.spawn(function*() {
     let list = yield Downloads.getList(Downloads.ALL);
     let view = {
       onDownloadChanged: (download)=>{
-        if(sps["downloadCompleteAlert"] && download.succeeded) {
+        if(sps.downloadCompleteAlert && download.succeeded) {
           if (download.target.exists === undefined || download.target.exists === true) {
             //console.log("onDownloadChanged: " + download.target.path);
             showDownloadCompleteNotification(download.target.path);
@@ -149,15 +167,15 @@ AlertsService.prototype = {
   showAlertNotification: function(imageUrl, title, text, textClickable,
                         cookie, alertListener, name, dir, lang) {
     // Engine 0 - FF built-in
-    if (sps["engine"] === 0) {
+    if (sps.engine === 0) {
       origAlertsService.showAlertNotification(imageUrl, title, text,
         textClickable, cookie, alertListener, name, dir, lang);
       return;
     }
 
     // Engine 2 - custom command
-    if (sps["engine"] === 2) {
-      if (sps["command"] !== "") {
+    if (sps.engine === 2) {
+      if (sps.command !== "") {
         let command = sps["command"];
         command = command.replace("%image",imageUrl);
         command = command.replace("%title",title);
@@ -168,6 +186,8 @@ AlertsService.prototype = {
     }
 
     function GNotifier_AlertsService_showAlertNotification_cb(iconPath) {
+      let id = null;
+
       /* eslint-disable no-unused-vars */
       let closeHandler = reason=>{
         if(alertListener) {
@@ -179,18 +199,21 @@ AlertsService.prototype = {
       let clickHandler = textClickable ? ()=>{
         if(alertListener) {
           alertListener.observe(null, "alertclickcallback", cookie);
+          if (id && notifApi && sps.engine === 1 && system.platform === "linux")
+            notifApi.close(id);
         }
       } : null;
 
       // Send notification via notifyApi implemenation
-      if (notifApi.notify(iconPath, title, text, system.name,
-        closeHandler, clickHandler)) {
+      id = notifApi.notify(iconPath, title, text, system.name,
+        closeHandler, clickHandler);
+      if (id) {
         // Generating "alertshow"
         if(alertListener) {
           alertListener.observe(null, "alertshow", cookie);
         }
       } else {
-        console.log("Notify fails!");
+        console.error("Notify fails!");
       }
     }
 
