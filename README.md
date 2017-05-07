@@ -1,3 +1,5 @@
+[![Add-On Version](https://img.shields.io/amo/v/gnotifier.svg)](https://addons.mozilla.org/de/thunderbird/addon/gnotifier/) [![AMO Rating](https://img.shields.io/amo/stars/gnotifier.svg)](https://addons.mozilla.org/de/thunderbird/addon/gnotifier/) [![AMO User Count](https://img.shields.io/amo/users/gnotifier.svg)](https://addons.mozilla.org/de/thunderbird/addon/gnotifier/)
+
 # GNotifier
 
 Add-on for Firefox and Thunderbird. Replaces built-in notifications with the OS native notifications. It supports most Linux Desktop Environments, Windows 8.1 & 10.
