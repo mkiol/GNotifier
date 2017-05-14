@@ -42,14 +42,24 @@ function bufferMessageNotification(message) {
   clearTimeout(timeoutID);
   bufferedMessages.push(message);
   timeoutID = setTimeout(()=>{showMessageNotificationFromBuffer();}, 2000);
+
+  // Debug
+  //console.log("bufferMessageNotification");
+  //logMessage(message);
 }
 
 function showMessageNotificationFromBuffer() {
   if (sps.maxMessageBuffer > 0 && bufferedMessages.length > sps.maxMessageBuffer) {
+    //console.log("showMessageNotificationFromBuffer, showAggregatedNotification, bufferedMessages.length: " + bufferedMessages.length);
     showAggregatedNotification();
   } else {
-    for (var i = 0; i < bufferedMessages.length; i++) {
-      showMessageNotification(bufferedMessages[i]);
+    //console.log("showMessageNotificationFromBuffer, bufferedMessages.length: " + bufferedMessages.length);
+    for (let message of bufferedMessages) {
+      showMessageNotification(message);
+
+      // Debug
+      //console.log("bufferedMessages.length: " + bufferedMessages.length);
+      //logMessage(message);
     }
   }
 
@@ -252,7 +262,7 @@ function display(message) {
     win.gFolderTreeView.selectFolder(message.folder);
     win.gFolderDisplay.show(message.folder);
     win.gFolderDisplay.selectMessage(message);
-    
+
     //INFO: tabmail is not supported in SeaMonkey
     let tabmail = win.document.getElementById("tabmail");
     if (sps.newMailOpen == 0) {
@@ -475,7 +485,7 @@ function isFolderExcluded(folder) {
 
 function isFolderAllowed(folder) {
   // Allow user to filter specific folders.
-  let foldersAllowedListPref = sps["foldersAllowedList"].trim();
+  let foldersAllowedListPref = sps.foldersAllowedList.trim();
   if (foldersAllowedListPref !== "") {
     let foldersAllowedList = foldersAllowedListPref.split(",");
     for (let i = 0; i < foldersAllowedList.length; i++) {
@@ -514,13 +524,23 @@ function handleNewMessage(message) {
   }
 }
 
+/*function logMessage(message) {
+  console.log("Message");
+  console.log(" subject: " + message.mime2DecodedSubject);
+  console.log(" flags: " + message.flags);
+  console.log(" folder: " + message.folder.prettyName);
+  console.log(" folder excluded: " + isFolderExcluded(message.folder));
+  let junkscore = message.getStringProperty("junkscore");
+  console.log(" junkscore: " + junkscore);
+}*/
+
 var mailListener = {
   OnItemAdded: (parentItem, item)=>{
     //console.log("OnItemAdded");
     let message = item.QueryInterface(Ci.nsIMsgDBHdr);
-    //console.log("message subject: " + message.mime2DecodedSubject);
     if (message.flags & Ci.nsMsgMessageFlags.New) {
-      //console.log("New message");
+      //console.log("New message!");
+      //logMessage(message);
       handleNewMessage(message);
     }
   },
@@ -538,7 +558,7 @@ var mailListener = {
       const id = message.getStringProperty("gnotifier-notification-id");
       if (id) {
         //console.log("Message marked as read and has notification_id="+id+" property");
-        if (sps["engine"] === 1 && system.platform === "linux") {
+        if (sps.engine === 1 && system.platform === "linux") {
           const notifApi = require("./linux.js");
           notifApi.close(id);
           delId(message);
