@@ -49,6 +49,11 @@ function bufferMessageNotification(message) {
 }
 
 function showMessageNotificationFromBuffer() {
+
+  // Remove all "zombie" messages. Fix for https://github.com/mkiol/GNotifier/issues/166
+  let _temp = bufferedMessages.filter(message => message.flags != 0);
+  bufferedMessages = _temp;
+
   if (sps.maxMessageBuffer > 0 && bufferedMessages.length > sps.maxMessageBuffer) {
     //console.log("showMessageNotificationFromBuffer, showAggregatedNotification, bufferedMessages.length: " + bufferedMessages.length);
     showAggregatedNotification();
