@@ -39,9 +39,13 @@ function isFolderRSS(folder) {
 }
 
 function bufferMessageNotification(message) {
-  clearTimeout(timeoutID);
-  bufferedMessages.push(message);
-  timeoutID = setTimeout(()=>{showMessageNotificationFromBuffer();}, 2000);
+  if (sps.maxMessageBuffer == 0) {
+    setTimeout(()=>{showMessageNotification(message);}, 1);
+  } else {
+    clearTimeout(timeoutID);
+    bufferedMessages.push(message);
+    timeoutID = setTimeout(()=>{showMessageNotificationFromBuffer();}, 2000);
+  }
 
   // Debug
   //console.log("bufferMessageNotification");
