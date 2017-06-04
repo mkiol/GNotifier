@@ -543,7 +543,31 @@ function handleNewMessage(message) {
   console.log(" junkscore: " + junkscore);
 }*/
 
+function getFoldersWithNewMail(aFolder) {
+  let folderList = [];
+  if (aFolder) {
+    if (aFolder.biffState == Ci.nsIMsgFolder.nsMsgBiffState_NewMail) {
+      if (aFolder.hasNewMessages) {
+        folderList.push(aFolder);
+        //console.log("aFolder: " + aFolder.prettiestName);
+        //console.log("aFolder.rootFolder: " + aFolder.rootFolder.prettiestName);
+      }
+      if (aFolder.hasSubFolders) {
+        let subFolders = aFolder.subFolders;
+        while (subFolders.hasMoreElements()) {
+          let subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
+          if (subFolder)
+            folderList = folderList.concat(getFoldersWithNewMail(subFolder));
+        }
+      }
+    }
+  }
+  return folderList;
+}
+
 var mailListener = {
+  // First approach: Detection of new messages based on ItemAdded event
+  // There is an issue related to this method: https://github.com/mkiol/GNotifier/issues/173
   OnItemAdded: (parentItem, item)=>{
     //console.log("OnItemAdded");
     let message = item.QueryInterface(Ci.nsIMsgDBHdr);
@@ -574,6 +598,30 @@ var mailListener = {
         }
       }
     }
+  },
+
+  // Second approach: Detection of new messages based on BiffState change event
+  OnItemIntPropertyChanged: (aItem, aProperty, aOldValue, aNewValue)=>{
+    // New mail if BiffState == nsMsgBiffState_NewMail or NewMailReceived
+    if (
+      (aProperty == "BiffState" && aNewValue == Ci.nsIMsgFolder.nsMsgBiffState_NewMail &&
+        (aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_NoMail || aOldValue == Ci.nsIMsgFolder.nsMsgBiffState_Unknown)) ||
+      (aProperty == "NewMailReceived")
+    ) {
+      let folderList = getFoldersWithNewMail(aItem);
+      for (let i in folderList) {
+        if (folderList[i]) {
+          // Looking for messages with flag == Ci.nsMsgMessageFlags.New
+          let messages = folderList[i].messages;
+          while (messages.hasMoreElements()) {
+            let message = messages.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+            if (message.flags & Ci.nsMsgMessageFlags.New) {
+              handleNewMessage(message);
+            }
+          }
+        }
+      }
+    }
   }
 };
 
@@ -581,20 +629,28 @@ exports.init = ()=>{
   // Disabling native new email alert
   ps.set("mail.biff.show_alert", false);
 
-  // Folder listeners registration for OnItemIntPropertyChanged
+  // Folder listeners registration
   const folderListenerManager = Cc["@mozilla.org/messenger/services/session;1"]
     .getService(Ci.nsIMsgMailSession);
 
   // On Linux listening also for "read" flag change for hiding notification
   // when message is marked as read
-  if (system.platform === "linux")
+  /*if (system.platform === "linux")
     folderListenerManager.AddFolderListener(mailListener,
       Ci.nsIFolderListener.added | Ci.nsIFolderListener.propertyFlagChanged
-      // | Ci.nsIFolderListener.intPropertyChanged
     );
   else
     folderListenerManager.AddFolderListener(mailListener,
-      Ci.nsIFolderListener.added // | Ci.nsIFolderListener.intPropertyChanged
+      Ci.nsIFolderListener.added
+    );
+  */
+  if (system.platform === "linux")
+    folderListenerManager.AddFolderListener(mailListener,
+      Ci.nsIFolderListener.intPropertyChanged | Ci.nsIFolderListener.propertyFlagChanged
+    );
+  else
+    folderListenerManager.AddFolderListener(mailListener,
+      Ci.nsIFolderListener.intPropertyChanged
     );
 
   const sp = require("sdk/simple-prefs");
