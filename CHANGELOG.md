@@ -1,3 +1,9 @@
+## 1.10.5
+  - NL translation (thanks to [Heimen Stoffels](https://github.com/Vistaus))
+  - RU translation update (thanks to [Vladimir Isaev](https://github.com/VVIsaev))
+  - BUG FIX: Empty notifications for messages moved by filtering rules #166 #173
+  - BUG FIX: Removed 2 second delay if notification buffering is disabled #174 (thanks to [gabrielfin](https://github.com/gabrielfin))
+
 ## 1.10.0
   - Enhancements for multiple messages notification. New options: "Title for multiple messages notification", "Text for multiple messages notification", "Click action for multiple messages notification"
   - Delete action. On Linux, every new e-mail notification has now 3 buttons: "Open", "Mark as read" and "Delete"
