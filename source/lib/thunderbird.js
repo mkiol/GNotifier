@@ -14,7 +14,6 @@ const _ = require("sdk/l10n").get;
 const sps = require("sdk/simple-prefs").prefs;
 const ps = require("sdk/preferences/service");
 
-Cu.import("resource://app/modules/gloda/mimemsg.js");
 Cu.import("resource://gre/modules/Timer.jsm");
 
 const gHeaderParser = Cc["@mozilla.org/messenger/headerparser;1"].getService(Ci.nsIMsgHeaderParser);
