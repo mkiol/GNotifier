@@ -353,7 +353,8 @@ exports.main = (options, callbacks)=>{
   // Thunderbird init
   if (system.name == "Thunderbird" ||
       system.name == "SeaMonkey" ||
-      system.name == "Icedove") {
+      system.name == "Icedove" ||
+      system.name == "FossaMail") {
     let thunderbird = require("./thunderbird.js");
     thunderbird.init();
   } else {
@@ -404,7 +405,8 @@ exports.onUnload = (reason)=>{
   // Thunderbird deinit
   if (system.name == "Thunderbird" ||
       system.name == "SeaMonkey" ||
-      system.name == "Icedove") {
+      system.name == "Icedove" ||
+      system.name == "FossaMail") {
     let thunderbird = require("./thunderbird.js");
     thunderbird.deInit();
   }
