@@ -7,7 +7,7 @@
         "Joe Simpson <headbangerkenny@gmail.com>",
         "Andrew Nagle <kabili@zyrenth.com>"
     ],
-    "version": "1.10.7",
+    "version": "1.10.8",
     "title": "GNotifier",
     "fullName": "GNotifier",
     "id": "jid1-OoNOA6XBjznvLQ@jetpack",
@@ -48,6 +48,13 @@
             ]
         },
         {
+            "name": "downloadCompleteAlert",
+            "title": "Download complete notification",
+            "description": "Defines if download complete notification should be shown everytime when downloading is finished.",
+            "type": "bool",
+            "value": true
+        },
+        {
             "name": "clickOption",
             "title": "Default click action",
             "description": "Defines default click action for download complete notification.",
@@ -65,13 +72,6 @@
             ]
         },
         {
-            "name": "downloadCompleteAlert",
-            "title": "Download complete notification",
-            "description": "Defines if downloads complete notification should be shown everytime when downloading is finished.",
-            "type": "bool",
-            "value": true
-        },
-        {
             "name": "excludedExtensionsList",
             "title": "List of excluded file extensions",
             "description": "Comma separated list of filename extensions that will not trigger Download Complete notification. Example: \"html, js, jpg\".",
@@ -79,11 +79,11 @@
             "value": ""
         },
         {
-            "name": "command",
-            "title": "Custom command",
-            "description": "Defines custom shell command that will be executed. This option is applicable only if engine option is set to 'Custom' value. Note that notification title, text or image you can pass to command with following variables: %title, %text, %image.",
-            "type": "string",
-            "value": ""
+            "name": "maxDLbuffer",
+            "title": "Maximum number of simultaneous download complete notification",
+            "description": "Defines the maximum number of simultaneous notifications for download complete. For instance, \"5\" means that if you download less or equal 5 files at once, all will trigger individual notification, but if you download more than 6 files at once, only 1 multiple notification will be shown. Set to \"0\" to disable aggregation.",
+            "type": "integer",
+            "value": 5
         },
         {
             "name": "notifyIcon",
@@ -112,6 +112,13 @@
             "description": "Defines whether notifications for new RSS items should be displayed.",
             "type": "bool",
             "value": false
+        },
+        {
+            "name": "command",
+            "title": "Custom command",
+            "description": "Defines custom shell command that will be executed. This option is applicable only if engine option is set to 'Custom' value. Note that notification title, text or image you can pass to command with following variables: %title, %text, %image.",
+            "type": "string",
+            "value": ""
         },
         {
             "name": "maxMessageBuffer",

@@ -12,6 +12,7 @@ const {Cc, Ci, Cu} = require("chrome");
 
 Cu.import("resource://gre/modules/Task.jsm");
 Cu.import("resource://gre/modules/Downloads.jsm");
+Cu.import("resource://gre/modules/Timer.jsm");
 
 const _ = require("sdk/l10n").get;
 const utils = require("./utils.js");
@@ -19,6 +20,8 @@ const sps = require("sdk/simple-prefs").prefs;
 const system = require("sdk/system");
 
 let notifApi = null; // Notification API
+let timeoutID = null;
+let bufferedPaths = [];
 
 function isFileExcluded(filename) {
   // Check if file extension is excluded
@@ -36,12 +39,58 @@ function isFileExcluded(filename) {
   return false;
 }
 
-function showDownloadCompleteNotification(path) {
-  const filename = path.replace(/^.*[\\\/]/, "");
-
-  if (isFileExcluded(filename)) {
+function bufferNotification(path) {
+  if (isFileExcluded(path)) {
     return;
   }
+
+  if (sps.maxDLbuffer == 0) {
+    showDownloadCompleteNotification(path);
+  } else {
+    clearTimeout(timeoutID);
+    bufferedPaths.push(path);
+    timeoutID = setTimeout(()=>{showNotificationFromBuffer();}, 2000);
+  }
+}
+
+function showNotificationFromBuffer() {
+  if (sps.maxDLbuffer > 0 && bufferedPaths.length > sps.maxDLbuffer) {
+    showAggregatedNotification();
+  } else {
+    for (let path of bufferedPaths) {
+      showDownloadCompleteNotification(path);
+    }
+  }
+
+  bufferedPaths = [];
+  timeoutID = null;
+}
+
+function showAggregatedNotification() {
+  let title = _("download_finished");
+  let text = bufferedPaths.reduce((text, path)=>{
+    return (text == "" ? "" : text + " ") + utils.getFilename(path);
+  }, "");
+  let path = bufferedPaths[bufferedPaths.length-1];
+
+  // Below only makes sense for some linux distros e.g. KDE, Gnome Shell
+  // If linux and libnotify is inited, add "Open" button:
+  // <input text="Open" type="submit"/>
+  if (sps.engine === 1 && notifApi && system.platform === "linux")
+    text = text+"<input text='"+_("open")+"' type='submit'/>";
+
+  // Generate standard desktop notification
+  const notifications = require("sdk/notifications");
+  notifications.notify({
+    title: title,
+    text: text,
+    iconURL: utils.getIcon(),
+    onClick: ()=>{utils.openDir(path);}
+  });
+}
+
+function showDownloadCompleteNotification(path) {
+  const filename = utils.getFilename(path);
 
   let title = _("download_finished");
   let text = filename;
@@ -49,6 +98,7 @@ function showDownloadCompleteNotification(path) {
   // If engine = 1 & linux & supports action buttons, add 2 actions:
   // open file & open folder
   if (sps.engine === 1 &&
+      notifApi &&
       system.platform === "linux" &&
       notifApi.checkButtonsSupported()) {
 
@@ -101,7 +151,7 @@ function showDownloadCompleteNotification(path) {
   // Below only makes sense for some linux distros e.g. KDE, Gnome Shell
   // If linux and libnotify is inited, add "Open" button:
   // <input text="Open" type="submit"/>
-  if (sps.engine === 1 && system.platform === "linux")
+  if (sps.engine === 1 && notifApi && system.platform === "linux")
     text = text+"<input text='"+_("open")+"' type='submit'/>";
 
   // Generate standard desktop notification
@@ -143,7 +193,8 @@ Task.spawn(function*() {
         if(sps.downloadCompleteAlert && download.succeeded) {
           if (download.target.exists === undefined || download.target.exists === true) {
             //console.log("onDownloadChanged: " + download.target.path);
-            showDownloadCompleteNotification(download.target.path);
+            //showDownloadCompleteNotification(download.target.path);
+            bufferNotification(download.target.path);
           }
         }
       }
