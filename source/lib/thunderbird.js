@@ -21,10 +21,36 @@ const gMessenger = Cc["@mozilla.org/messenger;1"].getService(Ci.nsIMessenger);
 const system = require("sdk/system");
 const utils = require("./utils.js");
 
+// Reference: https://dxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgFolderFlags.idl
+const nsMsgFolderFlags_Trash = 0x00000100;
+const nsMsgFolderFlags_Junk = 0x40000000;
+//const nsMsgFolderFlags_SentMail = 0x00000200;
+const nsMsgFolderFlags_Drafts = 0x00000400;
+const nsMsgFolderFlags_Archive = 0x00004000;
+//const nsMsgFolderFlags_Inbox = 0x00001000;
+const nsMsgFolderFlags_Templates = 0x00400000;
+
 //var app = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication);
 
 let bufferedMessages = [];
 let timeoutID;
+
+// source: https://github.com/protz/thunderbird-stdlib/blob/master/msgHdrUtils.js
+function getMail3Pane() {
+  return Cc["@mozilla.org/appshell/window-mediator;1"]
+          .getService(Ci.nsIWindowMediator)
+          .getMostRecentWindow("mail:3pane");
+}
+function msgHdrIsArchive(msgHdr) {
+  return msgHdr.folder.getFlag(nsMsgFolderFlags_Archive);
+}
+function msgHdrsArchive(msgHdrs) {
+  let mail3PaneWindow = getMail3Pane();
+  let batchMover = new mail3PaneWindow.BatchMessageMover();
+  batchMover.archiveMessages(msgHdrs.filter(
+    x => !msgHdrIsArchive(x) && getMail3Pane().getIdentityForHeader(x).archiveEnabled
+  ));
+}
 
 function getUnreadMessageCount() {
   // Getting unread messages count
@@ -99,18 +125,27 @@ function delId(message) {
 
 function deleteMessage(message) {
   try {
-    const win = Cc["@mozilla.org/appshell/window-mediator;1"]
-      .getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane").msgWindow;
+    let win = getMail3Pane().msgWindow;
     let messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
     markRead(message);
     messages.appendElement(message, false);
     message.folder.deleteMessages(messages, win, false, false, null, true);
     message.folder.msgDatabase = null;
   } catch (e) {
-    console.error("Unable to delete messages. Exception: " + e);
+    console.error("Unable to delete message. Exception: " + e);
     return false;
   }
   return true;
+}
+
+function archiveMessage(message) {
+  try {
+    let messages = [];
+    messages.push(message);
+    msgHdrsArchive(messages);
+  } catch (e) {
+    console.error("Unable to archive message. Exception: " + e);
+  }
 }
 
 function markRead(message) {
@@ -169,6 +204,15 @@ function showNotification(title, text, message, agregated = false){
           notifApi.close(id);
       }
     };
+    let archiveAction = {
+      label: _("Archive"),
+      handler: ()=>{
+        delId(message);
+        archiveMessage(message);
+        if (notifApi)
+          notifApi.close(id);
+      }
+    };
 
     if (agregated) {
       actions.push(openAction);
@@ -178,16 +222,25 @@ function showNotification(title, text, message, agregated = false){
         actions.push(openAction);
         actions.push(markReadAction);
         actions.push(deleteAction);
+        actions.push(archiveAction);
         break;
       case 1:
         actions.push(markReadAction);
         actions.push(openAction);
         actions.push(deleteAction);
+        actions.push(archiveAction);
         break;
       case 2:
         actions.push(deleteAction);
         actions.push(openAction);
         actions.push(markReadAction);
+        actions.push(archiveAction);
+        break;
+      case 3:
+        actions.push(archiveAction);
+        actions.push(openAction);
+        actions.push(markReadAction);
+        actions.push(deleteAction);
         break;
       }
     }
@@ -243,8 +296,7 @@ function showNotification(title, text, message, agregated = false){
 }
 
 function focusWindow(selectTabmail) {
-  const win = Cc["@mozilla.org/appshell/window-mediator;1"]
-    .getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
+  const win = getMail3Pane();
   if (win) {
     if (selectTabmail) {
       let tabmail = win.document.getElementById("tabmail");
@@ -264,8 +316,7 @@ function focusWindow(selectTabmail) {
 // https://developer.mozilla.org/docs/Mozilla/Thunderbird/Content_Tabs
 function display(message) {
   // Try opening new tabs in an existing 3pane window
-  const win = Cc["@mozilla.org/appshell/window-mediator;1"]
-    .getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
+  let win = getMail3Pane();
   if (win) {
     win.gFolderTreeView.selectFolder(message.folder);
     win.gFolderDisplay.show(message.folder);
@@ -424,8 +475,7 @@ function getMessageBody(aMsgHdr){
 }
 
 function selectedMessage() {
-  const win = Cc["@mozilla.org/appshell/window-mediator;1"]
-    .getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
+  const win = getMail3Pane();
   if (win && win.gFolderDisplay && win.gFolderDisplay.selectedMessage) {
     // Folder filtering test
     let folder = win.gFolderDisplay.selectedMessage.folder;
@@ -468,25 +518,18 @@ function testAggregatedNotification() {
 }
 
 function isFolderExcluded(folder) {
-  // Reference: https://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgFolderFlags.idl
-  // Junk
-  if (folder.getFlag(0x40000000))
+  if (folder.getFlag(nsMsgFolderFlags_Junk))
     return true;
-  // Trash
-  if (folder.getFlag(0x00000100))
+  if (folder.getFlag(nsMsgFolderFlags_Trash))
     return true;
-  // SentMail
   // Commented due to https://github.com/mkiol/GNotifier/issues/153
-  /*if (folder.getFlag(0x00000200))
+  /*if (folder.getFlag(nsMsgFolderFlags_SentMail))
     return true;*/
-  // Drafts
-  if (folder.getFlag(0x00000400))
+  if (folder.getFlag(nsMsgFolderFlags_Drafts))
     return true;
-  // Archive
-  if (folder.getFlag(0x00004000))
+  if (folder.getFlag(nsMsgFolderFlags_Archive))
     return true;
-  // Templates
-  if (folder.getFlag(0x00400000))
+  if (folder.getFlag(nsMsgFolderFlags_Templates))
     return true;
   return false;
 }

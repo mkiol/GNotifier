@@ -7,7 +7,7 @@
         "Joe Simpson <headbangerkenny@gmail.com>",
         "Andrew Nagle <kabili@zyrenth.com>"
     ],
-    "version": "1.10.6",
+    "version": "1.10.7",
     "title": "GNotifier",
     "fullName": "GNotifier",
     "id": "jid1-OoNOA6XBjznvLQ@jetpack",
@@ -155,6 +155,10 @@
                 {
                     "value": "2",
                     "label": "Delete"
+                },
+                {
+                    "value": "3",
+                    "label": "Archive"
                 }
             ]
         },
