@@ -10,14 +10,11 @@
 
 const {Cc, Ci, Cu, Cm, components} = require("chrome");
 
-Cu.import("resource://gre/modules/Timer.jsm");
+//Cu.import("resource://gre/modules/Timer.jsm");
 Cu.import("resource://gre/modules/FileUtils.jsm");
 Cu.import("resource://gre/modules/NetUtil.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-Cu.import("resource://gre/modules/Task.jsm");
-Cu.import("resource://gre/modules/Downloads.jsm");
 
-const _ = require("sdk/l10n").get;
 const utils = require("./utils.js");
 const sps = require("sdk/simple-prefs").prefs;
 const system = require("sdk/system");
@@ -25,134 +22,9 @@ const system = require("sdk/system");
 const origAlertsServiceFactory = Cm.getClassObject(Cc["@mozilla.org/alerts-service;1"], Ci.nsIFactory);
 const origAlertsService = Cc["@mozilla.org/alerts-service;1"].getService(Ci.nsIAlertsService);
 
-let notifApi;
-
-function showDownloadCompleteNotification(path) {
-  const filename = path.replace(/^.*[\\\/]/, "");
-
-  // Check if file extension is excluded
-  const ext = utils.getFileExtension(filename).toLowerCase();
-  if (sps.excludedExtensionsList !== "") {
-    const excludedExtensionsList = sps["excludedExtensionsList"].split(",");
-    for (let i = 0; i < excludedExtensionsList.length; i++) {
-      const eext = excludedExtensionsList[i].toLowerCase().trim();
-      if (ext === eext) {
-        // File extension is excluded
-        return;
-      }
-    }
-  }
-
-  let title = _("download_finished");
-  let text = filename;
-
-  // If engine = 1 & linux & supports action buttons, add 2 actions:
-  // open file & open folder
-  if (sps.engine === 1 &&
-      system.platform === "linux" &&
-      notifApi.checkButtonsSupported()) {
-
-    // Fix for Plasma4: Space on buttons is small so using short labels
-    const plasma = notifApi.checkPlasma();
-
-    let id = null;
-    let actions;
-    if (sps.clickOption == 0) {
-      actions = [{
-        label: plasma ? _("Folder") : _("Open_folder"),
-        handler: ()=>{
-          utils.openDir(path);
-          if (id && notifApi && sps.engine === 1 && system.platform === "linux")
-            notifApi.close(id);
-        }
-      }, {
-        label: plasma ? _("File") : _("Open_file"),
-        handler: ()=>{
-          utils.openFile(path);
-          if (id && notifApi && sps.engine === 1 && system.platform === "linux")
-            notifApi.close(id);
-        }
-      }];
-    } else {
-      actions = [{
-        label: plasma ? _("File") : _("Open_file"),
-        handler: ()=>{
-          utils.openFile(path);
-          if (id && notifApi && sps.engine === 1 && system.platform === "linux")
-            notifApi.close(id);
-        }
-      }, {
-        label: plasma ? _("Folder") : _("Open_folder"),
-        handler: ()=>{
-          utils.openDir(path);
-          if (id && notifApi && sps.engine === 1 && system.platform === "linux")
-            notifApi.close(id);
-        }
-      }];
-    }
-    /* eslint-disable no-unused-vars */
-    id = notifApi.notifyWithActions(utils.getIcon(), title, text,
-        system.name, reason=>{}, actions);
-    if (id)
-      return;
-    /* eslint-enable no-unused-vars */
-  }
-
-  // Below only makes sense for some linux distros e.g. KDE, Gnome Shell
-  // If linux and libnotify is inited, add "Open" button:
-  // <input text="Open" type="submit"/>
-  if (sps.engine === 1 && system.platform === "linux")
-    text = text+"<input text='"+_("open")+"' type='submit'/>";
-
-  // Generate standard desktop notification
-  const notifications = require("sdk/notifications");
-  notifications.notify({
-    title: title,
-    text: text,
-    iconURL: utils.getIcon(),
-    onClick: ()=>{
-      if (sps["clickOption"] == 0) {
-        utils.openDir(path);
-      } else {
-        utils.openFile(path);
-      }
-    }
-  });
-}
-
-// Works only for FF<26 and SeaMonkey
-const downloadProgressListener = {
-  onDownloadStateChange: (aState, aDownload)=>{
-    const dm = Cc["@mozilla.org/download-manager;1"].getService(Ci.nsIDownloadManager);
-    if (sps.downloadCompleteAlert) {
-      switch(aDownload.state) {
-      case dm.DOWNLOAD_FINISHED:
-        showDownloadCompleteNotification(aDownload.target.path);
-        break;
-      }
-    }
-  }
-};
-
-// Works only for FF>=26
-Task.spawn(function*() {
-  try {
-    let list = yield Downloads.getList(Downloads.ALL);
-    let view = {
-      onDownloadChanged: (download)=>{
-        if(sps.downloadCompleteAlert && download.succeeded) {
-          if (download.target.exists === undefined || download.target.exists === true) {
-            //console.log("onDownloadChanged: " + download.target.path);
-            showDownloadCompleteNotification(download.target.path);
-          }
-        }
-      }
-    };
-    yield list.addView(view);
-  } catch(e) {
-    console.error(e);
-  }
-}).then(null, Cu.reportError);
+let notifApi = null;
+let thunderbirdApi = null;
+let downloadCompleteApi = null;
 
 // New implmentation of Alert Service
 function AlertsService() {}
@@ -331,32 +203,17 @@ exports.main = (options, callbacks)=>{
     return;
   }
 
-  try {
-    // Works only in FF<26 and SeaMonkey
-    let dm = Cc["@mozilla.org/download-manager;1"].getService(Ci.nsIDownloadManager);
-    dm.addListener(downloadProgressListener);
-  } catch(e) {
-    // continue regardless of error
-  }
-
-  try {
-    // Works only in FF<26 and SeaMonkey
-    let ps = require("sdk/preferences/service");
-    if (sps["downloadCompleteAlert"])
-      ps.set("browser.download.manager.showAlertOnComplete", false);
-    else
-      ps.set("browser.download.manager.showAlertOnComplete", true);
-  } catch(e) {
-    // continue regardless of error
-  }
+  // Download complete init
+  downloadCompleteApi = require("./download_complete.js");
+  downloadCompleteApi.init(notifApi);
 
   // Thunderbird init
   if (system.name == "Thunderbird" ||
       system.name == "SeaMonkey" ||
       system.name == "Icedove" ||
       system.name == "FossaMail") {
-    let thunderbird = require("./thunderbird.js");
-    thunderbird.init();
+    thunderbirdApi = require("./thunderbird.js");
+    thunderbirdApi.init();
   } else {
     sp.on("test", ()=>{
       utils.showGnotifierNotification("This works only in Thunderbird!");
@@ -371,43 +228,36 @@ exports.onUnload = (reason)=>{
   console.log("Unload reason: " + reason);
   deleteTempFiles();
 
-  if (!notifApi) {
-    return;
-  }
+  if (notifApi) {
+    notifApi.deInit();
+    notifApi = null;
 
-  notifApi.deInit();
-  notifApi = null;
+    // Unregister current alerts-service class factory
+    const contract = "@mozilla.org/alerts-service;1";
+    let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
+    registrar.unregisterFactory(
+      Cc[contract],
+      Cm.getClassObject(Cc[contract], Ci.nsIFactory)
+    );
 
-  // Unregister current alerts-service class factory
-  const contract = "@mozilla.org/alerts-service;1";
-  let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
-  registrar.unregisterFactory(
-    Cc[contract],
-    Cm.getClassObject(Cc[contract], Ci.nsIFactory)
-  );
-
-  // Register orig alert service factory
-  registrar.registerFactory(
-    Cc[contract],
-    "Orig Alerts Service",
-    contract,
-    origAlertsServiceFactory
-  );
-
-  // Works only in FF<26
-  try {
-    let ps = require("sdk/preferences/service");
-    ps.set("browser.download.manager.showAlertOnComplete", true);
-  } catch(e) {
-    // continue regardless of error
+    // Register orig alert service factory
+    registrar.registerFactory(
+      Cc[contract],
+      "Orig Alerts Service",
+      contract,
+      origAlertsServiceFactory
+    );
   }
 
   // Thunderbird deinit
-  if (system.name == "Thunderbird" ||
-      system.name == "SeaMonkey" ||
-      system.name == "Icedove" ||
-      system.name == "FossaMail") {
-    let thunderbird = require("./thunderbird.js");
-    thunderbird.deInit();
+  if (thunderbirdApi) {
+    thunderbirdApi.deInit();
+    thunderbirdApi = null;
+  }
+
+  // Download complete deinit
+  if (downloadCompleteApi) {
+    downloadCompleteApi.deInit();
+    downloadCompleteApi = null;
   }
 };
