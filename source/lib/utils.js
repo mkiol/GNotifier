@@ -119,6 +119,12 @@ exports.sanitize = (s)=>{
   return match[1];
 };
 
+exports.getFilename = (path)=> {
+  if (path)
+    return path.replace(/^.*[\\\/]/, "");
+  return "";
+};
+
 exports.getFileExtension = (filename)=>{
   // Source: http://stackoverflow.com/a/1203361
   let a = filename.split(".");
