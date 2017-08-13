@@ -1,3 +1,10 @@
+## 1.10.8 (dev)
+  - Archive button for new message notification
+  - Multiple download complete notification
+  - Thunderbird 56 (beta) support
+  - FossaMail support
+  - FR translation update (thanks to [Gnafron](https://github.com/gnafron))
+
 ## 1.10.5
   - NL translation (thanks to [Heimen Stoffels](https://github.com/Vistaus))
   - RU translation update (thanks to [Vladimir Isaev](https://github.com/VVIsaev))
