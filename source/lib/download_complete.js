@@ -67,7 +67,7 @@ function showNotificationFromBuffer() {
 }
 
 function showAggregatedNotification() {
-  let title = _("download_finished");
+  let title = _("download_finished") + " (" + bufferedPaths.length + ")";
   let text = bufferedPaths.reduce((text, path)=>{
     return (text == "" ? "" : text + " ") + utils.getFilename(path);
   }, "");
