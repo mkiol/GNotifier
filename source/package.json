@@ -48,47 +48,16 @@
             ]
         },
         {
-            "name": "downloadCompleteAlert",
-            "title": "Download complete notification",
-            "description": "Defines if download complete notification should be shown everytime when downloading is finished.",
-            "type": "bool",
-            "value": true
-        },
-        {
-            "name": "clickOption",
-            "title": "Default click action",
-            "description": "Defines default click action for download complete notification.",
-            "type": "menulist",
-            "value": 0,
-            "options": [
-                {
-                    "value": "0",
-                    "label": "Open folder"
-                },
-                {
-                    "value": "1",
-                    "label": "Open file"
-                }
-            ]
-        },
-        {
-            "name": "excludedExtensionsList",
-            "title": "List of excluded file extensions",
-            "description": "Comma separated list of filename extensions that will not trigger Download Complete notification. Example: \"html, js, jpg\".",
+            "name": "command",
+            "title": "Custom command",
+            "description": "Defines custom shell command that will be executed. This option is applicable only if engine option is set to 'Custom' value. Note that notification title, text or image you can pass to command with following variables: %title, %text, %image.",
             "type": "string",
             "value": ""
         },
         {
-            "name": "maxDLbuffer",
-            "title": "Maximum number of simultaneous download complete notification",
-            "description": "Defines the maximum number of simultaneous notifications for download complete. For instance, \"5\" means that if you download less or equal 5 files at once, all will trigger individual notification, but if you download more than 6 files at once, only 1 multiple notification will be shown. Set to \"0\" to disable aggregation.",
-            "type": "integer",
-            "value": 5
-        },
-        {
             "name": "notifyIcon",
             "title": "Notification Icon",
-            "description": "Icon used for \"Download Complete\" and \"New E-mail\" notifications. It can be either icon URL or name. Examples: \"file://c:\\my-cool-icon.png\", \"nightly\", \"aurora\" or \"gnotifier\". If value is set to \"default\" then icon will be set based on application name (e.g. Firefox, Thunderbird, SeaMonkey).",
+            "description": "Icon used for download complete and new message notifications. It can be either icon URL or name. Examples: \"file://c:\\my-cool-icon.png\", \"nightly\", \"aurora\" or \"gnotifier\". If value is set to \"default\" then icon will be set based on application name (e.g. Firefox, Thunderbird, SeaMonkey).",
             "type": "string",
             "value": "default"
         },
@@ -107,30 +76,61 @@
             "value": true
         },
         {
-            "name": "enableRSS",
-            "title": "Notifications for RSS feeds",
-            "description": "Defines whether notifications for new RSS items should be displayed.",
+            "name": "downloadCompleteAlert",
+            "title": "Download complete notification",
+            "description": "If enabled, download complete notification will be shown everytime when downloading is finished.",
             "type": "bool",
-            "value": false
+            "value": true
         },
         {
-            "name": "command",
-            "title": "Custom command",
-            "description": "Defines custom shell command that will be executed. This option is applicable only if engine option is set to 'Custom' value. Note that notification title, text or image you can pass to command with following variables: %title, %text, %image.",
+            "name": "clickOption",
+            "title": "Download complete notification - Default click action",
+            "description": "Defines default action for 'click' on download complete notification.",
+            "type": "menulist",
+            "value": 0,
+            "options": [
+                {
+                    "value": "0",
+                    "label": "Open folder"
+                },
+                {
+                    "value": "1",
+                    "label": "Open file"
+                }
+            ]
+        },
+        {
+            "name": "excludedExtensionsList",
+            "title": "Download complete notification - List of excluded file extensions",
+            "description": "Comma separated list of filename extensions that will not trigger download complete notification. Example: \"html, js, jpg\".",
             "type": "string",
             "value": ""
         },
         {
+            "name": "maxDLbuffer",
+            "title": "Download complete notification - Maximum number of simultaneous notifications",
+            "description": "Defines the maximum number of simultaneous notifications. For instance, \"5\" means that if you download less or equal 5 files at once, all will trigger individual notification, but if you download more than 6 files at once, only 1 multiple notification will be shown. Set to \"0\" to disable aggregation.",
+            "type": "integer",
+            "value": 5
+        },
+        {
+            "name": "enableRSS",
+            "title": "New message notification - RSS feeds",
+            "description": "If enabled, new message notification for RSS items will be displayed.",
+            "type": "bool",
+            "value": false
+        },
+        {
             "name": "maxMessageBuffer",
-            "title": "Maximum number of simultaneous notifications",
+            "title": "New message notification - Maximum number of simultaneous notifications",
             "description": "Defines the maximum number of simultaneous notifications for new messages. For instance, \"5\" means that if you receive less or equal 5 messages at once, all will trigger individual notification, but if you receive more than 6 new messages at once, only 1 multiple messages notification will be shown. Set to \"0\" to disable aggregation.",
             "type": "integer",
             "value": 5
         },
         {
             "name": "newMailOpen",
-            "title": "Open new message action",
-            "description": "Defines how new messages should be opened when you click on message notification.",
+            "title": "New message notification - Open action",
+            "description": "Defines how new messages should be opened when you click on notification.",
             "type": "menulist",
             "value": 0,
             "options": [
@@ -146,8 +146,8 @@
         },
         {
             "name": "clickOptionNewEmail",
-            "title": "Default click action for message notifications",
-            "description": "Default action performed on click on message notification.",
+            "title": "New message notification - Default click action",
+            "description": "Defines default action for 'click' on new message notification.",
             "type": "menulist",
             "value": 0,
             "options": [
@@ -170,37 +170,9 @@
             ]
         },
         {
-            "name": "emailTitleFormat",
-            "title": "Title for message notification",
-            "description": "%s: Subject, %a: Sender (Name <E-mail>), %m: Sender E-mail, %n: Sender Name, %f: Folder, %v: Server, %k: Size, %u: Account, %b: Body excerpt, %c: Number of unread messages, %%: %",
-            "type": "string",
-            "value": "%a"
-        },
-        {
-            "name": "emailTextFormat",
-            "title": "Text for message notification",
-            "description": "%s: Subject, %a: Sender (Name <E-mail>), %m: Sender E-mail, %n: Sender Name, %f: Folder, %v: Server, %k: Size, %u: Account, %b: Body excerpt, %c: Number of unread messages, %%: %, \\n: Newline",
-            "type": "string",
-            "value": "%s"
-        },
-        {
-            "name": "aggregatedEmailTitleFormat",
-            "title": "Title for multiple messages notification",
-            "description": "%C: Count of new messages, %c: Number of unread messages, %%: %",
-            "type": "string",
-            "value": "%_New_messages: %C"
-        },
-        {
-            "name": "aggregatedEmailTextFormat",
-            "title": "Text for multiple messages notification",
-            "description": "%[format]{n}: Format definition (the same as in \"Text for message notification\") for \"n\" first emails, %C: Count of new messages, %c: Number of unread messages, %%: %, \\n: Newline",
-            "type": "string",
-            "value": "%[%n: %s]{3}"
-        },
-        {
             "name": "aggregatedClickOption",
-            "title": "Click action for multiple messages notification",
-            "description": "Action performed on click on multiple messages notification.",
+            "title": "New message notification - Default click action for multiple messages notification",
+            "description": "Defines default action for 'click' on multiple messages notification.",
             "type": "menulist",
             "value": 0,
             "options": [
@@ -219,15 +191,43 @@
             ]
         },
         {
+            "name": "emailTitleFormat",
+            "title": "New message notification - Title",
+            "description": "%s: Subject, %a: Sender (Name <E-mail>), %m: Sender E-mail, %n: Sender Name, %f: Folder, %v: Server, %k: Size, %u: Account, %b: Body excerpt, %c: Number of unread messages, %%: %",
+            "type": "string",
+            "value": "%a"
+        },
+        {
+            "name": "emailTextFormat",
+            "title": "New message notification - Text",
+            "description": "%s: Subject, %a: Sender (Name <E-mail>), %m: Sender E-mail, %n: Sender Name, %f: Folder, %v: Server, %k: Size, %u: Account, %b: Body excerpt, %c: Number of unread messages, %%: %, \\n: Newline",
+            "type": "string",
+            "value": "%s"
+        },
+        {
+            "name": "aggregatedEmailTitleFormat",
+            "title": "New message notification - Title for multiple messages notification",
+            "description": "%C: Count of new messages, %c: Number of unread messages, %%: %",
+            "type": "string",
+            "value": "%_New_messages: %C"
+        },
+        {
+            "name": "aggregatedEmailTextFormat",
+            "title": "New message notification - Text for multiple messages notification",
+            "description": "%[format]{n}: Format definition (the same as in \"Text for message notification\") for \"n\" first emails, %C: Count of new messages, %c: Number of unread messages, %%: %, \\n: Newline",
+            "type": "string",
+            "value": "%[%n: %s]{3}"
+        },
+        {
             "name": "foldersAllowedList",
-            "title": "List of folders to allow notifications from",
+            "title": "New message notification - List of folders to allow notifications from",
             "description": "Comma seperated list of folder names (or account name, folder name pairs). For example:  \"My email|Inbox, My folder\" will only allow notifications from \"Inbox\" folder under \"My email\" account and from any folder with name \"My folder\". Set to blank to allow all.",
             "type": "string",
             "value": ""
         },
         {
             "name": "test",
-            "title": "Test notification",
+            "title": "New message notification - Test",
             "label": "Test",
             "description": "Select a message from any folder, then come back and click on 'Test'",
             "type": "control",
@@ -235,7 +235,7 @@
         },
         {
             "name": "testAggregated",
-            "title": "Test multiple messages notification",
+            "title": "New message notification - Test multiple messages notification",
             "label": "Test",
             "description": "Select a message from any folder, then come back and click on 'Test'",
             "type": "control",
