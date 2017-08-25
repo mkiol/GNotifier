@@ -2,8 +2,8 @@
 
 # GNotifier
 
-Add-on for Thunderbird. Replaces built-in notifications with the OS native notifications.<br>
-It supports most Linux Desktop Environments and Windows 8.1/10.
+GNotifier is an add-on for Thunderbird and replaces the built-in notifications with OS native ones.<br>
+It supports most Linux Desktop Environments as well as Windows 8.1/10.
 
 ## Changelog
 
