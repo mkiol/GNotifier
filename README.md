@@ -2,7 +2,8 @@
 
 # GNotifier
 
-Add-on for Firefox and Thunderbird. Replaces built-in notifications with the OS native notifications. It supports most Linux Desktop Environments, Windows 8.1 & 10.
+Add-on for Thunderbird. Replaces built-in notifications with the OS native notifications.<br>
+It supports most Linux Desktop Environments and Windows 8.1/10.
 
 ## Changelog
 
