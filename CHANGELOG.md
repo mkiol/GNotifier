@@ -1,4 +1,4 @@
-## 1.10.8 (dev)
+## 1.11.0
   - Archive button for new message notification
   - Multiple download complete notification
   - Thunderbird 56 (beta) support
