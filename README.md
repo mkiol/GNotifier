@@ -1,4 +1,5 @@
-[![Add-On Version](https://img.shields.io/amo/v/gnotifier.svg)](https://addons.mozilla.org/de/thunderbird/addon/gnotifier/) [![AMO Rating](https://img.shields.io/amo/stars/gnotifier.svg)](https://addons.mozilla.org/de/thunderbird/addon/gnotifier/) [![AMO User Count](https://img.shields.io/amo/users/gnotifier.svg)](https://addons.mozilla.org/de/thunderbird/addon/gnotifier/)
+[![Add-On Version](https://img.shields.io/amo/v/gnotifier.svg?label=thunderbird%20add-on)](https://addons.mozilla.org/de/thunderbird/addon/gnotifier/) [![AMO Rating](https://img.shields.io/amo/stars/gnotifier.svg)](https://addons.mozilla.org/de/thunderbird/addon/gnotifier/) [![AMO User Count](https://img.shields.io/amo/users/gnotifier.svg)](https://addons.mozilla.org/de/thunderbird/addon/gnotifier/) [![AMO Download Count](https://img.shields.io/amo/d/gnotifier.svg)](https://addons.mozilla.org/de/thunderbird/addon/gnotifier/)
+
 
 # GNotifier
 
