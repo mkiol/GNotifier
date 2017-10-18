@@ -3,7 +3,7 @@
 
 # GNotifier
 
-GNotifier is an add-on for Thunderbird and replaces the built-in notifications with OS native ones.<br>
+GNotifier is an add-on for Thunderbird which replaces the built-in notifications with OS native ones.  
 It supports most Linux Desktop Environments as well as Windows 8.1/10.
 
 ## Changelog
@@ -15,6 +15,11 @@ GNotifier's changes are logged [here](https://github.com/mkiol/GNotifier/blob/ma
 1. Make sure that you have [jpm](https://developer.mozilla.org/en-US/Add-ons/SDK/Tools/jpm#Installation) tool installed.
 2. Open a terminal in the ./source dir
 3. Run ``jpm xpi`` to make the xpi
+
+## Troubleshooting
+
+* Windows - Notifications are not permanent.  
+  Go to: Settings -> System -> Notifications -> Thunderbird -> "Show notifications in action center" = On
 
 ## License
 
