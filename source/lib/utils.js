@@ -19,7 +19,7 @@ exports.openFile = (path)=>{
   const ioService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
   let uri = ioService.newURI("file://"+path, null, null);
   if (uri instanceof Ci.nsIFileURL) {
-    uri.file.QueryInterface(Ci.nsILocalFile).launch();
+    uri.file.launch();
   }
 };
 
@@ -41,7 +41,7 @@ exports.openDir = (path)=>{
     const wu = require("./windowsUtils.js");
     wu.openExplorer(path);
   } else {
-    exports.openFile(path.replace(/[^\\\/]*$/, ""));
+    exports.openFile(path.replace(/[^\\/]*$/, ""));
   }
 };
 
@@ -105,8 +105,10 @@ exports.getIcon = ()=>{
 
 exports.isUrlValid = (s)=>{
   // Source: http://dzone.com/snippets/validate-url-regexp
-  const re = /(http|https|file):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
-  return re.test(s);
+  const re = /(http|https|file):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\\/]))?/;
+  let ret = re.test(s);
+  //console.log("isUrlValid: " + s + " " + ret);
+  return ret;
 };
 
 exports.sanitize = (s)=>{
@@ -121,7 +123,7 @@ exports.sanitize = (s)=>{
 
 exports.getFilename = (path)=> {
   if (path)
-    return path.replace(/^.*[\\\/]/, "");
+    return path.replace(/^.*[\\/]/, "");
   return "";
 };
 

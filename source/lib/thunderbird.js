@@ -38,8 +38,8 @@ let timeoutID;
 // source: https://github.com/protz/thunderbird-stdlib/blob/master/msgHdrUtils.js
 function getMail3Pane() {
   return Cc["@mozilla.org/appshell/window-mediator;1"]
-          .getService(Ci.nsIWindowMediator)
-          .getMostRecentWindow("mail:3pane");
+    .getService(Ci.nsIWindowMediator)
+    .getMostRecentWindow("mail:3pane");
 }
 function msgHdrIsArchive(msgHdr) {
   return msgHdr.folder.getFlag(nsMsgFolderFlags_Archive);
@@ -54,7 +54,8 @@ function msgHdrsArchive(msgHdrs) {
 
 function getUnreadMessageCount() {
   // Getting unread messages count
-  let newMailNotificationService = Cc["@mozilla.org/newMailNotificationService;1"].getService(Ci.mozINewMailNotificationService);
+  let newMailNotificationService = Cc["@mozilla.org/newMailNotificationService;1"]
+    .getService(Ci.mozINewMailNotificationService);
   return newMailNotificationService.messageCount;
 }
 
@@ -84,10 +85,12 @@ function showMessageNotificationFromBuffer() {
   bufferedMessages = _temp;
 
   if (sps.maxMessageBuffer > 0 && bufferedMessages.length > sps.maxMessageBuffer) {
-    //console.log("showMessageNotificationFromBuffer, showAggregatedNotification, bufferedMessages.length: " + bufferedMessages.length);
+    //console.log("showMessageNotificationFromBuffer, showAggregatedNotification,
+    //bufferedMessages.length: " + bufferedMessages.length);
     showAggregatedNotification();
   } else {
-    //console.log("showMessageNotificationFromBuffer, bufferedMessages.length: " + bufferedMessages.length);
+    //console.log("showMessageNotificationFromBuffer, bufferedMessages.length: " +
+    //bufferedMessages.length);
     for (let message of bufferedMessages) {
       showMessageNotification(message);
 
@@ -104,7 +107,8 @@ function showMessageNotificationFromBuffer() {
 function showAggregatedNotification() {
   let title = format2(sps.aggregatedEmailTitleFormat);
   let text = formatAggregated(sps.aggregatedEmailTextFormat.replace(/\\n/, "\n"));
-  let message = sps.aggregatedClickOption === 0 ? bufferedMessages[0] : bufferedMessages[bufferedMessages.length-1];
+  let message = sps.aggregatedClickOption === 0 ? bufferedMessages[0] :
+    bufferedMessages[bufferedMessages.length-1];
   showNotification(title, text, sps.aggregatedClickOption === 2 ? null : message, true);
 }
 
@@ -250,22 +254,22 @@ function showNotification(title, text, message, agregated = false){
     if (sps.engine === 1 && system.platform === "linux") {
       notifApi = require("./linux.js");
       if (notifApi.checkButtonsSupported()) {
-/* eslint-disable no-unused-vars */
+        /* eslint-disable no-unused-vars */
         id = notifApi.notifyWithActions(utils.getIcon(), title, text,
           system.name, reason=>{}, actions);
-/* eslint-enable no-unused-vars */
+        /* eslint-enable no-unused-vars */
         //console.log("notifyWithActions, id: " + id);
         if (!agregated && message && id)
           addId(message, id);
         return;
       } else {
-/* eslint-disable no-unused-vars */
+        /* eslint-disable no-unused-vars */
         id = notifApi.notify(utils.getIcon(), title, text, system.name,
           reason=>{}, data=>{
             // Call first top action (default action) on click
             actions[0].handler();
           });
-/* eslint-enable no-unused-vars */
+        /* eslint-enable no-unused-vars */
         //console.log("notify, id: " + id);
         if (!agregated && message && id)
           addId(message, id);
@@ -277,13 +281,13 @@ function showNotification(title, text, message, agregated = false){
       title: title,
       text: text,
       iconURL: utils.getIcon(),
-/* eslint-disable no-unused-vars */
+      /* eslint-disable no-unused-vars */
       onClick: data=>{
         // Call first top action (default action) on click
         // Action for aggregated notification is always 'open'
         actions[0].handler();
       }
-/* eslint-enable no-unused-vars */
+      /* eslint-enable no-unused-vars */
     });
     return;
   }
@@ -353,7 +357,7 @@ function display(message) {
 
 function formatAggregated(formatRe){
   let string = format2(formatRe);
-  string = string.replace(new RegExp("%\\[(.+)\\]\{(.+)\}", "g"), (match, p1, p2)=>{
+  string = string.replace(new RegExp("%\\[(.+)\\]{(.+)}", "g"), (match, p1, p2)=>{
     let n = parseInt(p2);
     if (n == 0)
       n = 1;
@@ -422,7 +426,8 @@ function format(message, formatRe){
     // Subject, with "Re:" when appropriate
     case "%s": {
       let hasRe = message.flags & Ci.nsMsgMessageFlags.HasRe;
-      let subject = message.mime2DecodedSubject == "" ? _("Empty_subject") : message.mime2DecodedSubject;
+      let subject = message.mime2DecodedSubject == "" ? _("Empty_subject") :
+        message.mime2DecodedSubject;
       return hasRe ? "Re: " + subject : subject;
     }
     // Full Author

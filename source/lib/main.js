@@ -37,7 +37,8 @@ AlertsService.prototype = {
       alert.dir, alert.lang);
   },
   showAlertNotification: function(imageUrl, title, text, textClickable,
-                        cookie, alertListener, name, dir, lang) {
+    cookie, alertListener, name, dir, lang) {
+
     // Engine 0 - FF built-in
     if (sps.engine === 0) {
       origAlertsService.showAlertNotification(imageUrl, title, text,
@@ -146,7 +147,8 @@ function deleteTempFiles() {
   while(entries.hasMoreElements()) {
     let entry = entries.getNext();
     entry.QueryInterface(Ci.nsIFile);
-    let filename = entry.path.replace(/^.*[\\\/]/, "");
+    let filename = entry.path.replace(/^.*[\\/]/, "");
+    console.log("deleteTempFiles: " + entry.path + " " + filename);
     if (filename.substring(0, 10) === "gnotifier-")
       entry.remove(false);
   }
