@@ -29,7 +29,7 @@
         {
             "name": "engine",
             "title": "Notification engine",
-            "description": "Defines how notification will be displayed. Possible options are: built-in engine (Standard), OS native engine (GNotifier) or Custom shell command (Custom command).",
+            "description": "Defines how notification will be displayed. \nPossible options are: \n- built-in engine ('Standard'), \n- OS native engine ('GNotifier'), \n- custom shell command ('Custom command').",
             "type": "menulist",
             "value": 1,
             "options": [
@@ -50,28 +50,28 @@
         {
             "name": "command",
             "title": "Custom command",
-            "description": "Defines custom shell command that will be executed. This option is applicable only if engine option is set to 'Custom' value. Note that notification title, text or image you can pass to command with following variables: %title, %text, %image.",
+            "description": "Custom shell command. This option is applicable only if engine option is set to 'Custom' value. \nFollowing variables can be pass to the command: \n- %title => notification title, \n- %text => body text, \n- %image => image url.",
             "type": "string",
             "value": ""
         },
         {
             "name": "notifyIcon",
             "title": "Notification Icon",
-            "description": "Icon used for download complete and new message notifications. It can be either icon URL or name. Examples: \"file://c:\\my-cool-icon.png\", \"nightly\", \"aurora\" or \"gnotifier\". If value is set to \"default\" then icon will be set based on application name (e.g. Firefox, Thunderbird, SeaMonkey).",
+            "description": "Icon used for download complete and new message notifications. It can be either icon URL or a name. \nExamples: \n- 'file://c:\\my-cool-icon.png', \n- 'nightly', \n- 'aurora', \n- 'gnotifier'. \nIf value is set to 'default' then icon will be set based on application name (e.g. Firefox, Thunderbird, SeaMonkey).",
             "type": "string",
             "value": "default"
         },
         {
             "name": "timeout",
             "title": "Notification timeout (Linux only)",
-            "description": "Sets the timeout of the notification in seconds. To set the default time, pass \"0\" value. Note that the timeout may be ignored by some servers.",
+            "description": "Timeout of the notification (in seconds). To set the default time, pass '0' value. Note that timeout may be ignored by some notification servers.",
             "type": "integer",
             "value": 0
         },
         {
             "name": "timeoutExpire",
             "title": "Notification expiration (Linux only)",
-            "description": "Sets the notification to expire after defined timeout (true) or to never expire (false). Note that it may be ignored by some servers.",
+            "description": "Sets the notification to expire (Set) or to never expire (Unset). Note that it may be ignored by some servers.",
             "type": "bool",
             "value": true
         },
@@ -85,7 +85,7 @@
         {
             "name": "clickOption",
             "title": "Download complete notification - Default click action",
-            "description": "Defines default action for 'click' on download complete notification.",
+            "description": "Default action for 'click' on download complete notification.",
             "type": "menulist",
             "value": 0,
             "options": [
@@ -102,16 +102,24 @@
         {
             "name": "excludedExtensionsList",
             "title": "Download complete notification - List of excluded file extensions",
-            "description": "Comma separated list of filename extensions that will not trigger download complete notification. Example: \"html, js, jpg\".",
+            "description": "Comma separated list of filename extensions that will not trigger download complete notification. \nExample: 'html, js, jpg'.",
             "type": "string",
             "value": ""
         },
         {
             "name": "maxDLbuffer",
             "title": "Download complete notification - Maximum number of simultaneous notifications",
-            "description": "Defines the maximum number of simultaneous notifications. For instance, \"5\" means that if you download less or equal 5 files at once, all will trigger individual notification, but if you download more than 6 files at once, only 1 multiple notification will be shown. Set to \"0\" to disable aggregation.",
+            "description": "Defines the maximum number of simultaneous notifications. \nFor instance, '5' means that if you download less or equal 5 files at once, all will trigger individual notification, but if you download more than 6 files at once, only 1 multiple notification will be shown. \nSet to '0' to disable aggregation.",
             "type": "integer",
             "value": 5
+        },
+        {
+            "name": "testDL",
+            "title": "Download complete notification - Test",
+            "label": "Test",
+            "description": "Click on 'Test' to trigger download complete notification.",
+            "type": "control",
+            "value": ""
         },
         {
             "name": "enableRSS",
@@ -123,7 +131,7 @@
         {
             "name": "maxMessageBuffer",
             "title": "New message notification - Maximum number of simultaneous notifications",
-            "description": "Defines the maximum number of simultaneous notifications for new messages. For instance, \"5\" means that if you receive less or equal 5 messages at once, all will trigger individual notification, but if you receive more than 6 new messages at once, only 1 multiple messages notification will be shown. Set to \"0\" to disable aggregation.",
+            "description": "Defines the maximum number of simultaneous notifications for new messages. \nFor instance, '5' means that if you receive less or equal 5 messages at once, all will trigger individual notification, but if you receive more than 6 new messages at once, only 1 multiple messages notification will be shown. \nSet to '0' to disable aggregation.",
             "type": "integer",
             "value": 5
         },
@@ -192,36 +200,36 @@
         },
         {
             "name": "emailTitleFormat",
-            "title": "New message notification - Title",
-            "description": "%s: Subject, %a: Sender (Name <E-mail>), %m: Sender E-mail, %n: Sender Name, %f: Folder, %v: Server, %k: Size, %u: Account, %b: Body excerpt, %c: Number of unread messages, %%: %",
+            "title": "New message notification - Title template",
+            "description": "Template for notification title. Following variables are supported: \n- %s => subject, \n- %a => sender (name <e-mail>), \n- %m => sender e-mail, \n- %n => sender name, \n- %f => folder, \n- %v => server, \n- %k => size, \n- %u => account, \n- %b => body excerpt, \n- %c => number of unread messages, \n- %% => %.",
             "type": "string",
             "value": "%a"
         },
         {
             "name": "emailTextFormat",
-            "title": "New message notification - Text",
-            "description": "%s: Subject, %a: Sender (Name <E-mail>), %m: Sender E-mail, %n: Sender Name, %f: Folder, %v: Server, %k: Size, %u: Account, %b: Body excerpt, %c: Number of unread messages, %%: %, \\n: Newline",
+            "title": "New message notification - Text template",
+            "description": "Template for notification body text. Following variables are supported: \n- %s => subject, \n- %a => sender (name <e-mail>), \n- %m => sender e-mail, \n- %n => sender name, \n- %f => folder, \n- %v => server, \n- %k => size, \n- %u => account, \n- %b => body excerpt, \n- %c => number of unread messages, \n- %% => %, \n- \\n => newline.",
             "type": "string",
             "value": "%s"
         },
         {
             "name": "aggregatedEmailTitleFormat",
-            "title": "New message notification - Title for multiple messages notification",
-            "description": "%C: Count of new messages, %c: Number of unread messages, %%: %",
+            "title": "New message notification - Title template for multiple messages notification",
+            "description": "Template for notification title. Following variables are supported: \n- %C => count of new messages, \n- %c => number of unread messages, \n- %% => %.",
             "type": "string",
             "value": "%_New_messages: %C"
         },
         {
             "name": "aggregatedEmailTextFormat",
-            "title": "New message notification - Text for multiple messages notification",
-            "description": "%[format]{n}: Format definition (the same as in \"Text for message notification\") for \"n\" first emails, %C: Count of new messages, %c: Number of unread messages, %%: %, \\n: Newline",
+            "title": "New message notification - Text template for multiple messages notification",
+            "description": "Template for notification body text. Following variables are supported: \n- %[format]{n} => format definition ('format' - has the same variables as 'Text template' for single notification, 'n' - first n e-mails), \n- %C => count of new messages, \n- %c => number of unread messages, \n- %% => %, \n- \\n => newline.",
             "type": "string",
             "value": "%[%n: %s]{3}"
         },
         {
             "name": "foldersAllowedList",
             "title": "New message notification - List of folders to allow notifications from",
-            "description": "Comma seperated list of folder names (or account name, folder name pairs). For example:  \"My email|Inbox, My folder\" will only allow notifications from \"Inbox\" folder under \"My email\" account and from any folder with name \"My folder\". Set to blank to allow all.",
+            "description": "Comma seperated list of folder names (or account name, folder name pairs). \nFor a example, 'My email|Inbox, My folder' allows notifications from 'Inbox' folder under 'My email' account and from any folder with name 'My folder'. \nSet to blank to allow all.",
             "type": "string",
             "value": ""
         },
@@ -229,7 +237,7 @@
             "name": "test",
             "title": "New message notification - Test",
             "label": "Test",
-            "description": "Select a message from any folder, then come back and click on 'Test'",
+            "description": "Select a message from any folder, then click on 'Test'",
             "type": "control",
             "value": ""
         },
@@ -237,7 +245,7 @@
             "name": "testAggregated",
             "title": "New message notification - Test multiple messages notification",
             "label": "Test",
-            "description": "Select a message from any folder, then come back and click on 'Test'",
+            "description": "Select a message from any folder, then click on 'Test'",
             "type": "control",
             "value": ""
         },

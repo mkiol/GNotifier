@@ -14,7 +14,8 @@
         "ctypes": false,
         "XPCOMUtils": false,
         "NetUtil": false,
-        "Task": false
+        "Task": false,
+        "OS": false
     },
     "rules": {
         "no-tabs": "warn",

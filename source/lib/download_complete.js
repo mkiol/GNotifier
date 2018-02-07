@@ -12,6 +12,7 @@ const {Cc, Ci, Cu} = require("chrome");
 
 Cu.import("resource://gre/modules/Task.jsm");
 Cu.import("resource://gre/modules/Downloads.jsm");
+Cu.import("resource://gre/modules/osfile.jsm");
 Cu.import("resource://gre/modules/Timer.jsm");
 
 const _ = require("sdk/l10n").get;
@@ -142,7 +143,7 @@ function showDownloadCompleteNotification(path) {
     }
     /* eslint-disable no-unused-vars */
     id = notifApi.notifyWithActions(utils.getIcon(), title, text,
-        system.name, reason=>{}, actions);
+      system.name, reason=>{}, actions);
     if (id)
       return;
     /* eslint-enable no-unused-vars */
@@ -170,6 +171,26 @@ function showDownloadCompleteNotification(path) {
   });
 }
 
+function testNotification() {
+  Task.spawn(function*() {
+    try {
+      let list = yield Downloads.getList(Downloads.ALL);
+      let download = yield Downloads.createDownload({
+        source: {
+          url: "https://www.mozilla.org"
+        },
+        target: {
+          path: OS.Path.join(OS.Constants.Path.tmpDir, "test-download.html")
+        }
+      });
+      yield list.add(download);
+      yield download.start();
+    } catch(e) {
+      console.error(e);
+    }
+  }).then(null, Cu.reportError);
+}
+
 // Works only for FF<26 and SeaMonkey
 const downloadProgressListener = {
   onDownloadStateChange: (aState, aDownload)=>{
@@ -189,7 +210,21 @@ Task.spawn(function*() {
   try {
     let list = yield Downloads.getList(Downloads.ALL);
     let view = {
+      /*onDownloadAdded: (download)=>{
+        console.log("onDownloadAdded");
+        console.log("  download.launcherPath: " + download.launcherPath);
+        console.log("  download.target.path: " + download.target.path);
+        console.log("  download.succeeded: " + download.succeeded);
+        console.log("  download.progress: " + download.progress);
+        console.log("  download.error: " + download.error);
+        console.log("  download.stopped: " + download.stopped);
+        console.log("  download.target.exists: " + download.target.exists);
+      },
+      onDownloadRemoved: (download)=>{
+        console.log("onDownloadRemoved");
+      },*/
       onDownloadChanged: (download)=>{
+        /*console.log("onDownloadChanged");*/
         if(sps.downloadCompleteAlert && download.succeeded) {
           if (download.target.exists === undefined || download.target.exists === true) {
             //console.log("onDownloadChanged: " + download.target.path);
@@ -226,6 +261,11 @@ exports.init = (_notifApi)=>{
   } catch(e) {
     // continue regardless of error
   }
+
+  const sp = require("sdk/simple-prefs");
+  sp.on("testDL", ()=>{
+    testNotification();
+  });
 };
 
 exports.deInit = ()=>{
