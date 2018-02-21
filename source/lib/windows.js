@@ -30,7 +30,7 @@ exports.init = ()=>{
   }
   try {
     winToast = ctypes.open(FileUtils.getFile("ProfD",
-    ["extensions", "jid1-OoNOA6XBjznvLQ@jetpack", "resources", "gnotifier", "data", dllName]).path);
+      ["extensions", "jid1-OoNOA6XBjznvLQ@jetpack", "resources", "gnotifier", "data", dllName]).path);
   } catch (e) {
     console.error(e);
   }
@@ -55,14 +55,14 @@ exports.notify = (iconURL, title, text, notifier, closeHandler, clickHandler)=>{
     const clickCallbackType = ctypes.FunctionType(ctypes.stdcall_abi, ctypes.void_t).ptr;
     const closeCallbackType = ctypes.FunctionType(ctypes.stdcall_abi, ctypes.void_t).ptr;
     let DisplayToastNotification = winToast.declare("DisplayToastNotification",
-        ctypes.winapi_abi,
-        ctypes.bool,
-        ctypes.jschar.ptr,
-        ctypes.jschar.ptr,
-        ctypes.jschar.ptr,
-        ctypes.jschar.ptr,
-        clickCallbackType,
-        closeCallbackType);
+      ctypes.winapi_abi,
+      ctypes.bool,
+      ctypes.jschar.ptr,
+      ctypes.jschar.ptr,
+      ctypes.jschar.ptr,
+      ctypes.jschar.ptr,
+      clickCallbackType,
+      closeCallbackType);
 
     let closeCallback = null;
     if (closeHandler && typeof(closeHandler)==="function") {

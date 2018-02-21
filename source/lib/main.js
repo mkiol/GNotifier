@@ -205,6 +205,16 @@ exports.main = (options, callbacks)=>{
     return;
   }
 
+  // Test HTML notifications button
+  sp.on("devTestButton", function() {
+    let rawString = "HTML entities: &lt; &gt; &nbsp; &commat; " +
+                    "Tags: <b>Bold</b> <i>Italic</i> <u>Underline</u> " +
+                    "<a href=\"https://www.mozilla.org/\">Hyperlink</a> " +
+                    "<img src=\"https://www.mozilla.org/media/img/favicon/favicon-196x196.png\" alt=\"Image\"/> " +
+                    "Unsupported tags: <strong>Strong<strong> <script>Script</script> <input>Input</input>";
+    utils.showGnotifierNotification(rawString);
+  });
+
   // Download complete init
   downloadCompleteApi = require("./download_complete.js");
   downloadCompleteApi.init(notifApi);

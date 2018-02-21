@@ -111,10 +111,62 @@ exports.isUrlValid = (s)=>{
   return ret;
 };
 
-exports.sanitize = (s)=>{
-  // Source: https://developer.mozilla.org/en-US/Add-ons/Overlay_Extensions/XUL_School/DOM_Building_and_HTML_Insertion#Safely_Using_Remote_HTML
+exports.escapeTags = (text)=>{
+  let map = {
+    "<": "&lt;",
+    ">": "&gt;"
+  };
+
+  return text.replace(/[<>]/g, function(m) {
+    return map[m];
+  });
+};
+
+exports.escapeUnsupportedTags = (text)=>{
+  // Source: https://stackoverflow.com/a/31259386
+
+  // Allowed markups:
+  //  <b> ... </b> Bold
+  //  <i> ... </i> Italic
+  //  <u> ... </u> Underline
+  //  <a href="..."> ... </a> Hyperlink
+  //  <img src="..." alt="..."/> Image
+  // Reference: https://developer.gnome.org/notification-spec/#markup
+
+  const allowedTags = "<b><i><u><a><img><input>";
+  const disallowedEntities = "&tab;&newline;&nbsp;";
+
+  const tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi;
+  const commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
+  const entries = /(&[^;]*;)/gi;
+
+  return text
+    .replace(commentsAndPhpTags, "")
+    .replace(entries, function($0, $1) {
+      return disallowedEntities.indexOf($1.toLowerCase()) > -1 ? "" : $0;
+    })
+    .replace(tags, function($0, $1) {
+      // Return allowed tags and escape others
+      const allowed = allowedTags.indexOf("<" + $1.toLowerCase() + ">") > -1;
+      return allowed ? $0 : exports.escapeTags($0);
+    });
+};
+
+exports.plain = (s)=>{
+  // Reference: https://developer.mozilla.org/en-US/Add-ons/Overlay_Extensions/
+  //         XUL_School/DOM_Building_and_HTML_Insertion#Safely_Using_Remote_HTML
   const parser = Cc["@mozilla.org/parserutils;1"].getService(Ci.nsIParserUtils);
-  s = parser.sanitize(s, parser.SanitizerCidEmbedsOnly);
+  const flags = parser.SanitizerDropNonCSSPresentation | parser.SanitizerDropForms;
+  s = parser.convertToPlainText(s, flags, 0);
+  return s;
+};
+
+exports.sanitize = (s)=>{
+  // Reference: https://developer.mozilla.org/en-US/Add-ons/Overlay_Extensions/
+  //         XUL_School/DOM_Building_and_HTML_Insertion#Safely_Using_Remote_HTML
+  const parser = Cc["@mozilla.org/parserutils;1"].getService(Ci.nsIParserUtils);
+  const flags = parser.SanitizerDropNonCSSPresentation | parser.SanitizerDropForms;
+  s = parser.sanitize(s, flags);
   const re = /<body\s*[^>]*>([\S\s]*?)<\/body>/i;
   let match = re.exec(s);
 

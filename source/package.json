@@ -256,6 +256,14 @@
             "description": "Close all active notifications",
             "type": "control",
             "value": ""
+        },
+        {
+            "name": "devTestButton",
+            "title": "HTML notification test",
+            "label": "Test",
+            "description": "HTML notification test",
+            "type": "control",
+            "value": ""
         }
     ]
 }

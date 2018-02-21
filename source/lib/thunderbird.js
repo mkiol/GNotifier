@@ -454,7 +454,9 @@ function format(message, formatRe){
     // Body excerpt
     case "%b": {
       let body = getMessageBody(message);
-      body = body.replace(/\n/g, " ").trim().substr(0, 80).trim();
+      body = utils.plain(body);
+      body = body.replace(/\n/g, " ");
+      body = body.trim().substr(0, 80).trim();
       body += body.length > 80 ? "..." : "";
       return body == "" ? _("Empty_body") : body;
     }

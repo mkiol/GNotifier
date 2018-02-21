@@ -168,7 +168,7 @@ function handleClose(notification, data) {
       i--;
       if (closedCallbackFunArray[i]["notification_id"] === notification_id) {
         closedCallbackFunArray[i]["handler"](
-            notify_notification_get_closed_reason(notification));
+          notify_notification_get_closed_reason(notification));
         closedCallbackFunArray.splice(i, 1);
         break;
       }
@@ -185,6 +185,36 @@ function handleClose(notification, data) {
   } else {
     console.log("handleClose: Data is null!");
   }
+}
+
+function escapeUnsupportedTags(text) {
+  // Source: https://stackoverflow.com/a/31259386
+
+  // Allowed markups:
+  //  <b> ... </b> Bold
+  //  <i> ... </i> Italic
+  //  <u> ... </u> Underline
+  //  <a href="..."> ... </a> Hyperlink
+  //  <img src="..." alt="..."/> Image
+  // Reference: https://developer.gnome.org/notification-spec/#markup
+
+  const allowedTags = "<b><i><u><a><img><input>";
+  const disallowedEntities = "&tab;&newline;&nbsp;";
+
+  const tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi;
+  const commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
+  const entries = /(&[^;]*;)/gi;
+
+  return text
+    .replace(commentsAndPhpTags, "")
+    .replace(entries, function($0, $1) {
+      return disallowedEntities.indexOf($1.toLowerCase()) > -1 ? "" : $0;
+    })
+    .replace(tags, function($0, $1) {
+      // Return allowed tags and escape others
+      const allowed = allowedTags.indexOf("<" + $1.toLowerCase() + ">") > -1;
+      return allowed ? $0 : utils.escapeTags($0);
+    });
 }
 
 exports.checkButtonsSupported = ()=>{
@@ -307,8 +337,11 @@ exports.close = id=>{
 exports.notify = (iconURL, title, text, notifier, closeHandler, clickHandler)=>{
   // Getting <input text=?> from text; by default is "open"
   let input = _("open");
-  let _text = text.replace(/<[\/]{0,1}(input|INPUT)[^><]*>/g, (match)=>{
-    input = / text='([^']*)'/g.exec(match)[1]; return "";
+  let _text = text.replace(/<[/]{0,1}(input|INPUT)[^><]*>/g, (match)=>{
+    let inp = / text='([^']*)'/g.exec(match);
+    if (inp !== null)
+      input = inp[1];
+    return "";
   });
 
   // Creating array with "open" action if clickHandler and actions supported
@@ -321,8 +354,11 @@ exports.notify = (iconURL, title, text, notifier, closeHandler, clickHandler)=>{
 };
 
 exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actionsList)=>{
-  // Sanitization
-  text = utils.sanitize(text);
+  // Escape unsupported tags
+  //console.log("orig: " + text);
+  //console.log("plain: " + utils.plain(text));
+  text = escapeUnsupportedTags(text);
+  //console.log("escaped: " + text);
 
   // Initing libnotify
   notify_init(notifier);
@@ -374,7 +410,7 @@ exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actio
     notify_notification_set_timeout(notification, 0);
   }
 
-    // Adding actions
+  // Adding actions
   if (actionsList) {
     for (let i in actionsList) {
       const label = actionsList[i]["label"];
