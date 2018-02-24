@@ -50,6 +50,11 @@ AlertsService.prototype = {
     if (sps.engine === 2) {
       if (sps.command !== "") {
         let command = sps["command"];
+
+        imageUrl = utils.escapeShell(imageUrl);
+        title = utils.escapeShell(title);
+        text = utils.escapeShell(text);
+
         command = command.replace("%image",imageUrl);
         command = command.replace("%title",title);
         command = command.replace("%text",text);

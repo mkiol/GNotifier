@@ -152,6 +152,14 @@ exports.escapeUnsupportedTags = (text)=>{
     });
 };
 
+exports.escapeShell = (text)=>{
+  if (system.platform === "linux") {
+    return text.replace(/(["\s'$`\\])/g,"\\$1");
+  } else {
+    return text;
+  }
+};
+
 exports.plain = (s)=>{
   // Reference: https://developer.mozilla.org/en-US/Add-ons/Overlay_Extensions/
   //         XUL_School/DOM_Building_and_HTML_Insertion#Safely_Using_Remote_HTML
