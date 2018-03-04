@@ -45,6 +45,17 @@ exports.openDir = (path)=>{
   }
 };
 
+exports.randStr = (length)=>{
+  // Source: https://stackoverflow.com/a/1349426
+  let text = "";
+  let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (var i = 0; i < length; i++)
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  return text;
+};
+
 exports.getHash = (text)=>{
   let hash = 0;
   let chr;

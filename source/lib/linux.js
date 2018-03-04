@@ -383,7 +383,7 @@ exports.close = id=>{
 };
 
 exports.notify = (iconURL, title, text, notifier, closeHandler, clickHandler)=>{
-  // Getting <input text=?> from text; by default is "open"      console.error("Unable to open libnotify");
+  // Getting <input text=?> from text; by default is "open"
   let input = _("open");
   let _text = text.replace(/<[/]{0,1}(input|INPUT)[^><]*>/g, (match)=>{
     let inp = / text='([^']*)'/g.exec(match);
@@ -410,6 +410,12 @@ exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actio
     return false;
   }
 
+  if (exports.checkPlasma()) {
+    // Plasma5 aggregates notifications with the same title and app_name.
+    // Actions on aggregated notification are broken. The workaround is
+    // to generate unique app_name per every notification
+    notifier = notifier + "-" + utils.randStr(3);
+  }
   notify_set_app_name(notifier);
 
   const image_path_hint_name = "image-path";
