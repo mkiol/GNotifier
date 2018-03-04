@@ -1,3 +1,12 @@
+## 1.12.x (dev)
+ - Improved Actions configuration
+ - New actions: Mark as Junk, Add Star
+ - Button to test download complete notification
+ - BUG FIX: Escaping unsupported HTML tags #24 #185 #192
+ - BUG FIX: Escaping shell command for Linux #193
+ - BUG FIX: More structural description on preferences pane #195
+ - BUG FIX: Thunderbird crashes after Gnotifier update
+
 ## 1.11.0
   - Archive button for new message notification
   - Multiple download complete notification
@@ -23,7 +32,7 @@
   - Notification filtering based on filename extension
   - Windows: Support for 'Custom command'
   - Windows: Better icon presentation and support for custom 'Notification Icon' option
-  - Windows: Click action on downolad complete notification focuses file
+  - Windows: Click action on download complete notification focuses file
   - Thunderbird: Notification filtering based on mailbox and folder name (thanks to [pd5rm](https://github.com/pd5rm))
   - Thunderbird: Notifications aggregation (in case of many simultaneous new messages)
   - Linux: Default action is triggered by clicking on the whole notification (GNOME, Cinnamon)
