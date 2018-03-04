@@ -538,7 +538,9 @@ function selectedMessage() {
   if (win && win.gFolderDisplay && win.gFolderDisplay.selectedMessage) {
     // Folder filtering test
     let folder = win.gFolderDisplay.selectedMessage.folder;
-    if (isFolderExcluded(folder) || !isFolderAllowed(folder)) {
+    if (isFolderExcluded(folder) ||
+        !isFolderAllowed(folder) ||
+        isFolderDisallowed(folder)) {
       let name = folder.rootFolder.prettiestName + "|" + folder.prettiestName;
       utils.showGnotifierNotification("Notifications from folder \"" + name + "\" are disabled.");
       return null;
@@ -594,9 +596,9 @@ function isFolderExcluded(folder) {
 }
 
 function isFolderAllowed(folder) {
-  // Allow user to filter specific folders.
+  // Allow user to filter specific folders using whitelist.
   let foldersAllowedListPref = sps.foldersAllowedList.trim();
-  if (foldersAllowedListPref !== "") {
+  if (foldersAllowedListPref.length > 0) {
     let foldersAllowedList = foldersAllowedListPref.split(",");
     for (let i = 0; i < foldersAllowedList.length; i++) {
       let folderName1 = foldersAllowedList[i].toLowerCase().trim();
@@ -618,6 +620,32 @@ function isFolderAllowed(folder) {
   return false;
 }
 
+function isFolderDisallowed(folder) {
+  // Allow user to filter specific folders using blacklist.
+  let foldersAllowedListPref = sps.foldersAllowedList.trim();
+  if (foldersAllowedListPref.length == 0) {
+    let foldersDisallowedListPref = sps.foldersDisallowedList.trim();
+    if (foldersDisallowedListPref.length > 0) {
+      let foldersDisallowedList = foldersDisallowedListPref.split(",");
+      for (let i = 0; i < foldersDisallowedList.length; i++) {
+        let folderName1 = foldersDisallowedList[i].toLowerCase().trim();
+        let folderName2;
+        if (folderName1.indexOf("|") !== -1) {
+          // Folder name contains rootFolder name
+          folderName2 = folder.rootFolder.prettiestName.toLowerCase() + "|" + folder.prettiestName.toLowerCase();
+        } else {
+          folderName2 = folder.prettiestName.toLowerCase();
+        }
+        if (folderName1 == folderName2) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
 function handleNewMessage(message) {
   let folder = message.folder;
 
@@ -626,7 +654,9 @@ function handleNewMessage(message) {
     return;
   }
 
-  if (!isFolderExcluded(folder) && isFolderAllowed(folder)) {
+  if (!isFolderExcluded(folder) &&
+      isFolderAllowed(folder) &&
+      !isFolderDisallowed(folder)) {
     if (message.getUint32Property("gnotifier-done") != 1) {
       bufferMessageNotification(message);
       message.setUint32Property("gnotifier-done", 1);

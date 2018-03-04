@@ -351,8 +351,15 @@
         },
         {
             "name": "foldersAllowedList",
-            "title": "New message notification - List of folders to allow notifications from",
-            "description": "Comma seperated list of folder names (or account name, folder name pairs). \nFor a example, 'My email|Inbox, My folder' allows notifications from 'Inbox' folder under 'My email' account and from any folder with name 'My folder'. \nSet to blank to allow all.",
+            "title": "New message notification - List of folders to allow notifications from (Whitelist)",
+            "description": "Comma seperated list of folder names (or account name, folder name pairs). \nFor a example, 'My email|Inbox, My folder' allows notifications from 'Inbox' folder under 'My email' account and from any folder with name 'My folder'. \nSet to blank to allow all or to use blacklist filtering.",
+            "type": "string",
+            "value": ""
+        },
+        {
+            "name": "foldersDisallowedList",
+            "title": "New message notification - List of folders to disallow notifications from (Blacklist)",
+            "description": "Comma seperated list of folder names (or account name, folder name pairs). \nFor a example, 'My email|Inbox, My folder' disallows notifications from 'Inbox' folder under 'My email' account and from any folder with name 'My folder'. \nSet to blank to allow all. Filtering won't work if whitelist isn't blank.",
             "type": "string",
             "value": ""
         },
