@@ -24,6 +24,7 @@ Cu.import("resource://gre/modules/ctypes.jsm", this);
 const _ = require("sdk/l10n").get;
 const utils = require("./utils.js");
 const sps = require("sdk/simple-prefs").prefs;
+const system = require("sdk/system");
 
 let libc = null;
 let actionsCallbackFunArray = [];
@@ -50,13 +51,16 @@ const callbackFunType = ctypes.FunctionType(ctypes.default_abi, ctypes.void_t, [
 const actionFunType = ctypes.FunctionType(ctypes.default_abi, ctypes.void_t, [struct_notification.ptr, ctypes.char.ptr, ctypes.voidptr_t]).ptr;
 let g_variant_new_string;
 let notify_init;
+let notify_uninit;
 let notify_is_initted;
+let notify_set_app_name;
 let notify_notification_new;
 let notify_notification_set_hint;
 let notify_notification_set_timeout;
 let notify_notification_show;
 let notify_notification_close;
 let g_signal_connect_data;
+//let g_signal_handler_disconnect;
 let notify_get_server_info;
 let notify_get_server_caps;
 let notify_notification_add_action;
@@ -153,6 +157,23 @@ function handleAction(notification, action, data) {
   }
 }
 
+/*function disconnectCloseHandlers() {
+  let l = closedCallbackFunArray.length;
+  for (let i = 0; i < l; i++) {
+    let notification_id = closedCallbackFunArray[i]["notification_id"];
+
+    if (notificationMap.has(notification_id)) {
+      let notification = notificationMap[notification_id];
+      let handler_id = closedCallbackFunArray[i]["handlerId"];
+
+      if (handler_id > 0) {
+        console.log("Disconnecting close handler: " + handler_id);
+        g_signal_handler_disconnect(notification, handler_id);
+      }
+    }
+  }
+}*/
+
 function handleClose(notification, data) {
   if (!data.isNull()) {
     // Getting handler from closedCallbackFunArray by notification_id
@@ -236,18 +257,22 @@ exports.checkPlasma = ()=>{
 };
 
 exports.init = ()=>{
-  if (libc) {
+  /*if (libc) {
+    console.log("Closing libnotify");
     libc.close();
     libc = null;
-  }
+  }*/
 
-  try {
-    libc = ctypes.open("libnotify.so.4");
-  } catch (e) {
+  if (!libc) {
+    console.log("Opening libnotify");
     try {
-      libc = ctypes.open("/usr/local/lib/libnotify.so.4");
+      libc = ctypes.open("libnotify.so.4");
     } catch (e) {
-      console.error(e);
+      try {
+        libc = ctypes.open("/usr/local/lib/libnotify.so.4");
+      } catch (e) {
+        console.error(e);
+      }
     }
   }
 
@@ -261,8 +286,12 @@ exports.init = ()=>{
     ctypes.default_abi, struct_gvariant.ptr, ctypes.char.ptr);
   notify_init = libc.declare("notify_init", ctypes.default_abi,
     ctypes.bool, ctypes.char.ptr);
+  notify_uninit = libc.declare("notify_uninit", ctypes.default_abi,
+    ctypes.void_t);
   notify_is_initted = libc.declare("notify_is_initted",
     ctypes.default_abi, ctypes.bool);
+  notify_set_app_name = libc.declare("notify_set_app_name",
+    ctypes.default_abi, ctypes.void_t, ctypes.char.ptr);
   notify_notification_new = libc.declare(
     "notify_notification_new", ctypes.default_abi,
     struct_notification.ptr, ctypes.char.ptr,
@@ -283,6 +312,8 @@ exports.init = ()=>{
     ctypes.default_abi, ctypes.unsigned_long, ctypes.voidptr_t,
     ctypes.char.ptr, ctypes.voidptr_t, ctypes.voidptr_t,
     ctypes.voidptr_t, ctypes.unsigned_int);
+  /*g_signal_handler_disconnect = libc.declare("g_signal_handler_disconnect",
+    ctypes.default_abi, ctypes.void_t, ctypes.voidptr_t, ctypes.unsigned_long);*/
   notify_get_server_info = libc.declare("notify_get_server_info",
     ctypes.default_abi,ctypes.bool,ctypes.char.ptr.ptr,
     ctypes.char.ptr.ptr,ctypes.char.ptr.ptr,ctypes.char.ptr.ptr);
@@ -296,6 +327,13 @@ exports.init = ()=>{
     "notify_notification_get_closed_reason",
     ctypes.default_abi, ctypes.int, struct_notification.ptr);
 
+  // Initing libnotify
+  console.log("Initing libnotify");
+  if (!notify_init(system.name)) {
+    console.error("Unable to init libnotify");
+    return false;
+  }
+
   checkServerInfo();
   //console.log("Notify server name: " + checkServerInfo());
   let ret = checkServerCapabilities();
@@ -306,11 +344,21 @@ exports.init = ()=>{
 };
 
 exports.deInit = ()=>{
+  exports.closeAll();
+  //disconnectCloseHandlers();
+
   actionsCallbackFunArray = [];
   closedCallbackFunArray = [];
   notificationMap.clear();
-  if (libc)
+
+  // Uniniting libnotify
+  console.log("Uniniting libnotify");
+  notify_uninit();
+
+  /*if (libc) {
+    console.log("Closing libnotify");
     libc.close();
+  }*/
 };
 
 exports.closeAll = ()=>{
@@ -335,7 +383,7 @@ exports.close = id=>{
 };
 
 exports.notify = (iconURL, title, text, notifier, closeHandler, clickHandler)=>{
-  // Getting <input text=?> from text; by default is "open"
+  // Getting <input text=?> from text; by default is "open"      console.error("Unable to open libnotify");
   let input = _("open");
   let _text = text.replace(/<[/]{0,1}(input|INPUT)[^><]*>/g, (match)=>{
     let inp = / text='([^']*)'/g.exec(match);
@@ -346,7 +394,7 @@ exports.notify = (iconURL, title, text, notifier, closeHandler, clickHandler)=>{
 
   // Creating array with "open" action if clickHandler and actions supported
   if (clickHandler && typeof(clickHandler)==="function" && serverCapabilities.indexOf("actions") != -1) {
-    let actions = [{ label: input, handler: clickHandler }];
+    let actions = [{ default: true, label: input, handler: clickHandler }];
     return exports.notifyWithActions(iconURL, title, _text, notifier, closeHandler, actions);
   }
 
@@ -355,17 +403,14 @@ exports.notify = (iconURL, title, text, notifier, closeHandler, clickHandler)=>{
 
 exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actionsList)=>{
   // Escape unsupported tags
-  //console.log("orig: " + text);
-  //console.log("plain: " + utils.plain(text));
   text = escapeUnsupportedTags(text);
-  //console.log("escaped: " + text);
 
-  // Initing libnotify
-  notify_init(notifier);
   if (!notify_is_initted()) {
     console.error("Notify is not inited!");
     return false;
   }
+
+  notify_set_app_name(notifier);
 
   const image_path_hint_name = "image-path";
   let image_path_hint = null;
@@ -383,6 +428,7 @@ exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actio
           iconURL = "file://" + iconURL;
         }
       }
+
       image_path_hint = g_variant_new_string(iconURL);
 
       // We can pass the image-data hint, so just pass the regular icon
@@ -390,22 +436,25 @@ exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actio
       iconURL = utils.getIcon();
       break;
     default:
-      console.log("Your org.freedesktop.Notifications server should update to the 1.2 specification");
+      console.error("Your org.freedesktop.Notifications server should " +
+                    "update to the 1.2 specification");
       return false;
     }
   }
 
   // Creating notification
   let notification = notify_notification_new(title, text, iconURL);
+
   const notification_id = ctypes.cast(notification, ctypes.uintptr_t).value.toString();
 
   if (image_path_hint) {
     notify_notification_set_hint(notification, image_path_hint_name, image_path_hint);
   }
 
-  if (sps["timeoutExpire"]) {
-    if (sps["timeout"] >= 1)
+  if (sps.timeoutExpire) {
+    if (sps.timeout >= 1) {
       notify_notification_set_timeout(notification, sps["timeout"] * 1000);
+    }
   } else {
     notify_notification_set_timeout(notification, 0);
   }
@@ -413,15 +462,17 @@ exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actio
   // Adding actions
   if (actionsList) {
     for (let i in actionsList) {
+      const def = actionsList[i]["default"];
       const label = actionsList[i]["label"];
       const handler = actionsList[i]["handler"];
+
       if (handler && typeof(handler) === "function") {
         // Defing callback function for action
         let user_data_ptr = ctypes.int(i).address();
         const action_id = ctypes.cast(user_data_ptr, ctypes.uintptr_t).value.toString();
 
-        // First action will be "default"
-        const action_name = (i == 0 ? "default" : "gnotifier_"+action_id);
+        // Default action
+        const action_name = (def ? "default" : "gnotifier_"+action_id);
 
         actionsCallbackFunArray.push({
           "action_id": action_id,
@@ -444,7 +495,6 @@ exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actio
   // Showing notification
   let error = new struct_gerror_ptr;
   if (!notify_notification_show(notification, error)) {
-    console.error("Notify_notification_show fails");
     return false;
   }
 
@@ -452,12 +502,7 @@ exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actio
 
   // Connecting closed signal
   if (closeHandler && typeof(closeHandler) === "function") {
-    // Defing callback function for 'closed' signal
-    closedCallbackFunArray.push({
-      "notification_id": notification_id,
-      "handler": closeHandler
-    });
-    g_signal_connect_data(
+    let handlerId = g_signal_connect_data(
       notification,
       ctypes.char.array()("closed"),
       c_close_handler,
@@ -465,6 +510,13 @@ exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actio
       null,
       0
     );
+
+    // Defing callback function for 'closed' signal
+    closedCallbackFunArray.push({
+      "notification_id": notification_id,
+      "handler": closeHandler,
+      "handlerId": handlerId
+    });
   }
 
   return notification_id;

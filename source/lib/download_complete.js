@@ -269,6 +269,8 @@ exports.init = (_notifApi)=>{
 };
 
 exports.deInit = ()=>{
+  notifApi = null;
+  
   // Works only in FF<26
   try {
     let ps = require("sdk/preferences/service");

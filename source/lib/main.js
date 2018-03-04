@@ -161,7 +161,9 @@ function deleteTempFiles() {
 
 /* eslint-disable no-unused-vars */
 exports.main = (options, callbacks)=>{
-/* eslint-enable no-unused-vars */
+  console.log("Load");
+
+  /* eslint-enable no-unused-vars */
   if (!notifApi) {
     if (system.platform === "winnt") {
       notifApi = require("./windows.js");
@@ -230,7 +232,7 @@ exports.main = (options, callbacks)=>{
       system.name == "Icedove" ||
       system.name == "FossaMail") {
     thunderbirdApi = require("./thunderbird.js");
-    thunderbirdApi.init();
+    thunderbirdApi.init(notifApi);
   } else {
     sp.on("test", ()=>{
       utils.showGnotifierNotification("This works only in Thunderbird!");

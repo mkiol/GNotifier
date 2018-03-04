@@ -35,15 +35,19 @@ const nsMsgFolderFlags_Templates = 0x00400000;
 let bufferedMessages = [];
 let timeoutID;
 
+let notifApi = null;  // Notification API for libnotify (Linux only).
+
 // source: https://github.com/protz/thunderbird-stdlib/blob/master/msgHdrUtils.js
 function getMail3Pane() {
   return Cc["@mozilla.org/appshell/window-mediator;1"]
     .getService(Ci.nsIWindowMediator)
     .getMostRecentWindow("mail:3pane");
 }
+
 function msgHdrIsArchive(msgHdr) {
   return msgHdr.folder.getFlag(nsMsgFolderFlags_Archive);
 }
+
 function msgHdrsArchive(msgHdrs) {
   let mail3PaneWindow = getMail3Pane();
   let batchMover = new mail3PaneWindow.BatchMessageMover();
@@ -79,7 +83,6 @@ function bufferMessageNotification(message) {
 }
 
 function showMessageNotificationFromBuffer() {
-
   // Remove all "zombie" messages. Fix for https://github.com/mkiol/GNotifier/issues/166
   let _temp = bufferedMessages.filter(message => message.flags != 0);
   bufferedMessages = _temp;
@@ -127,7 +130,7 @@ function delId(message) {
     message.setStringProperty("gnotifier-notification-id", "");
 }
 
-function deleteMessage(message) {
+/*function deleteMessage(message) {
   try {
     let win = getMail3Pane().msgWindow;
     let messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
@@ -140,6 +143,22 @@ function deleteMessage(message) {
     return false;
   }
   return true;
+}*/
+
+function doCommandOnMessage(message, command) {
+  try {
+    const win = getMail3Pane();
+    let gDBView = win.gFolderDisplay.view.dbView;
+    gDBView.loadMessageByMsgKey(message.messageKey);
+    gDBView.doCommand(command);
+  } catch (e) {
+    console.error("Unable to do command " + command +
+                  " on message. Exception: " + e);
+  }
+}
+
+function deleteMessage(message) {
+  doCommandOnMessage(message, Ci.nsMsgViewCommandType.deleteMsg);
 }
 
 function archiveMessage(message) {
@@ -152,15 +171,22 @@ function archiveMessage(message) {
   }
 }
 
+function junkMessage(message) {
+  doCommandOnMessage(message, Ci.nsMsgViewCommandType.junk);
+}
+
+function flagMessage(message) {
+  doCommandOnMessage(message, Ci.nsMsgViewCommandType.flagMessages);
+}
+
 function markRead(message) {
-  /*console.log("Mark read, subject: " + message.mime2DecodedSubject);
-  console.log("isRead: " + message.isRead);
-  console.log("isFlagged: " + message.isFlagged);
-  console.log("isKilled: " + message.isKilled);
-  console.log("flags: " + message.flags);*/
+  doCommandOnMessage(message, Ci.nsMsgViewCommandType.markMessagesRead);
+}
+
+/*function markRead(message) {
   message.markRead(true);
   message.folder.msgDatabase = null;
-}
+}*/
 
 function showNotification(title, text, message, agregated = false){
   const notifications = require("sdk/notifications");
@@ -178,10 +204,10 @@ function showNotification(title, text, message, agregated = false){
 
   if (message) {
     let id = 0; // Notification ID from libnotify (Linux only).
-    let notifApi = null; // Notification API for libnotify (Linux only).
     let actions = [];
 
     let openAction = {
+      default: sps.newEmailFirstAction === 0,
       label: _("open"),
       handler: ()=>{
         delId(message);
@@ -191,6 +217,7 @@ function showNotification(title, text, message, agregated = false){
       }
     };
     let markReadAction = {
+      default: sps.newEmailFirstAction === 1,
       label: _("Mark_as_read"),
       handler: ()=>{
         delId(message);
@@ -200,6 +227,7 @@ function showNotification(title, text, message, agregated = false){
       }
     };
     let deleteAction = {
+      default: sps.newEmailFirstAction === 2,
       label: _("Delete"),
       handler: ()=>{
         delId(message);
@@ -209,6 +237,7 @@ function showNotification(title, text, message, agregated = false){
       }
     };
     let archiveAction = {
+      default: sps.newEmailFirstAction === 3,
       label: _("Archive"),
       handler: ()=>{
         delId(message);
@@ -217,42 +246,65 @@ function showNotification(title, text, message, agregated = false){
           notifApi.close(id);
       }
     };
+    let junkAction = {
+      default: sps.newEmailFirstAction === 4,
+      label: _("Mark_as_Junk"),
+      handler: ()=>{
+        delId(message);
+        junkMessage(message);
+        if (notifApi)
+          notifApi.close(id);
+      }
+    };
+    let flagAction = {
+      default: sps.newEmailFirstAction === 5,
+      label: _("Add_Star"),
+      handler: ()=>{
+        delId(message);
+        flagMessage(message);
+        if (notifApi)
+          notifApi.close(id);
+      }
+    };
 
     if (agregated) {
       actions.push(openAction);
     } else {
-      switch(sps.clickOptionNewEmail) {
-      case 0:
-        actions.push(openAction);
-        actions.push(markReadAction);
-        actions.push(deleteAction);
-        actions.push(archiveAction);
-        break;
-      case 1:
-        actions.push(markReadAction);
-        actions.push(openAction);
-        actions.push(deleteAction);
-        actions.push(archiveAction);
-        break;
-      case 2:
-        actions.push(deleteAction);
-        actions.push(openAction);
-        actions.push(markReadAction);
-        actions.push(archiveAction);
-        break;
-      case 3:
-        actions.push(archiveAction);
-        actions.push(openAction);
-        actions.push(markReadAction);
-        actions.push(deleteAction);
-        break;
+
+      let actionConf = [
+        sps.newEmailFirstAction,
+        sps.newEmailSecondAction,
+        sps.newEmailThirdAction,
+        sps.newEmailFourthAction
+      ];
+
+      for (let i = 0; i < 4; i++) {
+        switch(actionConf[i]) {
+        case 0:
+          actions.push(openAction);
+          break;
+        case 1:
+          actions.push(markReadAction);
+          break;
+        case 2:
+          actions.push(deleteAction);
+          break;
+        case 3:
+          actions.push(archiveAction);
+          break;
+        case 4:
+          actions.push(junkAction);
+          break;
+        case 5:
+          actions.push(flagAction);
+          break;
+        }
       }
     }
 
     // Do notification with buttons if Linux and
     // buttons are supported in the notify server
-    if (sps.engine === 1 && system.platform === "linux") {
-      notifApi = require("./linux.js");
+    if (sps.engine === 1 && system.platform === "linux" && notifApi) {
       if (notifApi.checkButtonsSupported()) {
         /* eslint-disable no-unused-vars */
         id = notifApi.notifyWithActions(utils.getIcon(), title, text,
@@ -640,8 +692,8 @@ var mailListener = {
       const id = message.getStringProperty("gnotifier-notification-id");
       if (id) {
         //console.log("Message marked as read and has notification_id="+id+" property");
-        if (sps.engine === 1 && system.platform === "linux") {
-          const notifApi = require("./linux.js");
+        if (sps.engine === 1 && system.platform === "linux" && notifApi) {
+          //const notifApi = require("./linux.js");
           notifApi.close(id);
           delId(message);
         }
@@ -674,7 +726,9 @@ var mailListener = {
   }
 };
 
-exports.init = ()=>{
+exports.init = (_notifApi)=>{
+  notifApi = _notifApi;
+
   // Disabling native new email alert
   ps.set("mail.biff.show_alert", false);
 
@@ -712,6 +766,8 @@ exports.init = ()=>{
 };
 
 exports.deInit = ()=>{
+  notifApi = null;
+
   bufferedMessages = [];
 
   // Enabling native new email alert
