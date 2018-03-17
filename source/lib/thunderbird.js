@@ -10,6 +10,8 @@
 
 const {Cc, Ci, Cu} = require("chrome");
 
+var { setTimeout } = require("sdk/timers");
+
 const _ = require("sdk/l10n").get;
 const sps = require("sdk/simple-prefs").prefs;
 const ps = require("sdk/preferences/service");
@@ -45,15 +47,7 @@ function getMail3Pane() {
 }
 
 function msgHdrIsArchive(msgHdr) {
-  return msgHdr.folder.getFlag(nsMsgFolderFlags_Archive);
-}
-
-function msgHdrsArchive(msgHdrs) {
-  let mail3PaneWindow = getMail3Pane();
-  let batchMover = new mail3PaneWindow.BatchMessageMover();
-  batchMover.archiveMessages(msgHdrs.filter(
-    x => !msgHdrIsArchive(x) && getMail3Pane().getIdentityForHeader(x).archiveEnabled
-  ));
+  return msgHdr.folder.getFlag(Ci.nsMsgFolderFlags_Archive);
 }
 
 function getUnreadMessageCount() {
@@ -132,7 +126,7 @@ function delId(message) {
 
 /*function deleteMessage(message) {
   try {
-    let win = getMail3Pane().msgWindow;
+    const win = getMail3Pane().msgWindow;
     let messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
     markRead(message);
     messages.appendElement(message, false);
@@ -145,48 +139,67 @@ function delId(message) {
   return true;
 }*/
 
-function doCommandOnMessage(message, command) {
-  try {
-    const win = getMail3Pane();
-    let gDBView = win.gFolderDisplay.view.dbView;
-    gDBView.loadMessageByMsgKey(message.messageKey);
-    gDBView.doCommand(command);
-  } catch (e) {
-    console.error("Unable to do command " + command +
-                  " on message. Exception: " + e);
-  }
-}
-
 function deleteMessage(message) {
-  doCommandOnMessage(message, Ci.nsMsgViewCommandType.deleteMsg);
+  const win = selectMessage(message);
+  if (win)
+    win.MsgDeleteMessage(false);
+  else
+    console.error("Unable to delete message");
 }
 
 function archiveMessage(message) {
-  try {
-    let messages = [];
-    messages.push(message);
-    msgHdrsArchive(messages);
-  } catch (e) {
-    console.error("Unable to archive message. Exception: " + e);
+  const win = selectMessage(message);
+  if (win) {
+    try {
+      let messages = []; messages.push(message);
+      let batchMover = new win.BatchMessageMover();
+      batchMover.archiveMessages(messages.filter(
+        x => !msgHdrIsArchive(x) && getMail3Pane().getIdentityForHeader(x).archiveEnabled
+      ));
+    } catch (e) {
+      console.error("Unable to archive message. Exception: " + e);
+    }
+  } else {
+    console.error("Unable to archive message");
   }
 }
 
+function markRead(message) {
+  const win = selectMessage(message);
+  if (win)
+    win.MsgMarkMsgAsRead(true);
+  else
+    console.error("Unable to mark message as read");
+}
+
 function junkMessage(message) {
-  doCommandOnMessage(message, Ci.nsMsgViewCommandType.junk);
+  const win = selectMessage(message);
+  if (win)
+    win.MsgJunk();
+  else
+    console.error("Unable to mark message as junk");
 }
 
 function flagMessage(message) {
-  doCommandOnMessage(message, Ci.nsMsgViewCommandType.flagMessages);
+  const win = selectMessage(message);
+  if (win)
+    win.MsgMarkAsFlagged(true);
+  else
+    console.error("Unable to flag message");
 }
 
-function markRead(message) {
-  doCommandOnMessage(message, Ci.nsMsgViewCommandType.markMessagesRead);
+function selectMessage(message) {
+  try {
+    const win = getMail3Pane();
+    win.gFolderTreeView.selectFolder(message.folder);
+    win.gFolderDisplay.show(message.folder);
+    win.gFolderDisplay.selectMessage(message);
+    return win;
+  } catch (e) {
+    console.error("Unable to select message. Exception: " + e);
+    return null;
+  }
 }
-
-/*function markRead(message) {
-  message.markRead(true);
-  message.folder.msgDatabase = null;
-}*/
 
 function showNotification(title, text, message, agregated = false){
   const notifications = require("sdk/notifications");
@@ -372,12 +385,8 @@ function focusWindow(selectTabmail) {
 // https://developer.mozilla.org/docs/Mozilla/Thunderbird/Content_Tabs
 function display(message) {
   // Try opening new tabs in an existing 3pane window
-  let win = getMail3Pane();
+  const win = selectMessage(message);
   if (win) {
-    win.gFolderTreeView.selectFolder(message.folder);
-    win.gFolderDisplay.show(message.folder);
-    win.gFolderDisplay.selectMessage(message);
-
     //INFO: tabmail is not supported in SeaMonkey
     let tabmail = win.document.getElementById("tabmail");
     if (sps.newMailOpen == 0) {

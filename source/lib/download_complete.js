@@ -186,7 +186,7 @@ function testNotification() {
       yield list.add(download);
       yield download.start();
     } catch(e) {
-      console.error(e);
+      console.error("Unable to test download notification. Exception: " + e);
     }
   }).then(null, Cu.reportError);
 }
@@ -270,7 +270,7 @@ exports.init = (_notifApi)=>{
 
 exports.deInit = ()=>{
   notifApi = null;
-  
+
   // Works only in FF<26
   try {
     let ps = require("sdk/preferences/service");
