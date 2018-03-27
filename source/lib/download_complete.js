@@ -77,7 +77,7 @@ function showAggregatedNotification() {
   // Below only makes sense for some linux distros e.g. KDE, Gnome Shell
   // If linux and libnotify is inited, add "Open" button:
   // <input text="Open" type="submit"/>
-  if (sps.engine === 1 && notifApi && system.platform === "linux")
+  if ((sps.engine === 1 || sps.engine === 3) && notifApi && system.platform === "linux")
     text = text+"<input text='"+_("open")+"' type='submit'/>";
 
   // Generate standard desktop notification
@@ -98,7 +98,7 @@ function showDownloadCompleteNotification(path) {
 
   // If engine = 1 & linux & supports action buttons, add 2 actions:
   // open file & open folder
-  if (sps.engine === 1 &&
+  if ((sps.engine === 1 || sps.engine === 3) &&
       notifApi &&
       system.platform === "linux" &&
       notifApi.checkButtonsSupported()) {
@@ -113,14 +113,14 @@ function showDownloadCompleteNotification(path) {
         label: plasma ? _("Folder") : _("Open_folder"),
         handler: ()=>{
           utils.openDir(path);
-          if (id && notifApi && sps.engine === 1 && system.platform === "linux")
+          if (id && notifApi && (sps.engine === 1 || sps.engine === 3) && system.platform === "linux")
             notifApi.close(id);
         }
       }, {
         label: plasma ? _("File") : _("Open_file"),
         handler: ()=>{
           utils.openFile(path);
-          if (id && notifApi && sps.engine === 1 && system.platform === "linux")
+          if (id && notifApi && (sps.engine === 1 || sps.engine === 3) && system.platform === "linux")
             notifApi.close(id);
         }
       }];
@@ -129,14 +129,14 @@ function showDownloadCompleteNotification(path) {
         label: plasma ? _("File") : _("Open_file"),
         handler: ()=>{
           utils.openFile(path);
-          if (id && notifApi && sps.engine === 1 && system.platform === "linux")
+          if (id && notifApi && (sps.engine === 1 || sps.engine === 3) && system.platform === "linux")
             notifApi.close(id);
         }
       }, {
         label: plasma ? _("Folder") : _("Open_folder"),
         handler: ()=>{
           utils.openDir(path);
-          if (id && notifApi && sps.engine === 1 && system.platform === "linux")
+          if (id && notifApi && (sps.engine === 1 || sps.engine === 3) && system.platform === "linux")
             notifApi.close(id);
         }
       }];
@@ -152,7 +152,7 @@ function showDownloadCompleteNotification(path) {
   // Below only makes sense for some linux distros e.g. KDE, Gnome Shell
   // If linux and libnotify is inited, add "Open" button:
   // <input text="Open" type="submit"/>
-  if (sps.engine === 1 && notifApi && system.platform === "linux")
+  if ((sps.engine === 1 || sps.engine === 3) && notifApi && system.platform === "linux")
     text = text+"<input text='"+_("open")+"' type='submit'/>";
 
   // Generate standard desktop notification

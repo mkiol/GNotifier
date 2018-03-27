@@ -320,10 +320,16 @@ function showNotification(title, text, message, agregated = false){
 
     // Do notification with buttons if Linux and
     // buttons are supported in the notify server
-    if (sps.engine === 1 && system.platform === "linux" && notifApi) {
+    if ((sps.engine === 1 || sps.engine === 3) && system.platform === "linux" && notifApi) {
+      const icon = utils.getIcon();
+
+      // Engine 3 - GNotifier + custom command
+      if (sps.engine === 3)
+        utils.executeCustomCommand(title, text, icon);
+
       if (notifApi.checkButtonsSupported()) {
         /* eslint-disable no-unused-vars */
-        id = notifApi.notifyWithActions(utils.getIcon(), title, text,
+        id = notifApi.notifyWithActions(icon, title, text,
           system.name, reason=>{}, actions);
         /* eslint-enable no-unused-vars */
         //console.log("notifyWithActions, id: " + id);
@@ -332,7 +338,7 @@ function showNotification(title, text, message, agregated = false){
         return;
       } else {
         /* eslint-disable no-unused-vars */
-        id = notifApi.notify(utils.getIcon(), title, text, system.name,
+        id = notifApi.notify(icon, title, text, system.name,
           reason=>{}, data=>{
             // Call first top action (default action) on click
             actions[0].handler();
@@ -734,7 +740,7 @@ var mailListener = {
       const id = message.getStringProperty("gnotifier-notification-id");
       if (id) {
         //console.log("Message marked as read and has notification_id="+id+" property");
-        if (sps.engine === 1 && system.platform === "linux" && notifApi) {
+        if ((sps.engine === 1 || sps.engine === 3) && system.platform === "linux" && notifApi) {
           //const notifApi = require("./linux.js");
           notifApi.close(id);
           delId(message);

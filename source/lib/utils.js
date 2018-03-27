@@ -207,6 +207,26 @@ exports.getFileExtension = (filename)=>{
   return a.pop().trim();
 };
 
+exports.executeCustomCommand = (title = "", text = "", imageUrl = "")=>{
+  let command = sps.command;
+
+  console.log("executeCustomCommand1: " + command);
+
+  if (command !== "") {
+    imageUrl = exports.escapeShell(imageUrl);
+    title = exports.escapeShell(title);
+    text = exports.escapeShell(text);
+
+    command = command.replace("%image",imageUrl);
+    command = command.replace("%title",title);
+    command = command.replace("%text",text);
+
+    console.log("executeCustomCommand2: " + command);
+
+    exports.execute(command);
+  }
+};
+
 exports.execute = function(command) {
   const child_process = require("sdk/system/child_process");
   const { env } = require("sdk/system/environment");
@@ -264,7 +284,8 @@ exports.execute = function(command) {
       "JAVA_HOME":env.JAVA_HOME,
       "JAVA_ROOT":env.JAVA_ROOT,
       "JRE_HOME":env.JRE_HOME,
-      "DESKTOP_SESSION":env.DESKTOP_SESSION
+      "DESKTOP_SESSION":env.DESKTOP_SESSION,
+      "XAUTHORITY":env.XAUTHORITY
     }};
   }
 

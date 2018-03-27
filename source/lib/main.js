@@ -47,21 +47,15 @@ AlertsService.prototype = {
     }
 
     // Engine 2 - custom command
-    if (sps.engine === 2) {
-      if (sps.command !== "") {
-        let command = sps["command"];
-
-        imageUrl = utils.escapeShell(imageUrl);
-        title = utils.escapeShell(title);
-        text = utils.escapeShell(text);
-
-        command = command.replace("%image",imageUrl);
-        command = command.replace("%title",title);
-        command = command.replace("%text",text);
-        utils.execute(command);
-      }
-      return;
+    // Engine 3 - GNotifier + custom command
+    if (sps.engine === 2 || sps.engine === 3) {
+      utils.executeCustomCommand(title, text, imageUrl);
+      
+      if (sps.engine === 2)
+        return;
     }
+
+    // Engine 1 - GNotifier
 
     function GNotifier_AlertsService_showAlertNotification_cb(iconPath) {
       let id = null;
@@ -77,7 +71,7 @@ AlertsService.prototype = {
       let clickHandler = textClickable ? ()=>{
         if(alertListener) {
           alertListener.observe(null, "alertclickcallback", cookie);
-          if (id && notifApi && sps.engine === 1 && system.platform === "linux")
+          if (id && notifApi && (sps.engine === 1 || sps.engine === 3) && system.platform === "linux")
             notifApi.close(id);
         }
       } : null;
@@ -199,7 +193,7 @@ exports.main = (options, callbacks)=>{
         utils.showGnotifierNotification("This works only in Linux!");
         return;
       }
-      if (sps.engine !== 1) {
+      if (sps.engine !==1 && sps.engine !==3) {
         utils.showGnotifierNotification("This works only if \"Notification engine\" is set to \"Gnotifier\"!");
         return;
       }
