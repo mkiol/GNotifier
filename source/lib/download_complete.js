@@ -141,11 +141,16 @@ function showDownloadCompleteNotification(path) {
         }
       }];
     }
+
+    const icon = utils.getIcon();
+
+    // Engine 3 - GNotifier + custom command
+    if (sps.engine === 3)
+      utils.executeCustomCommand(title, text, icon);
+
     /* eslint-disable no-unused-vars */
-    id = notifApi.notifyWithActions(utils.getIcon(), title, text,
+    id = notifApi.notifyWithActions(icon, title, text,
       system.name, reason=>{}, actions);
-    if (id)
-      return;
     /* eslint-enable no-unused-vars */
   }
 

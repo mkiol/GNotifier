@@ -7,7 +7,7 @@
         "Joe Simpson <headbangerkenny@gmail.com>",
         "Andrew Nagle <kabili@zyrenth.com>"
     ],
-    "version": "1.13.1",
+    "version": "1.13.2",
     "title": "GNotifier",
     "fullName": "GNotifier",
     "id": "jid1-OoNOA6XBjznvLQ@jetpack",
@@ -368,11 +368,11 @@
             "value": ""
         },
         {
-            "name": "alwaysFocus",
-            "title": "New message notification - Set focus on Thunderbird window on new notification",
-            "description": "When enabled, fucus on Thunderbird window is set when new notification appears.",
+            "name": "urgencyHint",
+            "title": "Set urgency hint on new notification (Linux only)",
+            "description": "When enabled, X11 urgency hint on Thunderbird window is set when new notification appears.",
             "type": "bool",
-            "value": false
+            "value": true
         },
         {
             "name": "test",

@@ -402,6 +402,9 @@ exports.notify = (iconURL, title, text, notifier, closeHandler, clickHandler)=>{
 };
 
 exports.notifyWithActions = (iconURL, title, text, notifier, closeHandler, actionsList)=>{
+  if (sps.urgencyHint)
+    utils.setUrgencyHint();
+
   // Escape unsupported tags
   text = escapeUnsupportedTags(text);
 

@@ -210,8 +210,6 @@ exports.getFileExtension = (filename)=>{
 exports.executeCustomCommand = (title = "", text = "", imageUrl = "")=>{
   let command = sps.command;
 
-  console.log("executeCustomCommand1: " + command);
-
   if (command !== "") {
     imageUrl = exports.escapeShell(imageUrl);
     title = exports.escapeShell(title);
@@ -221,13 +219,17 @@ exports.executeCustomCommand = (title = "", text = "", imageUrl = "")=>{
     command = command.replace("%title",title);
     command = command.replace("%text",text);
 
-    console.log("executeCustomCommand2: " + command);
-
     exports.execute(command);
   }
 };
 
+exports.setUrgencyHint = ()=> {
+  let command = "wmctrl -r '" + system.name + "' -b add,demands_attention";
+  exports.execute(command);
+};
+
 exports.execute = function(command) {
+  console.log("execute: " + command);
   const child_process = require("sdk/system/child_process");
   const { env } = require("sdk/system/environment");
   let c;

@@ -204,9 +204,6 @@ function selectMessage(message) {
 function showNotification(title, text, message, agregated = false){
   const notifications = require("sdk/notifications");
 
-  if (sps.alwaysFocus)
-    focusWindow(false);
-
   // Current implementation of click action doesn't support SeaMonkey,
   // so doing not clickable notification if SeaMonkey
   if (system.name === "SeaMonkey") {
