@@ -7,7 +7,7 @@
         "Joe Simpson <headbangerkenny@gmail.com>",
         "Andrew Nagle <kabili@zyrenth.com>"
     ],
-    "version": "1.13.2",
+    "version": "1.13.3",
     "title": "GNotifier",
     "fullName": "GNotifier",
     "id": "jid1-OoNOA6XBjznvLQ@jetpack",
@@ -16,7 +16,7 @@
     "main": "lib/main.js",
     "engines": {
         "firefox": ">=38.0a1 <=53.*",
-        "{3550f703-e582-4d05-9a08-453d09bdfdc6}": ">=24.1.1 <=56.*",
+        "{3550f703-e582-4d05-9a08-453d09bdfdc6}": ">=24.1.1 <=53.*",
         "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}": ">=2.40",
         "{8de7fcbb-c55c-4fbe-bfc5-fc555c87dbc4}": ">=27.1.0b1 <=27.*"
     },

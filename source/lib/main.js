@@ -57,6 +57,13 @@ AlertsService.prototype = {
 
     // Engine 1 - GNotifier
 
+    if (!notifApi) {
+      console.error("Nofification API is not inited. Fallbacking to standard engine.");
+      origAlertsService.showAlertNotification(imageUrl, title, text,
+        textClickable, cookie, alertListener, name, dir, lang);
+      return;
+    }
+
     function GNotifier_AlertsService_showAlertNotification_cb(iconPath) {
       let id = null;
 
@@ -77,15 +84,19 @@ AlertsService.prototype = {
       } : null;
 
       // Send notification via notifyApi implemenation
-      id = notifApi.notify(iconPath, title, text, system.name,
-        closeHandler, clickHandler);
-      if (id) {
-        // Generating "alertshow"
-        if(alertListener) {
-          alertListener.observe(null, "alertshow", cookie);
+      if (notifApi) {
+        id = notifApi.notify(iconPath, title, text, system.name,
+          closeHandler, clickHandler);
+        if (id) {
+          // Generating "alertshow"
+          if(alertListener) {
+            alertListener.observe(null, "alertshow", cookie);
+          }
+        } else {
+          console.error("Notify fails!");
         }
       } else {
-        console.error("Notify fails!");
+        console.error("Nofification API is not inited");
       }
     }
 
@@ -168,43 +179,45 @@ exports.main = (options, callbacks)=>{
 
   const sp = require("sdk/simple-prefs");
 
-  if(notifApi.init()) {
-    // Replace alert-service
-    const contract = "@mozilla.org/alerts-service;1";
-    let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
-
-    // Unregister built-in alerts-service class factory
-    registrar.unregisterFactory(
-      Cc[contract],
-      Cm.getClassObject(Cc[contract], Ci.nsIFactory)
-    );
-
-    // Register new factory
-    registrar.registerFactory(
-      Cc[contract],
-      "GNotifier Alerts Service",
-      contract,
-      XPCOMUtils.generateSingletonFactory(AlertsService)
-    );
-
-    // Close notification button
-    sp.on("close", function() {
-      if (system.platform !== "linux") {
-        utils.showGnotifierNotification("This works only in Linux!");
-        return;
-      }
-      if (sps.engine !==1 && sps.engine !==3) {
-        utils.showGnotifierNotification("This works only if \"Notification engine\" is set to \"Gnotifier\"!");
-        return;
-      }
-      notifApi.closeAll();
-    });
-
-  } else {
+  if(!notifApi.init()) {
     notifApi = null;
     console.error("Notification API init has failed!");
-    return;
   }
+
+  // Replace alert-service
+  const contract = "@mozilla.org/alerts-service;1";
+  let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
+
+  // Unregister built-in alerts-service class factory
+  registrar.unregisterFactory(
+    Cc[contract],
+    Cm.getClassObject(Cc[contract], Ci.nsIFactory)
+  );
+
+  // Register new factory
+  registrar.registerFactory(
+    Cc[contract],
+    "GNotifier Alerts Service",
+    contract,
+    XPCOMUtils.generateSingletonFactory(AlertsService)
+  );
+
+  // Close notification button
+  sp.on("close", function() {
+    if (system.platform !== "linux") {
+      utils.showGnotifierNotification("This works only in Linux!");
+      return;
+    }
+    if (sps.engine !==1 && sps.engine !==3) {
+      utils.showGnotifierNotification("This works only if \"Notification engine\" is set to \"Gnotifier\"!");
+      return;
+    }
+    if (notifApi) {
+      notifApi.closeAll();
+    } else {
+      utils.showGnotifierNotification("This works only when libnotify is available!");
+    }
+  });
 
   // Test HTML notifications button
   sp.on("devTestButton", function() {
@@ -244,23 +257,23 @@ exports.onUnload = (reason)=>{
   if (notifApi) {
     notifApi.deInit();
     notifApi = null;
-
-    // Unregister current alerts-service class factory
-    const contract = "@mozilla.org/alerts-service;1";
-    let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
-    registrar.unregisterFactory(
-      Cc[contract],
-      Cm.getClassObject(Cc[contract], Ci.nsIFactory)
-    );
-
-    // Register orig alert service factory
-    registrar.registerFactory(
-      Cc[contract],
-      "Orig Alerts Service",
-      contract,
-      origAlertsServiceFactory
-    );
   }
+
+  // Unregister current alerts-service class factory
+  const contract = "@mozilla.org/alerts-service;1";
+  let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
+  registrar.unregisterFactory(
+    Cc[contract],
+    Cm.getClassObject(Cc[contract], Ci.nsIFactory)
+  );
+
+  // Register orig alert service factory
+  registrar.registerFactory(
+    Cc[contract],
+    "Orig Alerts Service",
+    contract,
+    origAlertsServiceFactory
+  );
 
   // Thunderbird deinit
   if (thunderbirdApi) {

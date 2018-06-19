@@ -263,6 +263,8 @@ exports.init = ()=>{
     libc = null;
   }*/
 
+  return false;
+
   if (!libc) {
     console.log("Opening libnotify");
     try {
