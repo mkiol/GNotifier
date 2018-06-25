@@ -257,13 +257,11 @@ exports.checkPlasma = ()=>{
 };
 
 exports.init = ()=>{
-  /*if (libc) {
+  if (libc) {
     console.log("Closing libnotify");
     libc.close();
     libc = null;
-  }*/
-
-  return false;
+  }
 
   if (!libc) {
     console.log("Opening libnotify");
