@@ -3,7 +3,7 @@
 
 # GNotifier
 
-**The project type is no longer supported. GNotifier is incompatible with recent Firefox and Thunderbird versions **
+**The project type is no longer supported. GNotifier is incompatible with recent Firefox and Thunderbird versions**
 
 GNotifier is an add-on for Thunderbird which replaces the built-in notifications with OS native ones.  
 It supports most Linux Desktop Environments as well as Windows 8.1/10.
